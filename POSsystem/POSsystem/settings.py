@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "pos",
     "restaurant",
     "subscription",
+    "widget_tweaks",
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

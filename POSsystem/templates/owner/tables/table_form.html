@@ -1,17 +1,73 @@
-<h2>{% if mode == "create" %}Create Table{% else %}Edit Table{% endif %}</h2>
+{% extends "owner/base.html" %}
+{% load widget_tweaks %} 
+{% block title %}Table Form{% endblock %}
+{% block page_title %}{% if mode == "create" %}Create Table{% else %}Edit Table{% endif %}{% endblock %}
+{% block page_subtitle %}Manage your restaurant tables{% endblock %}
 
-{% if messages %}
-  <ul>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+{% block content %}
+<div class="max-w-3xl bg-white rounded-lg shadow border border-gray-200 mx-auto mt-6">
+    <div class="p-6">
 
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save</button>
-</form>
+        <!-- Messages -->
+        {% if messages %}
+            <ul class="mb-4">
+                {% for message in messages %}
+                    <li class="text-sm text-red-600">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
-<a href="{% url 'table_list' %}">Back to Table List</a>
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Table Name -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Table Name</label>
+                {{ form.name|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.name.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.name.errors }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Table Category -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                {{ form.category|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.category.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.category.errors }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Capacity / Seats -->
+            {% if form.capacity %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                {{ form.capacity|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.capacity.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.capacity.errors }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Active -->
+            <div class="flex items-center gap-2 mt-2">
+                {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500" }}
+                <label class="text-sm text-gray-700">Active</label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center gap-4 pt-4">
+                <button type="submit"
+                        class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                    Save
+                </button>
+                <a href="{% url 'table_list' %}"
+                   class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Back to Table List
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

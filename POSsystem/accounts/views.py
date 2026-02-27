@@ -5,30 +5,22 @@ from django.contrib.auth.decorators import login_required
 
 
 
-
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        business_code = request.POST.get("business_code")
 
         user = authenticate(request, username=username, password=password)
 
         if user:
-
-            # 🔥 SUPERADMIN LOGIN (No business code needed)
+            # 🔥 SUPERADMIN login (no business_code)
             if user.role == "SUPERADMIN":
                 login(request, user)
                 return redirect("superadmin_dashboard")
 
-            # 🔥 Business users must enter business code
-            if not business_code:
-                messages.error(request, "Business code is required.")
-                return redirect("login")
-
-            # 🔥 Prevent crash if business is None
-            if not user.business or user.business.business_code != business_code:
-                messages.error(request, "Invalid Business Code.")
+            # 🔥 For OWNER and staff, automatically use user's business
+            if not user.business:
+                messages.error(request, "User is not linked to any business.")
                 return redirect("login")
 
             login(request, user)
@@ -40,23 +32,22 @@ def login_view(request):
             # 🔥 Redirect based on role
             if user.role == "OWNER":
                 return redirect("owner_dashboard")
-            
-            if user.role == "WAITER":
-                return redirect("waiter_dashboard")
-            
-            # CASHIER
-            
-            if user.role == "CASHIER":
+            elif user.role == "CASHIER":
                 return redirect("reception_dashboard")
-
-            return redirect("kitchen_dashboard")
+            elif user.role == "WAITER":
+                return redirect("waiter_dashboard")
+            elif user.role == "KITCHEN":
+                return redirect("restaurant_kitchen_dashboard")
+            else:
+                # fallback
+                return redirect("login")
 
         else:
             messages.error(request, "Invalid username or password.")
 
     return render(request, "core/login.html")
 
-          
+
 
 @login_required
 def change_password(request):

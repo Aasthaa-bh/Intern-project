@@ -5,10 +5,12 @@ __pycache__/
 *.pyd
 *.pyc
 
+
 # Virtual Environment
 .myenv/
 env/
 .env/
+
 migrations
 
 # Database

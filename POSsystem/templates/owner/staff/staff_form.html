@@ -1,74 +1,87 @@
 {% extends "owner/base.html" %}
+{% load widget_tweaks %} 
 {% block title %}Staff Form{% endblock %}
 {% block page_title %}{% if mode == "create" %}Create Staff{% else %}Edit Staff{% endif %}{% endblock %}
 {% block page_subtitle %}Fill the details below{% endblock %}
 
 {% block content %}
-  <div class="max-w-3xl bg-white rounded-lg shadow border border-gray-200">
+<div class="max-w-3xl bg-white rounded-lg shadow border border-gray-200 mx-auto mt-6">
     <div class="p-6">
-      <form method="POST" class="space-y-5">
-        {% csrf_token %}
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
 
-        <!-- NOTE: for perfect styling, we can add Tailwind classes to widgets in forms.py later -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            {{ form.full_name }}
-            {% if form.full_name.errors %}<p class="text-sm text-red-600 mt-1">{{ form.full_name.errors }}</p>{% endif %}
-          </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    {{ form.full_name|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.full_name.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.full_name.errors }}</p>
+                    {% endif %}
+                </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            {{ form.username }}
-            {% if form.username.errors %}<p class="text-sm text-red-600 mt-1">{{ form.username.errors }}</p>{% endif %}
-          </div>
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    {{ form.username|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.username.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.username.errors }}</p>
+                    {% endif %}
+                </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            {{ form.email }}
-          </div>
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    {{ form.email|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            {{ form.phone_no }}
-          </div>
+                <!-- Phone -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    {{ form.phone_no|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            {{ form.role }}
-          </div>
+                <!-- Role -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    {{ form.role|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
 
-          {% if mode == "create" %}
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Password (optional)</label>
-            {{ form.password }}
-            <p class="text-xs text-gray-500 mt-1">Leave blank to auto-generate a temporary password.</p>
-          </div>
-          {% else %}
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Active</label>
-            {{ form.is_active }}
-          </div>
-          {% endif %}
-        </div>
+                {% if mode == "create" %}
+                <!-- Password -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password (optional)</label>
+                    {{ form.password|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <p class="text-xs text-gray-500 mt-1">Leave blank to auto-generate a temporary password.</p>
+                </div>
+                {% else %}
+                <!-- Active -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Active</label>
+                    {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500" }}
+                </div>
+                {% endif %}
+            </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-          {{ form.address }}
-        </div>
+            <!-- Address -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                {{ form.address|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
 
-        <div class="flex items-center gap-3 pt-2">
-          <button type="submit"
-                  class="px-5 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-            Save
-          </button>
-          <a href="{% url 'staff_list' %}"
-             class="px-5 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
-            Cancel
-          </a>
-        </div>
+            <!-- Buttons -->
+            <div class="flex items-center gap-4 pt-4">
+                <button type="submit"
+                        class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                    Save
+                </button>
+                <a href="{% url 'staff_list' %}"
+                   class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Cancel
+                </a>
+            </div>
 
-      </form>
+        </form>
     </div>
-  </div>
+</div>
 {% endblock %}
