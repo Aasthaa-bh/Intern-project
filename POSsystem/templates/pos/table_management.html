@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Table Management - FlexiPOS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h2 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .tables-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .table-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+    }
+
+    .table-card.available::before {
+        background: #48bb78;
+    }
+
+    .table-card.occupied::before {
+        background: #f56565;
+    }
+
+    .table-card.reserved::before {
+        background: #ed8936;
+    }
+
+    .table-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .table-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .table-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+
+    .table-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 5px;
+    }
+
+    .table-category {
+        color: #718096;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .table-info {
+        background: #f7fafc;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+    }
+
+    .status-available {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-occupied {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .status-reserved {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+    .btn-reserve {
+        background: #ed8936;
+        color: white;
+    }
+
+    .btn-reserve:hover {
+        background: #dd6b20;
+    }
+
+    .btn-available {
+        background: #48bb78;
+        color: white;
+    }
+
+    .btn-available:hover {
+        background: #38a169;
+    }
+
+    .btn-disabled {
+        background: #cbd5e0;
+        color: #718096;
+        cursor: not-allowed;
+    }
+
+    .category-section {
+        margin-bottom: 40px;
+    }
+
+    .category-title {
+        color: white;
+        font-size: 24px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Table Management</h2>
+    <p style="color: rgba(255,255,255,0.9);">Reserve tables or make them available</p>
+</div>
+
+{% regroup tables by category as table_categories %}
+
+{% for category in table_categories %}
+<div class="category-section">
+    <div class="category-title">
+         {{ category.grouper.name }} Tables
+    </div>
+    
+    <div class="tables-grid">
+        {% for table in category.list %}
+        <div class="table-card {{ table.status|lower }}">
+            <div class="table-header">
+                <div class="table-icon">
+                    {% if table.status == 'AVAILABLE' %}🟢
+                    {% elif table.status == 'OCCUPIED' %}🔴
+                    {% else %}🟡{% endif %}
+                </div>
+                <div class="table-name">{{ table.name }}</div>
+                <div class="table-category">{{ table.category.name }}</div>
+            </div>
+
+            <span class="status-badge status-{{ table.status|lower }}">
+                {{ table.get_status_display }}
+            </span>
+
+            <div class="table-info">
+                <div class="info-row">
+                    <span> Capacity:</span>
+                    <strong>{{ table.capacity }} people</strong>
+                </div>
+                <div class="info-row">
+                    <span> Status:</span>
+                    <strong>{{ table.get_status_display }}</strong>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                {% if table.status == 'AVAILABLE' %}
+                <button class="action-btn btn-reserve" onclick="updateTableStatus({{ table.id }}, 'RESERVED', '{{ table.name }}')">
+                     Reserve
+                </button>
+                {% elif table.status == 'RESERVED' %}
+                <button class="action-btn btn-available" onclick="updateTableStatus({{ table.id }}, 'AVAILABLE', '{{ table.name }}')">
+                     Make Available
+                </button>
+                {% elif table.status == 'OCCUPIED' %}
+                <button class="action-btn btn-disabled" disabled>
+                    🔴 Has Active Order
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function updateTableStatus(tableId, newStatus, tableName) {
+        const action = newStatus === 'RESERVED' ? 'reserve' : 'make available';
+        
+        if (confirm(`${action.toUpperCase()} table ${tableName}?`)) {
+            try {
+                const response = await fetch(`/pos/table/${tableId}/update-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(' ' + data.message);
+                    location.reload();
+                } else {
+                    alert(' Error: ' + data.error);
+                }
+            } catch (error) {
+                alert(' Error: ' + error.message);
+            }
+        }
+    }
+</script>
+{% endblock %}

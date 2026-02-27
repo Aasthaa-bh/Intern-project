@@ -1,0 +1,60 @@
+{% extends "owner/base.html" %}
+{% block title %}Menu Items{% endblock %}
+{% block page_title %}Menu Items{% endblock %}
+{% block page_subtitle %}Create and manage your restaurant menu{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5 flex items-center justify-between">
+      <div>
+        <div class="text-base font-semibold text-gray-900">Items</div>
+        <div class="text-sm text-gray-500">Items are shown to cashier/waiter</div>
+      </div>
+      <a href="{% url 'item_create' %}"
+         class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+        + Add Item
+      </a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Name</th>
+            <th class="text-left px-5 py-3 font-medium">Category</th>
+            <th class="text-left px-5 py-3 font-medium">Price</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-right px-5 py-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          {% for item in items %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3">{{ item.name }}</td>
+            <td class="px-5 py-3">{{ item.category.name }}</td>
+            <td class="px-5 py-3">Rs {{ item.price }}</td>
+            <td class="px-5 py-3">
+              {% if item.is_active %}
+                <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Active</span>
+              {% else %}
+                <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-right">
+              <a href="{% url 'item_edit' item.id %}"
+                 class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                Edit
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-5 py-10 text-center text-gray-500">No items found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kitchen Dashboard</title>
+  <style>
+    :root {
+      --bg: #f3f5f7;
+      --panel: #ffffff;
+      --line: #d9e0e6;
+      --ink: #102331;
+      --sub: #556571;
+      --accent: #0f6c9c;
+      --warn: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; gap: 16px; }
+    .header { background: linear-gradient(120deg, #0f6c9c, #0b4f73); color: #fff; border-radius: 12px; padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .card, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+    .card p { margin: 0; color: var(--sub); font-size: 13px; }
+    .card h3 { margin: 8px 0 0; font-size: 28px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--sub); font-weight: 600; }
+    .badge { display: inline-block; background: #e8f4fb; color: var(--accent); border: 1px solid #b8d8ea; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 600; }
+    .empty { color: var(--warn); padding: 18px 0 6px; font-weight: 600; }
+    .alertbox { border: 1px solid #f3c07a; background: #fff7ed; border-radius: 10px; padding: 12px; }
+    .alertbox h2 { margin: 0 0 8px; font-size: 18px; color: #9a3412; }
+    .alertlist { margin: 0; padding-left: 18px; }
+    .row-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .row-actions select { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font-size: 12px; }
+    .row-actions button { border: 0; border-radius: 6px; padding: 5px 8px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .stage-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .stage-PENDING { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+    .stage-COOKING { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
+    .stage-READY { background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; }
+    .btn-soft { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: #fff; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-soft.active { background: #102331; color: #fff; border-color: #102331; }
+    .inline-form { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 0; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .header { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="header">
+      <div>
+        <h1 style="margin:0">Kitchen Dashboard</h1>
+        <p style="margin:6px 0 0; opacity:.9">Live queue for active food preparation</p>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <a href="{% url 'restaurant_kitchen_stock' %}" style="color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.45); border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600;">Kitchen Stock</a>
+        <span class="badge">Open Orders: {{ open_order_count }}</span>
+      </div>
+    </section>
+
+    <section class="summary">
+      <article class="card"><p>Dine In</p><h3>{{ dine_in_count }}</h3></article>
+      <article class="card"><p>Takeaway</p><h3>{{ takeaway_count }}</h3></article>
+      <article class="card"><p>Delivery</p><h3>{{ delivery_count }}</h3></article>
+      <article class="card"><p>Total Open</p><h3>{{ open_order_count }}</h3></article>
+      <article class="card"><p>Pending</p><h3>{{ pending_count }}</h3></article>
+      <article class="card"><p>Cooking</p><h3>{{ cooking_count }}</h3></article>
+      <article class="card"><p>Ready</p><h3>{{ ready_count }}</h3></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2 style="margin:0 0 8px">Prep Summary</h2>
+        {% if grouped_items %}
+        <table>
+          <thead><tr><th>Item</th><th>Total Qty</th><th>Orders</th></tr></thead>
+          <tbody>
+            {% for row in grouped_items %}
+            <tr>
+              <td>{{ row.item_name_snapshot }}</td>
+              <td>{{ row.total_qty }}</td>
+              <td>{{ row.order_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No open order items in queue.</p>
+        {% endif %}
+      </article>
+
+      <article class="panel">
+        <h2 style="margin:0 0 8px">Open Orders</h2>
+        {% if orders %}
+        <table>
+          <thead><tr><th>Order #</th><th>Type</th><th>Table</th><th>Opened</th><th>Kitchen Stage</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td>{{ order.order_no }}</td>
+              <td>{{ order.get_order_type_display }}</td>
+              <td>{% if order.table %}{{ order.table.name }}{% else %}-{% endif %}</td>
+              <td>{{ order.opened_at }}</td>
+              <td>
+                <span class="stage-badge stage-{{ order.kitchen_status }}">{{ order.kitchen_status|title }}</span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <form method="post" action="{% url 'restaurant_kitchen_order_status_update' order.id %}" class="inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="kitchen_status" value="PENDING">
+                    <button type="submit" class="btn-soft {% if order.kitchen_status == 'PENDING' %}active{% endif %}">Pending</button>
+                  </form>
+                  <form method="post" action="{% url 'restaurant_kitchen_order_status_update' order.id %}" class="inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="kitchen_status" value="COOKING">
+                    <button type="submit" class="btn-soft {% if order.kitchen_status == 'COOKING' %}active{% endif %}">Cooking</button>
+                  </form>
+                  <form method="post" action="{% url 'restaurant_kitchen_order_status_update' order.id %}" class="inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="kitchen_status" value="READY">
+                    <button type="submit" class="btn-soft {% if order.kitchen_status == 'READY' %}active{% endif %}">Ready</button>
+                  </form>
+                </div>
+                <form method="post" action="{% url 'restaurant_kitchen_order_status_update' order.id %}" class="row-actions" style="margin-top:6px;">
+                  {% csrf_token %}
+                  <select name="status">
+                    <option value="OPEN" {% if order.status == "OPEN" %}selected{% endif %}>Open</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                  <button type="submit">Order Status</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No active orders right now.</p>
+        {% endif %}
+      </article>
+    </section>
+  </main>
+</body>
+</html>

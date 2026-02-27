@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SuperAdmin Panel</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .layout {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #111827;
+            color: white;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background: #1f2937;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            background: #f3f4f6;
+        }
+
+        .topbar {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <div class="sidebar">
+        <h2>SuperAdmin</h2>
+
+        <a href="{% url 'superadmin_dashboard' %}">Dashboard</a>
+        <a href="{% url 'superadmin_requests' %}">Business Requests</a>
+        <a href="{% url 'package_list' %}">Packages</a>
+        <a href="{% url 'subscription_list' %}">Subscriptions</a>
+        <a href="{% url 'payment_list' %}">Payments</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <div class="content">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="
+                padding: 10px;
+                margin-bottom: 15px;
+                background-color: #d1fae5;
+                border: 1px solid #10b981;
+                color: #065f46;
+                border-radius: 5px;
+            ">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% block content %}
+    {% endblock %}
+
+   </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Create Invoice{% endblock %}
+
+{% block page_title %}Create Invoice for Table {{ table.table_number }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'table_bill' table.id %}" class="btn btn-secondary">← Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Invoice Information</div>
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Customer Name</label>
+            <input type="text" name="customer_name" class="form-control" placeholder="Enter customer name" value="Guest">
+        </div>
+        
+        <div class="form-group">
+            <label>Customer Phone (Optional - for loyalty points)</label>
+            <input type="tel" name="customer_phone" class="form-control" placeholder="98XXXXXXXX">
+        </div>
+        
+        <div class="form-group">
+            <label>Subtotal Amount (Rs.)</label>
+            <input type="number" name="subtotal" class="form-control" step="0.01" required placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+            <label>Discount Amount (Rs.)</label>
+            <input type="number" name="discount" class="form-control" step="0.01" value="0" placeholder="0.00">
+        </div>
+        
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <p style="color: #666; font-size: 14px; margin-bottom: 5px;">Tax (13%) will be calculated automatically</p>
+            <p style="color: #666; font-size: 14px;">Total = Subtotal + Tax - Discount</p>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;">
+            Create Invoice
+        </button>
+    </form>
+</div>
+{% endblock %}

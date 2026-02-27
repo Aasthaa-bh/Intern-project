@@ -1,0 +1,12 @@
+<h2>Choose Your Plan</h2>
+
+{% for package in packages %}
+    <div>
+        <h3>{{ package.name }}</h3>
+        <p>Duration: {{ package.duration_months }} months</p>
+        <p>Max Users: {{ package.max_users }}</p>
+        <p>Price: Rs {{ package.price }}</p>
+
+        <a href="{% url 'choose_package' package.id %}">Choose Plan</a>
+    </div>
+{% endfor %}

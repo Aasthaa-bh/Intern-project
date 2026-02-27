@@ -1,0 +1,76 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Tables - FlexiPOS{% endblock %}
+
+{% block page_title %}Table Management{% endblock %}
+
+{% block content %}
+<!-- Status Summary -->
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 30px;">
+    <div class="stat-card">
+        <div class="icon">✅</div>
+        <div class="value">{{ available_count }}</div>
+        <div class="label">Available</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🔴</div>
+        <div class="value">{{ occupied_count }}</div>
+        <div class="label">Occupied</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📅</div>
+        <div class="value">{{ reserved_count }}</div>
+        <div class="label">Reserved</div>
+    </div>
+</div>
+
+<!-- Tables Grid -->
+<div class="card">
+    <div class="card-header">All Tables</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        {% for table in tables %}
+        <a href="{% url 'table_bill' table.id %}" style="text-decoration: none;">
+            <div style="background: {% if table.status == 'AVAILABLE' %}#f9f9f9{% elif table.status == 'OCCUPIED' %}#e0e0e0{% else %}#f0f0f0{% endif %}; 
+                        border: 2px solid {% if table.status == 'AVAILABLE' %}#ddd{% elif table.status == 'OCCUPIED' %}#999{% else %}#ccc{% endif %}; 
+                        border-radius: 8px; 
+                        padding: 30px 20px; 
+                        text-align: center; 
+                        transition: all 0.3s;
+                        cursor: pointer;">
+                <div style="font-size: 48px; margin-bottom: 10px;">
+                    {% if table.status == 'AVAILABLE' %}✅
+                    {% elif table.status == 'OCCUPIED' %}🔴
+                    {% else %}📅{% endif %}
+                </div>
+                <div style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px;">
+                    Table {{ table.table_number }}
+                </div>
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                    Capacity: {{ table.capacity }}
+                </div>
+                <div style="background: {% if table.status == 'AVAILABLE' %}#fff{% elif table.status == 'OCCUPIED' %}#666{% else %}#999{% endif %}; 
+                            color: {% if table.status == 'AVAILABLE' %}#333{% else %}#fff{% endif %}; 
+                            padding: 6px 12px; 
+                            border-radius: 4px; 
+                            font-size: 12px; 
+                            font-weight: 600;
+                            display: inline-block;">
+                    {{ table.status }}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #999;">
+            No tables found
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    a > div:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

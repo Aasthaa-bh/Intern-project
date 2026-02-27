@@ -1,0 +1,9 @@
+<h2>{% if mode == "create" %}Create Table Category{% else %}Edit Table Category{% endif %}</h2>
+
+<form method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'table_category_list' %}">Back</a>

@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}Kitchen Display - FlexiPOS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h2 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .columns-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .column-header {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .column-header h3 {
+        color: white;
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .column-header p {
+        color: rgba(255,255,255,0.8);
+        margin: 5px 0 0 0;
+        font-size: 14px;
+    }
+
+    .dine-in-header {
+        background: rgba(72, 187, 120, 0.2);
+    }
+
+    .takeaway-header {
+        background: rgba(237, 137, 54, 0.2);
+    }
+
+    .delivery-header {
+        background: rgba(102, 126, 234, 0.2);
+    }
+
+    .kitchen-order-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .kitchen-order-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .kitchen-order-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+    }
+
+    .kitchen-order-card.senttokitchen::before {
+        background: #ed8936;
+    }
+
+    .kitchen-order-card.preparing::before {
+        background: #4299e1;
+    }
+
+    .kitchen-order-card.ready::before {
+        background: #48bb78;
+    }
+
+    .kitchen-order-card.senttocashier::before {
+        background: #e53e3e;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .order-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+    }
+
+    .order-time {
+        font-size: 14px;
+        color: #718096;
+    }
+
+    .order-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .meta-item {
+        padding: 10px;
+        background: #f7fafc;
+        border-radius: 8px;
+    }
+
+    .meta-label {
+        font-size: 12px;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+
+    .meta-value {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2d3748;
+    }
+
+    .items-list {
+        margin-bottom: 20px;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 16px;
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .item-qty {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: bold;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+    .btn-preparing {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-preparing:hover {
+        background: #3182ce;
+    }
+
+    .btn-ready {
+        background: #48bb78;
+        color: white;
+    }
+
+    .btn-ready:hover {
+        background: #38a169;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .status-senttokitchen {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+
+    .status-preparing {
+        background: #bee3f8;
+        color: #2c5282;
+    }
+
+    .status-ready {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-senttocashier {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .empty-column {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        color: #718096;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Kitchen Display</h2>
+    <p style="color: rgba(255,255,255,0.9);">Orders organized by type</p>
+</div>
+
+<div class="columns-container">
+    <!-- Dine-In Column -->
+    <div>
+        <div class="column-header dine-in-header">
+            <h3>Dine-In Orders</h3>
+            <p>{{ dine_in_orders|length }} orders</p>
+        </div>
+        
+        {% if dine_in_orders %}
+            {% for kitchen_order in dine_in_orders %}
+                {% include 'pos/kitchen_order_card.html' with kitchen_order=kitchen_order %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-column">
+                No dine-in orders
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Takeaway Column -->
+    <div>
+        <div class="column-header takeaway-header">
+            <h3>Takeaway Orders</h3>
+            <p>{{ takeaway_orders|length }} orders</p>
+        </div>
+        
+        {% if takeaway_orders %}
+            {% for kitchen_order in takeaway_orders %}
+                {% include 'pos/kitchen_order_card.html' with kitchen_order=kitchen_order %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-column">
+                No takeaway orders
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Delivery Column -->
+    <div>
+        <div class="column-header delivery-header">
+            <h3>Delivery Orders</h3>
+            <p>{{ delivery_orders|length }} orders</p>
+        </div>
+        
+        {% if delivery_orders %}
+            {% for kitchen_order in delivery_orders %}
+                {% include 'pos/kitchen_order_card.html' with kitchen_order=kitchen_order %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-column">
+                No delivery orders
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function updateStatus(kitchenOrderId, newStatus) {
+        try {
+            const response = await fetch(`/pos/kitchen/${kitchenOrderId}/update-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function sendToCashier(orderId) {
+        if (!confirm('Send this order to CASHIER?\n\nWARNING: Bill will be LOCKED and you cannot add more items!\n\nAre you sure?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/pos/order/${orderId}/send-to-cashier/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Auto-refresh every 30 seconds
+    setTimeout(() => {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}

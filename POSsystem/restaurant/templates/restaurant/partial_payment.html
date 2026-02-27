@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partial Payment - FlexiPOS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .header { 
+            background: rgba(255,255,255,0.95); 
+            padding: 25px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { color: #667eea; font-size: 32px; }
+        .back-btn { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 12px 25px; 
+            text-decoration: none; 
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        .container { max-width: 600px; margin: 40px auto; padding: 20px; }
+        .payment-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .invoice-summary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .invoice-summary h2 { font-size: 18px; margin-bottom: 10px; opacity: 0.9; }
+        .invoice-summary .amount { font-size: 48px; font-weight: bold; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; }
+        select, input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+        select:focus, input:focus { outline: none; border-color: #f5576c; }
+        button { width: 100%; padding: 18px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Partial Payment</h1>
+        <a href="{% url 'guest_bill' invoice.id %}" class="back-btn">← Back</a>
+    </div>
+    
+    <div class="container">
+        <div class="payment-card">
+            <div class="invoice-summary">
+                <h2>Total Amount</h2>
+                <div class="amount">₹{{ invoice.total_amount }}</div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="amount">Enter Partial Amount:</label>
+                    <input type="number" step="0.01" id="amount" name="amount" placeholder="Enter amount" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="payment_method">Payment Method:</label>
+                    <select id="payment_method" name="payment_method" required>
+                        <option value="">Select Method</option>
+                        <option value="CASH">💵 Cash</option>
+                        <option value="ESEWA">📱 eSewa</option>
+                    </select>
+                </div>
+                
+                <button type="submit">✓ Process Partial Payment</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

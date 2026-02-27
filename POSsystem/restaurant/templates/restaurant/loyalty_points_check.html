@@ -1,0 +1,73 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Loyalty Points{% endblock %}
+
+{% block page_title %}Loyalty Points Check{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Check Customer Loyalty Points</div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Customer Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="98XXXXXXXX" required value="{{ customer_phone }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Check Points</button>
+    </form>
+</div>
+
+{% if customer_phone %}
+<div class="card">
+    <div class="card-header">Customer Information</div>
+    <table>
+        <tr>
+            <td><strong>Customer Name:</strong></td>
+            <td>{{ customer_name }}</td>
+        </tr>
+        <tr>
+            <td><strong>Phone Number:</strong></td>
+            <td>{{ customer_phone }}</td>
+        </tr>
+        <tr style="background: #f0f0f0;">
+            <td><strong>Current Balance:</strong></td>
+            <td><strong style="font-size: 24px;">{{ current_balance }} Points</strong></td>
+        </tr>
+    </table>
+</div>
+
+{% if transactions %}
+<div class="card">
+    <div class="card-header">Transaction History</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Points</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.created_at|date:"M d, Y h:i A" }}</td>
+                <td>
+                    <span style="background: {% if transaction.transaction_type == 'EARN' %}#e0e0e0{% else %}#f0f0f0{% endif %}; 
+                                 padding: 4px 10px; 
+                                 border-radius: 4px; 
+                                 font-size: 12px; 
+                                 font-weight: 600;">
+                        {{ transaction.transaction_type }}
+                    </span>
+                </td>
+                <td><strong>{% if transaction.transaction_type == 'EARN' %}+{% else %}-{% endif %}{{ transaction.points }}</strong></td>
+                <td>{{ transaction.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

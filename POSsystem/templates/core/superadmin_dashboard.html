@@ -1,0 +1,16 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<h1>SuperAdmin Dashboard</h1>
+
+<p>Welcome {{ request.user.username }}</p>
+
+<h3>Quick Stats</h3>
+<ul>
+    <li>Total Businesses: {{ total_business }}</li>
+    <li>Total Packages: {{ total_packages }}</li>
+    <li>Total Subscriptions: {{ total_subscriptions }}</li>
+    <li>Active Subscriptions: {{ active_subscriptions }}</li>
+</ul>
+
+{% endblock %}

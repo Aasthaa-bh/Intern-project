@@ -1,0 +1,76 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block page_title %}Payment History{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Filter Payments</div>
+    <form method="GET" style="display: flex; gap: 15px; align-items: end;">
+        <div class="form-group" style="margin: 0; flex: 1;">
+            <label>From Date</label>
+            <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control">
+        </div>
+        <div class="form-group" style="margin: 0; flex: 1;">
+            <label>To Date</label>
+            <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'payment_history' %}" class="btn btn-secondary">Clear</a>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">Payment Records ({{ payments.count }} total)</div>
+    {% if payments %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Transaction ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.processed_at|date:"M d, Y h:i A" }}</td>
+                <td>
+                    <a href="{% url 'guest_bill' payment.invoice.id %}" style="color: #1a1a1a; text-decoration: none; font-weight: 600;">
+                        {{ payment.invoice.invoice_number }}
+                    </a>
+                </td>
+                <td>{{ payment.invoice.customer_name|default:"Guest" }}</td>
+                <td>
+                    <span style="background: #f0f0f0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                        {{ payment.payment_method }}
+                    </span>
+                </td>
+                <td><strong>Rs. {{ payment.amount }}</strong></td>
+                <td>
+                    <span style="background: {% if payment.payment_status == 'COMPLETED' %}#e0e0e0{% elif payment.payment_status == 'PENDING' %}#f0f0f0{% else %}#ddd{% endif %}; 
+                                 padding: 4px 10px; 
+                                 border-radius: 4px; 
+                                 font-size: 12px; 
+                                 font-weight: 600;">
+                        {{ payment.payment_status }}
+                    </span>
+                </td>
+                <td style="font-family: monospace; font-size: 12px;">{{ payment.transaction_id|truncatechars:20 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: #999;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+        <p>No payment records found</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

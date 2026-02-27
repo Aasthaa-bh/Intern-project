@@ -1,0 +1,46 @@
+{% extends "owner/base.html" %}
+{% block title %}Table Categories{% endblock %}
+{% block page_title %}Table Categories{% endblock %}
+{% block page_subtitle %}Organize your restaurant seating{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow border border-gray-200">
+
+  <div class="p-5 flex items-center justify-between">
+    <div>
+      <div class="text-base font-semibold text-gray-900">Categories</div>
+      <div class="text-sm text-gray-500">Example: VIP, Normal, Outdoor</div>
+    </div>
+    <a href="{% url 'table_category_create' %}"
+       class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+      + Add Category
+    </a>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600">
+        <tr>
+          <th class="text-left px-5 py-3 font-medium">Name</th>
+          <th class="text-left px-5 py-3 font-medium">Code Prefix</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for c in categories %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-5 py-3">{{ c.name }}</td>
+          <td class="px-5 py-3">{{ c.code_prefix }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2" class="px-5 py-10 text-center text-gray-500">
+            No table categories created yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

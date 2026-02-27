@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Owner Panel{% endblock %}</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="min-h-screen flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-gray-900 text-white flex flex-col">
+      <div class="px-6 py-5 border-b border-gray-800">
+        <div class="text-xl font-bold">🍽 FlexiPOS</div>
+        <div class="text-xs text-gray-400 mt-1">Owner Panel</div>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        <!-- Dashboard -->
+        <a href="{% url 'owner_dashboard' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.path == '/owner/dashboard/' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Dashboard</span>
+        </a>
+
+        <!-- Staff -->
+        <a href="{% url 'staff_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if '/owner/staff/' in request.path %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Staff Management</span>
+        </a>
+
+        <!-- MENU MANAGEMENT -->
+        <div class="mt-2">
+          <button onclick="toggleMenu()" 
+                  class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+            <span class="text-sm font-medium">Menu</span>
+            <span id="menuArrow">▾</span>
+          </button>
+
+          <div id="menuSubmenu" class="ml-4 mt-1 space-y-1">
+            <a href="{% url 'category_list' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+              Categories
+            </a>
+
+            <a href="{% url 'item_list' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+              Menu Items
+            </a>
+          </div>
+        </div>
+
+        <!-- TABLE MANAGEMENT -->
+        <div class="mt-2">
+          <button onclick="toggleTables()" 
+                  class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+            <span class="text-sm font-medium">Tables</span>
+            <span id="tableArrow">▾</span>
+          </button>
+
+          <div id="tableSubmenu" class="ml-4 mt-1 space-y-1">
+            <a href="{% url 'table_category_list' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+              Table Categories
+            </a>
+
+            <a href="{% url 'table_list' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+              Dining Tables
+            </a>
+          </div>
+        </div>
+
+        <!-- Loyalty -->
+        <a href="{% url 'loyalty_settings' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if '/owner/loyalty' in request.path %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Loyalty Settings</span>
+        </a>
+
+      </nav>
+
+      <div class="p-4 border-t border-gray-800 text-xs text-gray-400">
+        Logged in as <span class="text-gray-200">{{ request.user.username }}</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col">
+
+      <!-- TOPBAR -->
+      <header class="bg-white border-b border-gray-200">
+        <div class="flex items-center justify-between px-6 py-4">
+          <div>
+            <div class="text-lg font-semibold text-gray-900">{% block page_title %}{% endblock %}</div>
+            <div class="text-xs text-gray-500">{% block page_subtitle %}{% endblock %}</div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-700">
+              {{ request.user.full_name }}
+            </div>
+
+            <!-- Top-right Logout -->
+            <!-- IMPORTANT: this needs a real logout url name in urls.py -->
+            <a href="{% url 'logout' %}"
+               class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
+              Logout
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="p-6">
+        {% if messages %}
+          <div class="space-y-2 mb-4">
+            {% for message in messages %}
+              <div class="rounded-md px-4 py-3 bg-green-100 text-green-800 text-sm">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+</body>
+</html>

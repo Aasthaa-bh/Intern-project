@@ -1,0 +1,15 @@
+<h2>Reject Business Request</h2>
+
+<p><strong>Business:</strong> {{ req.business_name }}</p>
+<p><strong>Owner:</strong> {{ req.owner_name }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <label>Reason for Rejection:</label><br>
+    <textarea name="reason" rows="4" cols="50" required></textarea>
+    <br><br>
+
+    <button type="submit">Submit Rejection</button>
+    <a href="{% url 'superadmin_dashboard' %}">Cancel</a>
+</form>

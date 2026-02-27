@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Bill - FlexiPOS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .header { 
+            background: rgba(255,255,255,0.95); 
+            padding: 25px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { color: #667eea; font-size: 32px; }
+        .back-btn { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 12px 25px; 
+            text-decoration: none; 
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        .container { max-width: 600px; margin: 40px auto; padding: 20px; }
+        .split-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .invoice-summary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .invoice-summary h2 { font-size: 18px; margin-bottom: 10px; }
+        .invoice-summary .amount { font-size: 48px; font-weight: bold; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; }
+        input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+        input:focus { outline: none; border-color: #fcb69f; }
+        button { width: 100%; padding: 18px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; }
+        .split-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .split-option {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .split-option:hover {
+            border-color: #fcb69f;
+            background: #fff8f0;
+        }
+        .split-option.selected {
+            border-color: #fcb69f;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✂️ Split Bill</h1>
+        <a href="{% url 'guest_bill' invoice.id %}" class="back-btn">← Back</a>
+    </div>
+    
+    <div class="container">
+        <div class="split-card">
+            <div class="invoice-summary">
+                <h2>Total Amount</h2>
+                <div class="amount">₹{{ invoice.total_amount }}</div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Split Between:</label>
+                    <div class="split-options">
+                        <div class="split-option" onclick="selectSplit(2, this)">
+                            <div style="font-size: 32px;">2</div>
+                            <div>People</div>
+                        </div>
+                        <div class="split-option" onclick="selectSplit(3, this)">
+                            <div style="font-size: 32px;">3</div>
+                            <div>People</div>
+                        </div>
+                        <div class="split-option" onclick="selectSplit(4, this)">
+                            <div style="font-size: 32px;">4</div>
+                            <div>People</div>
+                        </div>
+                    </div>
+                    <input type="number" name="split_count" id="split_count" placeholder="Or enter custom number" min="2" required>
+                </div>
+                
+                <button type="submit">Calculate Split</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function selectSplit(count, element) {
+            document.querySelectorAll('.split-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('split_count').value = count;
+        }
+    </script>
+</body>
+</html>

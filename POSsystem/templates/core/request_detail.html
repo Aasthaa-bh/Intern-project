@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request Detail</title>
+</head>
+<body>
+
+<h2>Business Request Detail</h2>
+
+<p><strong>Business Name:</strong> {{ req.business_name }}</p>
+<p><strong>Owner Name:</strong> {{ req.owner_name }}</p>
+<p><strong>Email:</strong> {{ req.email }}</p>
+<p><strong>Phone:</strong> {{ req.phone_no }}</p>
+<p><strong>Business Type:</strong> {{ req.business_type }}</p>
+<p><strong>Address:</strong> {{ req.address }}</p>
+
+<hr>
+
+<h3>PAN Image</h3>
+<img src="{{ req.pan_image.url }}" width="300">
+
+<h3>Citizenship Image</h3>
+<img src="{{ req.citizenship_image.url }}" width="300">
+
+<hr>
+
+<a href="{% url 'approve_request' req.id %}">Approve</a> |
+<a href="{% url 'reject_request' req.id %}">Reject</a> |
+<a href="{% url 'superadmin_dashboard' %}">Back</a>
+
+</body>
+</html>

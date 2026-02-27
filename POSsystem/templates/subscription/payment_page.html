@@ -1,0 +1,41 @@
+<h2>Payment</h2>
+
+<div style="border:1px solid #ccc; padding:20px; width:350px; border-radius:6px;">
+    <h3>Plan: {{ subscription.package.name }}</h3>
+    <p>Duration: {{ subscription.package.duration_months }} months</p>
+    <p>Max Users: {{ subscription.package.max_users }}</p>
+    <p><strong>Amount: Rs {{ subscription.package.price }}</strong></p>
+
+    <hr>
+
+    <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+
+        <input type="hidden" name="amount" value="{{ total_amount }}">
+        <input type="hidden" name="tax_amount" value="0">
+        <input type="hidden" name="total_amount" value="{{ total_amount }}">
+        <input type="hidden" name="transaction_uuid" value="{{ transaction_uuid }}">
+        <input type="hidden" name="product_code" value="{{ product_code }}">
+        <input type="hidden" name="product_service_charge" value="0">
+        <input type="hidden" name="product_delivery_charge" value="0">
+
+        <input type="hidden" name="success_url"
+        value="https://nonsystematic-cary-modestly.ngrok-free.dev/esewa/success/">
+
+        <input type="hidden" name="failure_url"
+        value="https://nonsystematic-cary-modestly.ngrok-free.dev/esewa/failure/">
+
+        <!-- IMPORTANT NEW FIELDS -->
+        <input type="hidden" name="signed_field_names"
+        value="total_amount,transaction_uuid,product_code">
+
+        <input type="hidden" name="signature" value="{{ signature }}">
+
+        <button type="submit">Pay with eSewa</button>
+
+    </form>
+
+        
+
+    <br>
+    <a href="{% url 'owner_dashboard' %}">Cancel</a>
+</div>

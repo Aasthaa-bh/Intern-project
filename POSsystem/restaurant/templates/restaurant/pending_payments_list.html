@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Payments - FlexiPOS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header { 
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            color: white;
+            padding: 10px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(196, 69, 105, 0.4);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .stats {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stats h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .stats p {
+            color: #666;
+            font-size: 14px;
+        }
+        .payments-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .highlight-row {
+            background: #fff3cd !important;
+        }
+        .highlight-row:hover {
+            background: #ffe69c !important;
+        }
+        .payment-method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .method-esewa {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .method-esewa {
+            background: #d4f5d4;
+            color: #2e7d32;
+        }
+        .verify-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .time-elapsed {
+            color: #666;
+            font-size: 13px;
+        }
+        .time-warning {
+            color: #f57c00;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⏳ Pending Payments</h1>
+        <a href="{% url 'reception_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="stats">
+            <h2>Awaiting Verification</h2>
+            <p>{{ payments_data|length }} payment(s) pending verification</p>
+        </div>
+        
+        {% if payments_data %}
+        <div class="payments-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Customer</th>
+                        <th>Table</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Time Elapsed</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in payments_data %}
+                    <tr {% if data.highlight %}class="highlight-row"{% endif %}>
+                        <td><strong>{{ data.payment.invoice.invoice_number }}</strong></td>
+                        <td>{{ data.payment.invoice.customer_name|default:"Guest" }}</td>
+                        <td>
+                            {% if data.payment.invoice.table %}
+                                Table {{ data.payment.invoice.table.table_number }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td><strong>Rs. {{ data.payment.amount }}</strong></td>
+                        <td>
+                            <span class="payment-method method-{{ data.payment.payment_method|lower }}">
+                                {{ data.payment.payment_method }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="time-elapsed {% if data.highlight %}time-warning{% endif %}">
+                                {{ data.elapsed_minutes }} min ago
+                                {% if data.highlight %}⚠️{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'verify_payment' data.payment.id %}" class="verify-btn">
+                                ✓ Verify
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>✅ All Clear!</h2>
+            <p>No pending payments at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

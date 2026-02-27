@@ -1,0 +1,124 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Reception Dashboard - FlexiPOS{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon">🪑</div>
+        <div class="value">{{ total_tables }}</div>
+        <div class="label">Total Tables</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🔴</div>
+        <div class="value">{{ occupied_tables }}</div>
+        <div class="label">Occupied Tables</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🟢</div>
+        <div class="value">{{ available_tables }}</div>
+        <div class="label">Available Tables</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📋</div>
+        <div class="value">{{ today_orders }}</div>
+        <div class="label">Today's Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">💰</div>
+        <div class="value">Rs. {{ today_revenue }}</div>
+        <div class="label">Today's Revenue</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">⏳</div>
+        <div class="value">
+            <a href="{% url 'pending_invoices' %}" style="text-decoration: none; color: inherit;">{{ pending_invoices }}</a>
+        </div>
+        <div class="label">Pending Invoices</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">⏰</div>
+        <div class="value">
+            <a href="{% url 'pending_payments_list' %}" style="text-decoration: none; color: inherit;">{{ pending_payments }}</a>
+        </div>
+        <div class="label">Pending Payments</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📱</div>
+        <div class="value">Rs. {{ esewa_today_amount }}</div>
+        <div class="label">eSewa Today ({{ esewa_today_count }})</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">💵</div>
+        <div class="value">Rs. {{ cash_today_amount }}</div>
+        <div class="label">Cash Today ({{ cash_today_count }})</div>
+    </div>
+</div>
+
+<!-- Recent Completed Payments -->
+{% if recent_payments %}
+<div class="card">
+    <div class="card-header">
+        ✅ Recent Completed Payments
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in recent_payments %}
+            <tr>
+                <td>{{ payment.processed_at|date:"h:i A" }}</td>
+                <td><strong>{{ payment.invoice.invoice_number }}</strong></td>
+                <td>{{ payment.invoice.customer_name|default:"Guest" }}</td>
+                <td>
+                    <span style="background: #f0f0f0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                        {{ payment.payment_method }}
+                    </span>
+                </td>
+                <td><strong>Rs. {{ payment.amount }}</strong></td>
+                <td>
+                    <span style="background: #e0e0e0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                        ✓ COMPLETED
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">Quick Actions</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <a href="{% url 'table_check' %}" class="btn btn-primary" style="text-align: center; padding: 20px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">🪑</div>
+            <div>Table Management</div>
+        </a>
+        <a href="{% url 'pending_payments_list' %}" class="btn btn-secondary" style="text-align: center; padding: 20px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
+            <div>Pending Payments</div>
+        </a>
+        <a href="{% url 'payment_history' %}" class="btn btn-secondary" style="text-align: center; padding: 20px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">💳</div>
+            <div>Payment History</div>
+        </a>
+        <a href="{% url 'loyalty_points_check' %}" class="btn btn-secondary" style="text-align: center; padding: 20px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">⭐</div>
+            <div>Loyalty Points</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

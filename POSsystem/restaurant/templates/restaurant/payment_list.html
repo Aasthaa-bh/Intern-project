@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment List - FlexiPOS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            min-height: 100vh;
+        }
+        .header { 
+            background: rgba(255,255,255,0.95);
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { color: #c44569; font-size: 32px; }
+        .back-btn { 
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(196, 69, 105, 0.4);
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 69, 105, 0.6);
+        }
+        .container { 
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .filter-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .filter-card h3 {
+            color: #c44569;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        .filter-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(196, 69, 105, 0.4);
+        }
+        .clear-btn {
+            background: #95a5a6;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .clear-btn:hover {
+            background: #7f8c8d;
+        }
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .table-header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            color: white;
+            padding: 20px 30px;
+        }
+        .table-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .table-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        table { 
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #f8f9fa;
+        }
+        th {
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+        tbody tr {
+            transition: all 0.3s;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .method-cash {
+            background: #d4edda;
+            color: #155724;
+        }
+        .method-esewa {
+            background: #d4f5d4;
+            color: #155724;
+        }
+        .method-esewa {
+            background: #d1f2eb;
+            color: #0e6655;
+        }
+        .method-card {
+            background: #d6eaf8;
+            color: #1b4f72;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+        .empty-state h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .amount {
+            font-weight: 600;
+            color: #27ae60;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Payment List</h1>
+        <a href="{% url 'reception_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+    </div>
+    
+    <div class="container">
+        <div class="filter-card">
+            <h3>🔍 Filter Payments</h3>
+            <form method="GET" class="filter-form">
+                <div class="filter-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" value="{{ date_filter }}">
+                </div>
+                <div class="filter-group">
+                    <label for="method">Payment Method</label>
+                    <select id="method" name="method">
+                        <option value="">All Methods</option>
+                        {% for method_code, method_name in payment_methods %}
+                        <option value="{{ method_code }}" {% if method_filter == method_code %}selected{% endif %}>
+                            {{ method_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="filter-btn">Apply Filter</button>
+                <a href="{% url 'payment_list' %}" class="clear-btn">Clear</a>
+            </form>
+        </div>
+        
+        <div class="table-card">
+            <div class="table-header">
+                <h2>All Payments</h2>
+                <p>Manage and view all payment transactions</p>
+            </div>
+            
+            {% if payments %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Transaction ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.processed_at|date:"d M Y, h:i A" }}</td>
+                        <td style="font-weight: 600;">{{ payment.invoice.invoice_number }}</td>
+                        <td>{{ payment.invoice.customer_name|default:"Guest" }}</td>
+                        <td>
+                            <span class="method-badge method-{{ payment.payment_method|lower }}">
+                                {% if payment.payment_method == 'CASH' %}💵{% elif payment.payment_method == 'ESEWA' %}📱{% else %}💳{% endif %}
+                                {{ payment.payment_method }}
+                            </span>
+                        </td>
+                        <td class="amount">Rs. {{ payment.amount }}</td>
+                        <td>
+                            <span class="status-badge status-{{ payment.payment_status|lower }}">
+                                {{ payment.payment_status }}
+                            </span>
+                        </td>
+                        <td style="font-size: 12px; color: #999;">{{ payment.transaction_id|truncatechars:20 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h2>📭 No Payments Found</h2>
+                <p>No payment records match your filter criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

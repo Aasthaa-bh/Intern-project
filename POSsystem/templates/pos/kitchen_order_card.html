@@ -1,0 +1,75 @@
+<div class="kitchen-order-card {{ kitchen_order.status|lower|cut:'_' }}" style="cursor: pointer; margin-bottom: 20px;" onclick="window.location.href='/pos/order/{{ kitchen_order.order.id }}/';">
+    <div class="order-header">
+        <div>
+            <div class="order-number">{{ kitchen_order.order.order_no }}</div>
+            <div class="order-time">
+                {{ kitchen_order.sent_at|date:"d M Y" }} 
+                {{ kitchen_order.sent_at|time:"h:i A" }}
+            </div>
+        </div>
+        <span class="status-badge status-{{ kitchen_order.status|lower|cut:'_' }}">
+            {{ kitchen_order.get_status_display }}
+        </span>
+    </div>
+
+    <div class="order-meta">
+        {% if kitchen_order.order.table %}
+        <div class="meta-item">
+            <div class="meta-label">Table</div>
+            <div class="meta-value">{{ kitchen_order.order.table.name }}</div>
+        </div>
+        {% endif %}
+        <div class="meta-item">
+            <div class="meta-label">Waiter</div>
+            <div class="meta-value">{{ kitchen_order.order.created_by.get_full_name|default:kitchen_order.order.created_by.username }}</div>
+        </div>
+    </div>
+
+    <div class="items-list">
+        {% for item in kitchen_order.order.items.all %}
+        <div class="item-row">
+            <span class="item-name">{{ item.item_name_snapshot }}</span>
+            <span class="item-qty">{{ item.quantity }}x</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if kitchen_order.order.notes %}
+    <div style="padding: 12px; background: #fef5e7; border-radius: 8px; margin-bottom: 15px;">
+        <strong>Notes:</strong> {{ kitchen_order.order.notes }}
+    </div>
+    {% endif %}
+
+    <div class="action-buttons" style="display: flex; flex-direction: column; gap: 10px;">
+        {% if kitchen_order.status == 'SENT_TO_KITCHEN' %}
+        <button class="action-btn btn-preparing" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'PREPARING')">
+            Preparing
+        </button>
+        {% elif kitchen_order.status == 'PREPARING' %}
+        <button class="action-btn btn-ready" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'READY')">
+            Done/Ready
+        </button>
+        {% elif kitchen_order.status == 'READY' %}
+        <div style="text-align: center; padding: 15px; background: #c6f6d5; color: #22543d; border-radius: 8px; font-weight: bold;">
+            READY FOR PICKUP
+        </div>
+        {% elif kitchen_order.status == 'SENT_TO_CASHIER' %}
+        <div style="text-align: center; padding: 15px; background: #fed7d7; color: #742a2a; border-radius: 8px; font-weight: bold;">
+            SENT TO CASHIER
+        </div>
+        {% endif %}
+        
+        {% if kitchen_order.status != 'SENT_TO_CASHIER' %}
+        <button class="action-btn" onclick="event.stopPropagation(); window.location.href='/pos/order/{{ kitchen_order.order.id }}/';" style="background: #667eea; color: white;">
+            Add Items
+        </button>
+        <button class="action-btn" onclick="event.stopPropagation(); sendToCashier({{ kitchen_order.order.id }})" style="background: #ed8936; color: white;">
+            Send to Cashier
+        </button>
+        {% else %}
+        <div style="text-align: center; margin-top: 10px; color: #e53e3e; font-size: 14px; font-weight: bold;">
+            Bill Locked - No Editing
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,51 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %}Pending Invoices{% endblock %}
+
+{% block page_title %}Pending Invoices{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">All Pending Invoices ({{ invoices.count }} total)</div>
+    {% if invoices %}
+    <table>
+        <thead>
+            <tr>
+                <th>Invoice #</th>
+                <th>Date</th>
+                <th>Table</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td><strong>{{ invoice.invoice_number }}</strong></td>
+                <td>{{ invoice.created_at|date:"M d, Y h:i A" }}</td>
+                <td>{% if invoice.table %}Table {{ invoice.table.table_number }}{% else %}N/A{% endif %}</td>
+                <td>{{ invoice.customer_name|default:"Guest" }}</td>
+                <td><strong>Rs. {{ invoice.total_amount }}</strong></td>
+                <td>
+                    <span style="background: #f0f0f0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                        {{ invoice.status }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'guest_bill' invoice.id %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">View Bill</a>
+                    <a href="{% url 'process_payment' invoice.id %}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Pay Now</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: #999;">
+        <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+        <p>No pending invoices</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

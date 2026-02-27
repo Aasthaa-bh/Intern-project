@@ -1,0 +1,90 @@
+{% extends "superadmin/base.html" %}
+           
+
+{% block content %}
+
+<h2>Business Requests</h2>
+
+<!-- Pending Requests -->
+<h3>Pending Requests</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Business</th>
+        <th>Owner</th>
+        <th>Email</th>
+        <th>Action</th>
+    </tr>
+
+    {% for req in pending_requests %}
+    <tr>
+        <td>{{ req.business_name }}</td>
+        <td>{{ req.owner_name }}</td>
+        <td>{{ req.email }}</td>
+        <td>
+            <a href="{% url 'request_detail' req.id %}">View</a> |
+            <a href="{% url 'approve_request' req.id %}">Approve</a> |
+            <a href="{% url 'reject_request' req.id %}">Reject</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No Pending Requests</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+
+<!-- Approved Requests -->
+<h3>Approved Requests</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Business</th>
+        <th>Owner</th>
+        <th>Email</th>
+        <th>Reviewed At</th>
+    </tr>
+
+    {% for req in approved_requests %}
+    <tr>
+        <td>{{ req.business_name }}</td>
+        <td>{{ req.owner_name }}</td>
+        <td>{{ req.email }}</td>
+        <td>{{ req.reviewed_at }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No Approved Requests</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+
+<!-- Rejected Requests -->
+<h3>Rejected Requests</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Business</th>
+        <th>Owner</th>
+        <th>Email</th>
+        <th>Reason</th>
+        <th>Reviewed At</th>
+    </tr>
+
+    {% for req in rejected_requests %}
+    <tr>
+        <td>{{ req.business_name }}</td>
+        <td>{{ req.owner_name }}</td>
+        <td>{{ req.email }}</td>
+        <td>{{ req.rejection_reason }}</td>
+        <td>{{ req.reviewed_at }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No Rejected Requests</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+<h2>{% if mode == "create" %}Create Table{% else %}Edit Table{% endif %}</h2>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<form method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'table_list' %}">Back to Table List</a>

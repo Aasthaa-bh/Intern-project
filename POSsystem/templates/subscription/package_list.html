@@ -1,0 +1,34 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<h2>Packages</h2>
+
+<a href="{% url 'package_create' %}">Create Package</a>
+
+<table border="1">
+<tr>
+    <th>Name</th>
+    <th>Duration</th>
+    <th>Max Users</th>
+    <th>Price</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+
+{% for package in packages %}
+<tr>
+    <td>{{ package.name }}</td>
+    <td>{{ package.duration_months }}</td>
+    <td>{{ package.max_users }}</td>
+    <td>{{ package.price }}</td>
+    <td>{{ package.is_active }}</td>
+    <td>
+        <a href="{% url 'package_update' package.id %}">Edit</a>
+        <a href="{% url 'package_delete' package.id %}">Delete</a>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}

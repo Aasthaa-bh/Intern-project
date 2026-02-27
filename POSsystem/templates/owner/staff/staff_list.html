@@ -1,0 +1,81 @@
+{% extends "owner/base.html" %}
+{% block title %}Staff Management{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+{% block page_subtitle %}Create and manage cashier, waiter and kitchen users{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5 flex items-center justify-between">
+      <div>
+        <div class="text-base font-semibold text-gray-900">Staff List</div>
+        <div class="text-sm text-gray-500">Only staff under your business are shown</div>
+      </div>
+      <a href="{% url 'staff_create' %}"
+         class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+        + Create Staff
+      </a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Username</th>
+            <th class="text-left px-5 py-3 font-medium">Full Name</th>
+            <th class="text-left px-5 py-3 font-medium">Role</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-right px-5 py-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          {% for s in staff_list %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3">{{ s.username }}</td>
+              <td class="px-5 py-3">{{ s.full_name }}</td>
+              <td class="px-5 py-3">{{ s.role }}</td>
+              <td class="px-5 py-3">
+                {% if s.is_active %}
+                  <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Active</span>
+                {% else %}
+                  <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">Inactive</span>
+                {% endif %}
+              </td>
+
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end gap-2">
+                  <a href="{% url 'staff_edit' s.id %}"
+                     class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Edit
+                  </a>
+
+                  <form method="POST" action="{% url 'staff_toggle_active' s.id %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                      {% if s.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                  </form>
+
+                  <form method="POST" action="{% url 'staff_reset_password' s.id %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-3 py-1.5 rounded-md bg-amber-500 text-white hover:bg-amber-600">
+                      Reset Password
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="px-5 py-10 text-center text-gray-500">
+                No staff found. Create your first cashier/waiter/kitchen user.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

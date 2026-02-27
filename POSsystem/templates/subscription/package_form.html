@@ -1,0 +1,34 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+
+<h2>
+    {% if package %} Edit Package {% else %} Create Package {% endif %}
+</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ package.name|default:'' }}"><br><br>
+
+    <label>Duration (Months):</label><br>
+    <input type="number" name="duration_months" value="{{ package.duration_months|default:'' }}"><br><br>
+
+    <label>Max Users:</label><br>
+    <input type="number" name="max_users" value="{{ package.max_users|default:'' }}"><br><br>
+
+    <label>Price:</label><br>
+    <input type="number" step="0.01" name="price" value="{{ package.price|default:'' }}"><br><br>
+
+    <label>
+        <input type="checkbox" name="is_active"
+        {% if package.is_active %} checked {% endif %}>
+        Active
+    </label><br><br>
+
+    <button type="submit">Save</button>
+
+</form>
+
+{% endblock %}

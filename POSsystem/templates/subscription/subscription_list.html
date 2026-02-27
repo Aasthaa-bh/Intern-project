@@ -1,0 +1,26 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<h2>Subscriptions</h2>
+
+<table border="1">
+<tr>
+    <th>Business</th>
+    <th>Package</th>
+    <th>Status</th>
+    <th>Start</th>
+    <th>End</th>
+</tr>
+
+{% for sub in subscriptions %}
+<tr>
+    <td>{{ sub.business.business_name }}</td>
+    <td>{{ sub.package.name }}</td>
+    <td>{{ sub.status }}</td>
+    <td>{{ sub.start_date }}</td>
+    <td>{{ sub.end_date }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

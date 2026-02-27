@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Waiter Dashboard of the FlexiPOS system{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .dashboard-header h2 {
+        color: white;
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-header p {
+        color: rgba(255,255,255,0.9);
+        font-size: 18px;
+    }
+
+    .order-type-section {
+        margin-bottom: 50px;
+    }
+
+    .order-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .order-type-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 3px solid transparent;
+    }
+
+    .order-type-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+    }
+
+    .type-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .type-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+
+    .type-desc {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .tables-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .table-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .table-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .table-card.available {
+        border: 2px solid #48bb78;
+    }
+
+    .table-card.occupied {
+        border: 2px solid #f56565;
+        opacity: 0.7;
+    }
+
+    .table-card.reserved {
+        border: 2px solid #ed8936;
+    }
+
+    .table-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    .table-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 8px;
+    }
+
+    .table-category {
+        color: #718096;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .table-capacity {
+        color: #a0aec0;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .table-status {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .status-available {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-occupied {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .status-reserved {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+
+    .category-section {
+        margin-bottom: 40px;
+    }
+
+    .category-title {
+        color: white;
+        font-size: 24px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>Create New Order</h2>
+    <p>Select order type first</p>
+</div>
+
+<!-- Order Type Selection -->
+<div class="order-type-section">
+    <h3 style="color: white; text-align: center; margin-bottom: 30px;">Choose Order Type</h3>
+    
+    <div class="order-types-grid">
+        <div class="order-type-card" onclick="selectOrderType('DINE_IN')">
+            <div class="type-icon"></div>
+            <div class="type-name">Dine In</div>
+            <div class="type-desc">Customer eats at restaurant</div>
+        </div>
+        
+        <div class="order-type-card" onclick="selectOrderType('TAKEAWAY')">
+            <div class="type-icon"></div>
+            <div class="type-name">Takeaway</div>
+            <div class="type-desc">Customer picks up order</div>
+        </div>
+        
+        <div class="order-type-card" onclick="selectOrderType('DELIVERY')">
+            <div class="type-icon"></div>
+            <div class="type-name">Delivery</div>
+            <div class="type-desc">Deliver to customer</div>
+        </div>
+    </div>
+</div>
+
+<!-- Table Selection (Only for Dine-In) -->
+<div id="tableSelection" style="display: none;">
+    <div class="dashboard-header" style="margin-top: 50px;">
+        <h2>Select a Table</h2>
+    </div>
+
+    {% regroup tables by category as table_categories %}
+
+    {% for category in table_categories %}
+    <div class="category-section">
+        <div class="category-title">
+            {{ category.grouper.name }} Tables
+        </div>
+        
+        <div class="tables-grid">
+            {% for table in category.list %}
+            <!-- <div class="table-card {{ table.status|lower }}" 
+                 onclick="selectTable({{ table.id }}, '{{ table.status }}')"> -->
+            <div class="table-card {{ table.status|lower }}"
+                data-id="{{ table.id }}"
+                data-status="{{ table.status }}"
+                onclick="selectTable(this)">
+                <div class="table-icon">
+                    {% if table.status == 'AVAILABLE' %}🟢
+                    {% elif table.status == 'OCCUPIED' %}🔴
+                    {% elif table.status == 'RESERVED' %}🟠
+                    {% else %}🟡{% endif %}
+                </div>
+                <div class="table-name">{{ table.name }}</div>
+                <div class="table-category">{{ table.category.name }}</div>
+                <div class="table-capacity"> Capacity: {{ table.capacity }}</div>
+                <span class="table-status status-{{ table.status|lower }}">
+                    {{ table.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not tables %}
+    <div class="card">
+        <p style="text-align: center; color: #718096;">No tables available. Please contact administrator.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedOrderType = null;
+
+    function selectOrderType(orderType) {
+        selectedOrderType = orderType;
+        
+        if (orderType === 'DINE_IN') {
+            // Show table selection
+            document.getElementById('tableSelection').style.display = 'block';
+            // Scroll to table selection
+            document.getElementById('tableSelection').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // For TAKEAWAY and DELIVERY, go directly to menu
+            window.location.href = `/pos/create-order-direct/?order_type=${orderType}`;
+        }
+    }
+
+    function selectTable(element) {
+
+    const tableId = element.dataset.id;
+    const status = element.dataset.status;
+
+    if (status === 'RESERVED') {
+        alert('This table is reserved. Please check with management.');
+        return;
+    }
+
+    window.location.href = `/pos/table/${tableId}/select/?order_type=DINE_IN`;
+}
+</script>
+{% endblock %}

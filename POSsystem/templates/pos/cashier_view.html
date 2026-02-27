@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}Cashier - FlexiPOS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h2 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+        gap: 25px;
+    }
+
+    .cashier-order-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cashier-order-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, #48bb78, #38a169);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #e2e8f0;
+    }
+
+    .order-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2d3748;
+    }
+
+    .ready-badge {
+        background: #c6f6d5;
+        color: #22543d;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .order-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .info-item {
+        padding: 12px;
+        background: #f7fafc;
+        border-radius: 10px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #718096;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2d3748;
+    }
+
+    .items-section {
+        margin-bottom: 25px;
+    }
+
+    .items-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 15px;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 16px;
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 4px;
+    }
+
+    .item-price-qty {
+        font-size: 14px;
+        color: #718096;
+    }
+
+    .item-total {
+        font-weight: bold;
+        color: #2d3748;
+        font-size: 18px;
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-payment {
+        background: #48bb78;
+        color: white;
+    }
+
+    .btn-payment:hover {
+        background: #38a169;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+
+    .locked-indicator {
+        background: #fed7d7;
+        color: #742a2a;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Cashier - Orders Ready for Payment</h2>
+    <p style="color: rgba(255,255,255,0.9);">These orders are locked and ready for payment</p>
+</div>
+
+{% if orders_with_totals %}
+<div class="orders-grid">
+    {% for order_data in orders_with_totals %}
+    <div class="cashier-order-card">
+        <div class="order-header">
+            <div class="order-number">{{ order_data.order.order_no }}</div>
+            <span class="ready-badge">LOCKED</span>
+        </div>
+
+        <div class="order-info">
+            <div class="info-item">
+                <div class="info-label">Table</div>
+                <div class="info-value">{{ order_data.order.table.name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Waiter</div>
+                <div class="info-value">{{ order_data.order.created_by.get_full_name|default:order_data.order.created_by.username }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Order Time</div>
+                <div class="info-value">{{ order_data.order.opened_at|time:"h:i A" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Sent to Cashier</div>
+                <div class="info-value">{{ order_data.order.kitchen_order.sent_to_cashier_at|time:"h:i A" }}</div>
+            </div>
+        </div>
+
+        <div class="locked-indicator">
+            Order Locked - Cannot Add Items
+        </div>
+
+        <div class="items-section">
+            <div class="items-title">Order Items</div>
+            {% for item in order_data.order.items.all %}
+            <div class="item-row">
+                <div class="item-details">
+                    <div class="item-name">{{ item.item_name_snapshot }}</div>
+                    <div class="item-price-qty">Rs{{ item.unit_price }} × {{ item.quantity }}</div>
+                </div>
+                <div class="item-total">Rs{{ item.line_total }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if order_data.order.notes %}
+        <div style="padding: 12px; background: #fef5e7; border-radius: 8px; margin-bottom: 15px;">
+            <strong>Notes:</strong> {{ order_data.order.notes }}
+        </div>
+        {% endif %}
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>TOTAL AMOUNT:</span>
+                <span>Rs{{ order_data.subtotal }}</span>
+            </div>
+        </div>
+
+        <button class="action-btn btn-payment" onclick="completeOrder({{ order_data.order.id }}, {{ order_data.subtotal }}, '{{ order_data.order.table.name }}')">
+            Complete Order & Free Table
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"></div>
+    <h3>No Orders Ready for Payment</h3>
+    <p>Waiting for waiters to send orders to cashier...</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function completeOrder(orderId, amount, tableName) {
+        if (confirm(`Complete order and free up table ${tableName}?\n\nTotal Amount: Rs${amount}\n\nThis will:\n- Mark order as COMPLETED\n- Make table AVAILABLE for new orders`)) {
+            try {
+                const response = await fetch(`/pos/order/${orderId}/complete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+    }
+
+    // Auto-refresh every 30 seconds
+    setTimeout(() => {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}
