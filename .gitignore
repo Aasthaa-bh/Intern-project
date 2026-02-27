@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual Environment
+.myenv/
+env/
+.env/
+migrations
+
+# Database
+db.sqlite3
+
+# MySQL local settings
+*.sql
+
+# Environment variables
+.env
+
+.venv
+
+# Static & Media compiled files
+staticfiles/
+media/
+
+
+
+# Logs
+*.log
+
+
+# OS files
+.DS_Store
+
