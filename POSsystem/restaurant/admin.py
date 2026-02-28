@@ -1,9 +1,16 @@
 from django.contrib import admin
 from .models import (
+    TableCategory,
     DiningTable, 
     Ingredient, 
     InventoryStockHistory,
 )
+
+@admin.register(TableCategory)
+class TableCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code_prefix','business', 'created_at']
+    list_filter = ['business']
+    search_fields = ['name']
 
 
 @admin.register(DiningTable)

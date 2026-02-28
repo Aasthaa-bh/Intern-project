@@ -55,6 +55,8 @@ def table_create(request):
             table.save()
             messages.success(request, "Table created successfully.")
             return redirect("table_list")
+        else:
+            print("FORM ERRORS:", form.errors)   
     else:
         form = DiningTableForm(business=request.user.business)
 

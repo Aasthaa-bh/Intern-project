@@ -16,57 +16,60 @@
                 {% endfor %}
             </ul>
         {% endif %}
+        
+        {% if form.non_field_errors %}
+            <div class="mb-4 text-red-600">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <form method="POST" class="space-y-6">
             {% csrf_token %}
 
-            <!-- Table Name -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Table Name</label>
-                {{ form.name|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                {% if form.name.errors %}
-                    <p class="text-sm text-red-600 mt-1">{{ form.name.errors }}</p>
-                {% endif %}
-            </div>
+            {{ form.non_field_errors }}
 
-            <!-- Table Category -->
+            <!-- Category -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                {{ form.category|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                {% if form.category.errors %}
-                    <p class="text-sm text-red-600 mt-1">{{ form.category.errors }}</p>
-                {% endif %}
+                {{ form.category|add_class:"w-full border border-gray-300 rounded-md px-3 py-2" }}
+                {{ form.category.errors }}
             </div>
 
-            <!-- Capacity / Seats -->
-            {% if form.capacity %}
+            <!-- Table Number -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Table Number</label>
+                {{ form.number|add_class:"w-full border border-gray-300 rounded-md px-3 py-2" }}
+                {{ form.number.errors }}
+            </div>
+
+            <!-- Capacity -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
-                {{ form.capacity|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                {% if form.capacity.errors %}
-                    <p class="text-sm text-red-600 mt-1">{{ form.capacity.errors }}</p>
-                {% endif %}
+                {{ form.capacity|add_class:"w-full border border-gray-300 rounded-md px-3 py-2" }}
+                {{ form.capacity.errors }}
             </div>
-            {% endif %}
 
-            <!-- Active -->
-            <div class="flex items-center gap-2 mt-2">
-                {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500" }}
-                <label class="text-sm text-gray-700">Active</label>
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                {{ form.status|add_class:"w-full border border-gray-300 rounded-md px-3 py-2" }}
+                {{ form.status.errors }}
             </div>
 
             <!-- Buttons -->
             <div class="flex items-center gap-4 pt-4">
                 <button type="submit"
-                        class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                    class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                     Save
                 </button>
+
                 <a href="{% url 'table_list' %}"
-                   class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
                     Back to Table List
                 </a>
             </div>
-
         </form>
     </div>
 </div>

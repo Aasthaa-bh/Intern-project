@@ -22,6 +22,7 @@
       <thead class="bg-gray-50 text-gray-600">
         <tr>
           <th class="text-left px-5 py-3 font-medium">Table Name</th>
+           <th class="text-left px-5 py-3 font-medium">Table Number</th>
           <th class="text-left px-5 py-3 font-medium">Category</th>
           <th class="text-left px-5 py-3 font-medium">Capacity</th>
           <th class="text-left px-5 py-3 font-medium">Status</th>
@@ -31,6 +32,7 @@
         {% for t in tables %}
         <tr class="hover:bg-gray-50">
           <td class="px-5 py-3">{{ t.name }}</td>
+          <td class="px-5 py-3">{{ t.number }}</td>
           <td class="px-5 py-3">{{ t.category.name }}</td>
           <td class="px-5 py-3">{{ t.capacity }}</td>
           <td class="px-5 py-3">
