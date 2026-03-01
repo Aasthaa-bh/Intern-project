@@ -35,16 +35,21 @@
     .btn-small { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
     .btn-secondary { background: #475467; }
     .inline-form { display: inline; margin: 0; }
-    .edit-box { margin-top: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; }
+    .edit-box { margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; }
     .edit-box form { display: grid; gap: 8px; }
-    .edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .edit-row { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 8px; }
+    .edit-row .note-field { grid-column: 1 / -1; }
     .action-stack { display: grid; gap: 6px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { color: var(--sub); font-weight: 600; }
     .low { color: var(--danger); font-weight: 700; }
     .ok { color: var(--ok); font-weight: 600; }
-    @media (max-width: 900px) { .grid, .row { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      .grid, .row { grid-template-columns: 1fr; }
+      .edit-row { grid-template-columns: 1fr; }
+      .edit-row .note-field { grid-column: auto; }
+    }
   </style>
 </head>
 <body>
@@ -165,7 +170,7 @@
                                   <label>Price</label>
                                   <input type="number" step="0.01" min="0" name="price" value="{{ change.edit_price }}" placeholder="0.00">
                                 </div>
-                                <div>
+                                <div class="note-field">
                                   <label>Note</label>
                                   <input type="text" name="note" value="{{ change.edit_note }}" placeholder="Optional note">
                                 </div>
