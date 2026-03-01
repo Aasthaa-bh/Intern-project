@@ -205,7 +205,7 @@
         {% if orders %}
         <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-          <thead><tr><th>Order #</th><th>Type</th><th>Table</th><th>Opened</th><th>Kitchen Stage</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Order #</th><th>Type</th><th>Table</th><th>Opened</th><th>Waiting</th><th>Kitchen Stage</th><th>Actions</th></tr></thead>
           <tbody>
             {% for order in orders %}
             <tr>
@@ -213,6 +213,7 @@
               <td>{{ order.get_order_type_display }}</td>
               <td>{% if order.table %}{{ order.table.name }}{% else %}-{% endif %}</td>
               <td>{{ order.opened_at|date:"M d, H:i" }}</td>
+              <td><span class="badge {{ order.waiting_badge_class }}">{{ order.elapsed_minutes }} min</span></td>
               <td>
                 <span class="stage-pill stage-{{ order.kitchen_status }}">{{ order.kitchen_status|title }}</span>
               </td>

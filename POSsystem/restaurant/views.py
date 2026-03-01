@@ -73,6 +73,23 @@ def kitchen_dashboard(request):
     else:
         orders = [order for order in all_orders if order.kitchen_status == stage_filter][:50]
 
+    now = timezone.now()
+    for order in orders:
+        opened_at = order.opened_at
+        if opened_at is None:
+            order.elapsed_minutes = 0
+            order.waiting_badge_class = "text-bg-secondary"
+            continue
+
+        elapsed_minutes = int(max(0, (now - opened_at).total_seconds() // 60))
+        order.elapsed_minutes = elapsed_minutes
+        if elapsed_minutes >= 30:
+            order.waiting_badge_class = "text-bg-danger"
+        elif elapsed_minutes >= 15:
+            order.waiting_badge_class = "text-bg-warning"
+        else:
+            order.waiting_badge_class = "text-bg-success"
+
     context = {
         "open_order_count": open_orders.count(),
         "dine_in_count": open_orders.filter(order_type="DINE_IN").count(),
