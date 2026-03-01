@@ -64,7 +64,7 @@
 
     <section class="grid">
       <article class="panel">
-        <h2 style="margin:0 0 8px">Ingredients</h2>
+        <h2 style="margin:0 0 8px">Stock Items</h2>
         {% if ingredients %}
           <table>
             <thead>
@@ -89,7 +89,7 @@
             </tbody>
           </table>
         {% else %}
-          <p class="muted">No kitchen ingredients added yet.</p>
+            <p class="muted">No kitchen stock items added yet.</p>
         {% endif %}
       </article>
 
@@ -99,27 +99,18 @@
           <div class="error">{{ form_error }}</div>
         {% endif %}
         {% if low_stock_count %}
-          <div class="notice">{{ low_stock_count }} ingredient{{ low_stock_count|pluralize }} below minimum stock.</div>
+            <div class="notice">{{ low_stock_count }} stock item{{ low_stock_count|pluralize }} below minimum stock.</div>
         {% endif %}
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_stock">
-          <div>
-            <label for="ingredient_id">Existing ingredient (optional)</label>
-            <select id="ingredient_id" name="ingredient_id">
-              <option value="">Create new ingredient</option>
-              {% for ingredient in ingredients %}
-                <option value="{{ ingredient.id }}">{{ ingredient.name }} ({{ ingredient.quantity }} {{ ingredient.unit }})</option>
-              {% endfor %}
-            </select>
-          </div>
           <div class="row">
             <div>
-              <label for="ingredient_name">Ingredient name (for new item)</label>
+                <label for="ingredient_name">Stock item name</label>
               <input id="ingredient_name" name="ingredient_name" type="text" placeholder="Rice">
             </div>
             <div>
-              <label for="unit">Unit (for new item)</label>
+                <label for="unit">Unit</label>
               <input id="unit" name="unit" type="text" placeholder="kg">
             </div>
           </div>

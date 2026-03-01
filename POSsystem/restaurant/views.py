@@ -278,24 +278,6 @@ def kitchen_stock_change_delete(request, change_id):
     return redirect("restaurant_kitchen_stock")
 
 
-def kitchen_ingredient_delete(request, ingredient_id):
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"])
-
-    business = _get_request_business(request)
-    if business is None:
-        business = _get_dev_business_fallback()
-    actor_user = _get_stock_actor_user(request, business)
-    if not business or actor_user is None:
-        return HttpResponseForbidden(
-            "No business/user available for kitchen stock update. Create a business and at least one user."
-        )
-
-    ingredient = get_object_or_404(Ingredient, pk=ingredient_id, business=business)
-    ingredient.delete()
-    return redirect("restaurant_kitchen_stock")
-
-
 def kitchen_stock_change_edit(request, change_id):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
