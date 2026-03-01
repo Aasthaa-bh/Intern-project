@@ -194,7 +194,13 @@
         <div class="panel h-100">
         <div class="panel-head">
           <h2 class="panel-title">Open Orders</h2>
-          <span class="badge text-bg-light border">Live</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge text-bg-light border">Oldest First</span>
+            <a href="?stage=ALL" class="btn btn-sm {% if stage_filter == 'ALL' %}btn-dark{% else %}btn-outline-dark{% endif %}">All</a>
+            <a href="?stage=PENDING" class="btn btn-sm {% if stage_filter == 'PENDING' %}btn-dark{% else %}btn-outline-dark{% endif %}">Pending</a>
+            <a href="?stage=COOKING" class="btn btn-sm {% if stage_filter == 'COOKING' %}btn-dark{% else %}btn-outline-dark{% endif %}">Cooking</a>
+            <a href="?stage=READY" class="btn btn-sm {% if stage_filter == 'READY' %}btn-dark{% else %}btn-outline-dark{% endif %}">Ready</a>
+          </div>
         </div>
         {% if orders %}
         <div class="table-responsive">

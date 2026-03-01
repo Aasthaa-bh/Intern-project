@@ -54,14 +54,24 @@ def kitchen_dashboard(request):
             .order_by("item_name_snapshot")
         )
 
+    stage_filter = (request.GET.get("stage") or "ALL").strip().upper()
+    valid_stage_filters = ("ALL",) + KITCHEN_STATUSES
+    if stage_filter not in valid_stage_filters:
+        stage_filter = "ALL"
+
     kitchen_status_map = _get_kitchen_status_map(request)
-    orders = list(open_orders.order_by("opened_at")[:20])
-    for order in orders:
+    all_orders = list(open_orders.order_by("opened_at"))
+    for order in all_orders:
         order.kitchen_status = kitchen_status_map.get(str(order.id), "PENDING")
 
     kitchen_status_counts = {status: 0 for status in KITCHEN_STATUSES}
-    for order in orders:
+    for order in all_orders:
         kitchen_status_counts[order.kitchen_status] = kitchen_status_counts.get(order.kitchen_status, 0) + 1
+
+    if stage_filter == "ALL":
+        orders = all_orders[:50]
+    else:
+        orders = [order for order in all_orders if order.kitchen_status == stage_filter][:50]
 
     context = {
         "open_order_count": open_orders.count(),
@@ -70,6 +80,7 @@ def kitchen_dashboard(request):
         "delivery_count": open_orders.filter(order_type="DELIVERY").count(),
         "grouped_items": grouped_items,
         "orders": orders,
+        "stage_filter": stage_filter,
         "pending_count": kitchen_status_counts.get("PENDING", 0),
         "cooking_count": kitchen_status_counts.get("COOKING", 0),
         "ready_count": kitchen_status_counts.get("READY", 0),
