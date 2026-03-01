@@ -250,5 +250,20 @@
       </article>
     </section>
   </main>
+  <script>
+    (function () {
+      var refreshIntervalMs = 25000;
+      function scheduleRefresh() {
+        window.setTimeout(function () {
+          if (!document.hidden) {
+            window.location.reload();
+            return;
+          }
+          scheduleRefresh();
+        }, refreshIntervalMs);
+      }
+      scheduleRefresh();
+    })();
+  </script>
 </body>
 </html>
