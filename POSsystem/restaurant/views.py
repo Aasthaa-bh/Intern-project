@@ -132,6 +132,8 @@ def kitchen_stock(request):
     if business is None:
         business = _get_dev_business_fallback()
     form_error = None
+    selected_month = (request.GET.get("month") or "").strip()
+    month_filter_error = None
 
     if request.method == "POST":
         actor_user = _get_stock_actor_user(request, business)
@@ -204,11 +206,29 @@ def kitchen_stock(request):
 
     if business:
         ingredients = list(Ingredient.objects.filter(business=business).order_by("name"))
-        recent_changes = list(
-            InventoryStockHistory.objects.filter(business=business)
-            .select_related("ingredient", "changed_by")
-            .order_by("-changed_at", "-id")[:20]
+        change_qs = InventoryStockHistory.objects.filter(business=business).select_related(
+            "ingredient", "changed_by"
         )
+        if selected_month:
+            try:
+                year_text, month_text = selected_month.split("-", 1)
+                year = int(year_text)
+                month = int(month_text)
+                if month < 1 or month > 12:
+                    raise ValueError
+                change_qs = change_qs.filter(
+                    change_type="ADD",
+                    changed_at__year=year,
+                    changed_at__month=month,
+                )
+            except (ValueError, TypeError):
+                month_filter_error = "Invalid month selected. Use YYYY-MM format."
+                selected_month = ""
+
+        if selected_month:
+            recent_changes = list(change_qs.order_by("-changed_at", "-id"))
+        else:
+            recent_changes = list(change_qs.order_by("-changed_at", "-id")[:20])
         for change in recent_changes:
             change.edit_note = (change.note or "").strip()
             change.edit_price = change.price
@@ -235,6 +255,8 @@ def kitchen_stock(request):
         "recent_changes": recent_changes,
         "business": business,
         "form_error": form_error,
+        "selected_month": selected_month,
+        "month_filter_error": month_filter_error,
     }
     return render(request, "restaurant/kitchen_stock.html", context)
 

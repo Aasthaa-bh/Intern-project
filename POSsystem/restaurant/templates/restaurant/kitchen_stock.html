@@ -119,7 +119,18 @@
           <button type="submit">Add Kitchen Stock</button>
         </form>
 
-        <h3 style="margin:18px 0 8px">Recent Changes</h3>
+        <h3 style="margin:18px 0 8px">Added Stock (Month-wise)</h3>
+        <form method="get" style="display:flex; gap:8px; align-items:end; margin-bottom:10px; grid-template-columns:none;">
+          <div style="min-width:180px;">
+            <label for="month">Select month</label>
+            <input id="month" name="month" type="month" value="{{ selected_month }}">
+          </div>
+          <button type="submit" class="btn-small">Filter</button>
+          <a href="{% url 'restaurant_kitchen_stock' %}" style="font-size:13px; color:#0f6c9c; text-decoration:none;">Clear</a>
+        </form>
+        {% if month_filter_error %}
+          <div class="error">{{ month_filter_error }}</div>
+        {% endif %}
         {% if recent_changes %}
           <table>
             <thead><tr><th>Stock Item</th><th>Type</th><th>Qty</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
