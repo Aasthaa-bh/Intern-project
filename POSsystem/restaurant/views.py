@@ -201,7 +201,6 @@ def kitchen_stock(request):
 
     ingredients = Ingredient.objects.none()
     recent_changes = InventoryStockHistory.objects.none()
-    low_stock_count = 0
 
     if business:
         ingredients = list(Ingredient.objects.filter(business=business).order_by("name"))
@@ -231,12 +230,9 @@ def kitchen_stock(request):
         for item in ingredients:
             item.latest_price = ingredient_price_map.get(item.id, "")
 
-        low_stock_count = sum(1 for item in ingredients if item.quantity <= item.min_stock)
-
     context = {
         "ingredients": ingredients,
         "recent_changes": recent_changes,
-        "low_stock_count": low_stock_count,
         "business": business,
         "form_error": form_error,
     }
