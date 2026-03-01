@@ -67,7 +67,7 @@
         {% if ingredients %}
           <table>
             <thead>
-              <tr><th>Name</th><th>Qty</th><th>Unit</th></tr>
+              <tr><th>Name</th><th>Qty</th><th>Unit</th><th>Price</th></tr>
             </thead>
             <tbody>
               {% for ingredient in ingredients %}
@@ -75,6 +75,7 @@
                   <td>{{ ingredient.name }}</td>
                   <td>{{ ingredient.quantity }}</td>
                   <td>{{ ingredient.unit }}</td>
+                  <td>{{ ingredient.latest_price }}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -131,15 +132,20 @@
         {% if month_filter_error %}
           <div class="error">{{ month_filter_error }}</div>
         {% endif %}
+        <div class="notice">
+          Total Added Stock Price{% if total_price_month_label %} ({{ total_price_month_label }}){% endif %}: {{ total_added_stock_price }}
+        </div>
         {% if recent_changes %}
           <table>
-            <thead><tr><th>Stock Item</th><th>Type</th><th>Qty</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
+            <thead><tr><th>Stock Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total Price</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
             <tbody>
               {% for change in recent_changes %}
                 <tr>
                   <td>{{ change.ingredient.name }}</td>
                   <td>{{ change.get_change_type_display }}</td>
                   <td>{{ change.quantity_change }}</td>
+                  <td>{{ change.price }}</td>
+                  <td>{{ change.total_price }}</td>
                   <td>{{ change.changed_by.username }}</td>
                   <td>{{ change.note|default:"-" }}</td>
                   <td>

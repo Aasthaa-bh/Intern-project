@@ -203,6 +203,8 @@ def kitchen_stock(request):
 
     ingredients = Ingredient.objects.none()
     recent_changes = InventoryStockHistory.objects.none()
+    total_added_stock_price = Decimal("0")
+    total_price_month_label = ""
 
     if business:
         ingredients = list(Ingredient.objects.filter(business=business).order_by("name"))
@@ -229,6 +231,29 @@ def kitchen_stock(request):
             recent_changes = list(change_qs.order_by("-changed_at", "-id"))
         else:
             recent_changes = list(change_qs.order_by("-changed_at", "-id")[:20])
+
+        month_key = selected_month
+        if not month_key:
+            now = timezone.localtime(timezone.now())
+            month_key = f"{now.year:04d}-{now.month:02d}"
+        total_price_month_label = month_key
+        try:
+            year_text, month_text = month_key.split("-", 1)
+            total_year = int(year_text)
+            total_month = int(month_text)
+            total_added_stock_price = (
+                InventoryStockHistory.objects.filter(
+                    business=business,
+                    change_type="ADD",
+                    changed_at__year=total_year,
+                    changed_at__month=total_month,
+                ).aggregate(total=Sum("total_price"))["total"]
+                or Decimal("0")
+            )
+        except (ValueError, TypeError):
+            total_added_stock_price = Decimal("0")
+            total_price_month_label = ""
+
         for change in recent_changes:
             change.edit_note = (change.note or "").strip()
             change.edit_price = change.price
@@ -257,6 +282,8 @@ def kitchen_stock(request):
         "form_error": form_error,
         "selected_month": selected_month,
         "month_filter_error": month_filter_error,
+        "total_added_stock_price": total_added_stock_price,
+        "total_price_month_label": total_price_month_label,
     }
     return render(request, "restaurant/kitchen_stock.html", context)
 
