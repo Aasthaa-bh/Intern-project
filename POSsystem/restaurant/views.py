@@ -4,6 +4,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
 import json
 # import requests
 from .models import (
@@ -40,7 +41,7 @@ def kitchen_dashboard(request):
     if business is None:
         business = _get_dev_business_fallback()
 
-    open_orders = Order.objects.filter(status="OPEN").select_related("table")
+    open_orders = Order.objects.filter(status="OPEN").select_related("table").prefetch_related("items")
     if business:
         open_orders = open_orders.filter(business=business)
     open_order_ids = list(open_orders.values_list("id", flat=True))
@@ -63,6 +64,11 @@ def kitchen_dashboard(request):
     all_orders = list(open_orders.order_by("opened_at"))
     for order in all_orders:
         order.kitchen_status = kitchen_status_map.get(str(order.id), "PENDING")
+        order.kitchen_note = (order.notes or "").strip()
+        order.kitchen_items = [
+            f"{order_item.item_name_snapshot} x{order_item.quantity}"
+            for order_item in order.items.all()
+        ]
 
     kitchen_status_counts = {status: 0 for status in KITCHEN_STATUSES}
     for order in all_orders:
@@ -101,6 +107,7 @@ def kitchen_dashboard(request):
         "pending_count": kitchen_status_counts.get("PENDING", 0),
         "cooking_count": kitchen_status_counts.get("COOKING", 0),
         "ready_count": kitchen_status_counts.get("READY", 0),
+        "ready_alert_count": kitchen_status_counts.get("READY", 0),
     }
     return render(request, "restaurant/kitchen_dashboard.html", context)
 
@@ -427,13 +434,34 @@ def kitchen_order_status_update(request, order_id):
         return HttpResponseForbidden("No business available to update order status.")
 
     order = get_object_or_404(Order, pk=order_id, business=business)
+    stage_filter = (request.POST.get("stage_filter") or "ALL").strip().upper()
+    if stage_filter not in (("ALL",) + KITCHEN_STATUSES):
+        stage_filter = "ALL"
+
+    def _dashboard_redirect():
+        dashboard_url = reverse("restaurant_kitchen_dashboard")
+        if stage_filter != "ALL":
+            return redirect(f"{dashboard_url}?stage={stage_filter}")
+        return redirect("restaurant_kitchen_dashboard")
+
+    kitchen_note_value = request.POST.get("kitchen_note")
+    if kitchen_note_value is not None:
+        actor_user = _get_stock_actor_user(request, business)
+        order.notes = (kitchen_note_value or "").strip()
+        update_fields = ["notes", "updated_at"]
+        if actor_user:
+            order.updated_by = actor_user
+            update_fields.insert(1, "updated_by")
+        order.save(update_fields=update_fields)
+        return _dashboard_redirect()
+
     kitchen_status = (request.POST.get("kitchen_status") or "").strip().upper()
     if kitchen_status in KITCHEN_STATUSES:
         kitchen_status_map = _get_kitchen_status_map(request)
         kitchen_status_map[str(order.id)] = kitchen_status
         request.session["kitchen_order_statuses"] = kitchen_status_map
         request.session.modified = True
-        return redirect("restaurant_kitchen_dashboard")
+        return _dashboard_redirect()
 
     next_status = (request.POST.get("status") or "").strip().upper()
     allowed_statuses = {"OPEN", "COMPLETED", "CANCELLED"}
@@ -452,7 +480,7 @@ def kitchen_order_status_update(request, order_id):
             update_fields.insert(1, "updated_by")
         order.save(update_fields=update_fields)
 
-    return redirect("restaurant_kitchen_dashboard")
+    return _dashboard_redirect()
   
 def create_order(request, table_number):
     if request.method == "POST":
