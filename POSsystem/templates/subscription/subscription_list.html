@@ -1,26 +1,148 @@
 {% extends "superadmin/base.html" %}
 
+{% block title %}Subscriptions{% endblock %}
+{% block page_title %}Subscriptions{% endblock %}
+{% block page_subtitle %}Search, filter, and review business subscriptions{% endblock %}
+
 {% block content %}
-<h2>Subscriptions</h2>
 
-<table border="1">
-<tr>
-    <th>Business</th>
-    <th>Package</th>
-    <th>Status</th>
-    <th>Start</th>
-    <th>End</th>
-</tr>
+<div class="max-w-7xl mx-auto">
 
-{% for sub in subscriptions %}
-<tr>
-    <td>{{ sub.business.business_name }}</td>
-    <td>{{ sub.package.name }}</td>
-    <td>{{ sub.status }}</td>
-    <td>{{ sub.start_date }}</td>
-    <td>{{ sub.end_date }}</td>
-</tr>
-{% endfor %}
-</table>
+  <!-- Filters -->
+  <form method="GET" action="{% url 'subscription_list' %}" class="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
+    <div class="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
+
+      <div class="flex-1">
+        <label class="text-xs text-gray-500">Search (Business / Package)</label>
+        <input type="text" name="q" value="{{ q }}"
+               placeholder="Search by business name or package..."
+               class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300">
+      </div>
+
+      <div class="w-full md:w-56">
+        <label class="text-xs text-gray-500">Status</label>
+        <select name="status"
+                class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-300">
+          <option value="" {% if not status %}selected{% endif %}>All</option>
+          <option value="PENDING" {% if status == "PENDING" %}selected{% endif %}>Pending</option>
+          <option value="ACTIVE" {% if status == "ACTIVE" %}selected{% endif %}>Active</option>
+          <option value="EXPIRED" {% if status == "EXPIRED" %}selected{% endif %}>Expired</option>
+          <option value="CANCELLED" {% if status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-900">
+          Apply
+        </button>
+
+        <a href="{% url 'subscription_list' %}"
+           class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
+          Reset
+        </a>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="font-semibold text-gray-900">Subscriptions</div>
+      <div class="text-sm text-gray-500">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Business</th>
+            <th class="text-left px-5 py-3 font-medium">Package</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-left px-5 py-3 font-medium">Start</th>
+            <th class="text-left px-5 py-3 font-medium">End</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          {% for s in page_obj %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3 font-medium text-gray-900">
+                {{ s.business.business_name }}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {{ s.package.name }}
+              </td>
+
+              <td class="px-5 py-3">
+                {% if s.status == "ACTIVE" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">ACTIVE</span>
+                {% elif s.status == "PENDING" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">PENDING</span>
+                {% elif s.status == "EXPIRED" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">EXPIRED</span>
+                {% else %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">{{ s.status }}</span>
+                {% endif %}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {% if s.start_date %}{{ s.start_date|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {% if s.end_date %}{{ s.end_date|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="px-5 py-10 text-center text-gray-500">
+                No subscriptions found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
+      <div class="text-sm text-gray-500">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50"
+             href="?q={{ q }}&status={{ status }}&page={{ page_obj.previous_page_number }}">
+            Prev
+          </a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Prev</span>
+        {% endif %}
+
+        <span class="text-sm text-gray-600">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50"
+             href="?q={{ q }}&status={{ status }}&page={{ page_obj.next_page_number }}">
+            Next
+          </a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Next</span>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
 
 {% endblock %}

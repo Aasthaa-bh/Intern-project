@@ -16,7 +16,12 @@ from django.db.models import Q
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
-from subscription.models import BusinessSubscription, Package
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
+from core.models import Business
+from subscription.models import Package, BusinessSubscription
+
 
 
 
@@ -46,26 +51,26 @@ def get_started_view(request):
 
 
 
+
+
+
+
 @login_required
 def superadmin_dashboard(request):
     if request.user.role != "SUPERADMIN":
         return redirect("login")
 
-    
-
-    total_business = Business.objects.count()
+    total_businesses = Business.objects.count()
     total_packages = Package.objects.count()
     total_subscriptions = BusinessSubscription.objects.count()
     active_subscriptions = BusinessSubscription.objects.filter(status="ACTIVE").count()
 
-    context = {
-        "total_business": total_business,
+    return render(request, "core/superadmin_dashboard.html", {
+        "total_businesses": total_businesses,
         "total_packages": total_packages,
         "total_subscriptions": total_subscriptions,
         "active_subscriptions": active_subscriptions,
-    }
-
-    return render(request, "core/superadmin_dashboard.html", context)
+    })
 
 
 @login_required
@@ -73,30 +78,30 @@ def superadmin_requests(request):
     if request.user.role != "SUPERADMIN":
         return redirect("login")
 
-    search_query = request.GET.get("search", "")
-    status_filter = request.GET.get("status", "")
+    q = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "PENDING").strip().upper()
 
-    requests = BusinessRequest.objects.all()
+    qs = BusinessRequest.objects.all().order_by("-created_at")
 
-    if search_query:
-        requests = requests.filter(
-            Q(business_name__icontains=search_query) |
-            Q(owner_name__icontains=search_query) |
-            Q(email__icontains=search_query)
+    if status in ["PENDING", "APPROVED", "REJECTED"]:
+        qs = qs.filter(status=status)
+
+    if q:
+        qs = qs.filter(
+            Q(business_name__icontains=q) |
+            Q(owner_name__icontains=q) |
+            Q(email__icontains=q)
         )
 
-    if status_filter:
-        requests = requests.filter(status=status_filter)
+    # TEMP DEBUG (watch your terminal)
+    print("GET status =", status, "| Count =", qs.count())
 
-    context = {
-        "pending_requests": requests.filter(status="PENDING"),
-        "approved_requests": requests.filter(status="APPROVED"),
-        "rejected_requests": requests.filter(status="REJECTED"),
-        "search_query": search_query,
-        "status_filter": status_filter,
-    }
+    return render(request, "core/superadmin_requests.html", {
+        "requests": qs,
+        "q": q,
+        "status": status,
+    })
 
-    return render(request, "core/superadmin_requests.html", context)
     
 
 

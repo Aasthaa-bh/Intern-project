@@ -1,33 +1,95 @@
 {% extends "superadmin/base.html" %}
 
+{% block title %}Payments{% endblock %}
+{% block page_title %}Payments{% endblock %}
+{% block page_subtitle %}Track all subscription payment attempts{% endblock %}
+
 {% block content %}
-<h2>Payments</h2>
 
-<table border="1" cellpadding="8">
-  <tr>
-    <th>Business</th>
-    <th>Package</th>
-    <th>Amount</th>
-    <th>Method</th>
-    <th>Status</th>
-    <th>Transaction Ref</th>
-    <th>Paid At</th>
-  </tr>
+<div class="max-w-7xl mx-auto">
 
-  {% for p in payments %}
-  <tr>
-    <td>{{ p.subscription.business.business_name }}</td>
-    <td>{{ p.subscription.package.name }}</td>
-    <td>Rs {{ p.amount }}</td>
-    <td>{{ p.method }}</td>
-    <td>{{ p.status }}</td>
-    <td>{{ p.transaction_ref|default:"-" }}</td>
-    <td>{{ p.paid_at }}</td>
-  </tr>
-  {% empty %}
-  <tr>
-    <td colspan="7">No payments found.</td>
-  </tr>
-  {% endfor %}
-</table>
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="font-semibold text-gray-900">All Payments</div>
+      <div class="text-sm text-gray-500">Total: {{ payments|length }}</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Business</th>
+            <th class="text-left px-5 py-3 font-medium">Package</th>
+            <th class="text-left px-5 py-3 font-medium">Amount</th>
+            <th class="text-left px-5 py-3 font-medium">Method</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-left px-5 py-3 font-medium">Transaction Ref</th>
+            <th class="text-left px-5 py-3 font-medium">Paid At</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          {% for p in payments %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3 font-medium text-gray-900">
+                {{ p.subscription.business.business_name }}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {{ p.subscription.package.name }}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                Rs {{ p.amount }}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {{ p.method }}
+              </td>
+
+              <td class="px-5 py-3">
+                {% if p.status == "VERIFIED" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                    VERIFIED
+                  </span>
+                {% elif p.status == "PENDING" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                    PENDING
+                  </span>
+                {% elif p.status == "CANCELLED" %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                    CANCELLED
+                  </span>
+                {% else %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                    {{ p.status }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="px-5 py-3">
+                <span class="font-mono text-xs text-gray-700 break-all">
+                  {{ p.transaction_ref|default:"-" }}
+                </span>
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {% if p.paid_at %}{{ p.paid_at|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="px-5 py-10 text-center text-gray-500">
+                No payments found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
+
 {% endblock %}

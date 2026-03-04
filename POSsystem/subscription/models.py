@@ -38,10 +38,18 @@ class BusinessSubscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if not self.end_date:
-            self.end_date = self.start_date + timedelta(days=30 * self.package.duration_months)
-        super().save(*args, **kwargs)
+    def activate(self):
+        # expire old current subscriptions
+        BusinessSubscription.objects.filter(
+            business=self.business, is_current=True
+        ).exclude(id=self.id).update(is_current=False)
+
+        now = timezone.now()
+        self.start_date = now
+        self.end_date = now + timedelta(days=30 * self.package.duration_months)
+        self.status = "ACTIVE"
+        self.is_current = True
+        self.save()
 
     def __str__(self):
         return f"{self.business.business_name} - {self.package.name}"

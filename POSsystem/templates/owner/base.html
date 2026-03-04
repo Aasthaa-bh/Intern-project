@@ -102,16 +102,23 @@
           </div>
 
           <div class="flex items-center gap-4">
+
+            <!-- Upgrade Button -->
+            <a href="{% url 'business_package_list' %}"
+              class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+              Upgrade
+            </a>
+
             <div class="text-sm text-gray-700">
               {{ request.user.full_name }}
             </div>
 
-            <!-- Top-right Logout -->
-            <!-- IMPORTANT: this needs a real logout url name in urls.py -->
+            <!-- Logout -->
             <a href="{% url 'logout' %}"
-               class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
+              class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
               Logout
             </a>
+
           </div>
         </div>
       </header>

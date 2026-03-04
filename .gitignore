@@ -10,8 +10,7 @@ __pycache__/
 .myenv/
 env/
 .env/
-
-migrations
+venv/
 
 # Database
 db.sqlite3
