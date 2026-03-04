@@ -26,39 +26,59 @@
 
 <!-- Tables Grid -->
 <div class="card">
-    <div class="card-header">All Tables</div>
+    <div class="card-header">
+        All Tables 
+        <span style="color: #666; font-size: 14px; font-weight: normal;">
+            (Click once to change status, Click "View Bill" button to see details)
+        </span>
+    </div>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
         {% for table in tables %}
-        <a href="{% url 'table_bill' table.id %}" style="text-decoration: none;">
-            <div style="background: {% if table.status == 'AVAILABLE' %}#f9f9f9{% elif table.status == 'OCCUPIED' %}#e0e0e0{% else %}#f0f0f0{% endif %}; 
-                        border: 2px solid {% if table.status == 'AVAILABLE' %}#ddd{% elif table.status == 'OCCUPIED' %}#999{% else %}#ccc{% endif %}; 
-                        border-radius: 8px; 
-                        padding: 30px 20px; 
-                        text-align: center; 
-                        transition: all 0.3s;
-                        cursor: pointer;">
-                <div style="font-size: 48px; margin-bottom: 10px;">
-                    {% if table.status == 'AVAILABLE' %}✅
-                    {% elif table.status == 'OCCUPIED' %}🔴
-                    {% else %}📅{% endif %}
-                </div>
-                <div style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px;">
-                    Table {{ table.table_number }}
-                </div>
-                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
-                    Capacity: {{ table.capacity }}
-                </div>
-                <div style="background: {% if table.status == 'AVAILABLE' %}#fff{% elif table.status == 'OCCUPIED' %}#666{% else %}#999{% endif %}; 
-                            color: {% if table.status == 'AVAILABLE' %}#333{% else %}#fff{% endif %}; 
-                            padding: 6px 12px; 
-                            border-radius: 4px; 
-                            font-size: 12px; 
-                            font-weight: 600;
-                            display: inline-block;">
-                    {{ table.status }}
-                </div>
+        <div class="table-card" 
+             data-table-id="{{ table.id }}" 
+             data-table-name="{{ table.name }}"
+             data-current-status="{{ table.status }}"
+             style="background: {% if table.status == 'AVAILABLE' %}#e8f5e9{% elif table.status == 'OCCUPIED' %}#ffebee{% else %}#fff3e0{% endif %}; 
+                    border: 3px solid {% if table.status == 'AVAILABLE' %}#4caf50{% elif table.status == 'OCCUPIED' %}#f44336{% else %}#ff9800{% endif %}; 
+                    border-radius: 12px; 
+                    padding: 20px; 
+                    text-align: center; 
+                    transition: all 0.3s;
+                    position: relative;">
+            <div style="font-size: 56px; margin-bottom: 15px;">
+                {% if table.status == 'AVAILABLE' %}✅
+                {% elif table.status == 'OCCUPIED' %}🔴
+                {% else %}📅{% endif %}
             </div>
-        </a>
+            <div style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;">
+                {{ table.name }}
+            </div>
+            <div style="font-size: 14px; color: #666; margin-bottom: 12px;">
+                Capacity: {{ table.capacity }}
+            </div>
+            <div style="background: {% if table.status == 'AVAILABLE' %}#4caf50{% elif table.status == 'OCCUPIED' %}#f44336{% else %}#ff9800{% endif %}; 
+                        color: white; 
+                        padding: 8px 16px; 
+                        border-radius: 6px; 
+                        font-size: 13px; 
+                        font-weight: 700;
+                        display: inline-block;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        margin-bottom: 15px;
+                        cursor: pointer;"
+                 onclick="cycleTableStatus({{ table.id }}, '{{ table.status }}')">
+                {{ table.status }}
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <a href="{% url 'table_bill' table.id %}" 
+                   class="btn btn-primary" 
+                   style="display: inline-block; padding: 10px 20px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                    📋 View Bill
+                </a>
+            </div>
+        </div>
         {% empty %}
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #999;">
             No tables found
@@ -68,9 +88,54 @@
 </div>
 
 <style>
-    a > div:hover {
+    .table-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+    
+    .btn-primary:hover {
+        background: #333 !important;
     }
 </style>
+
+<script>
+    // Cycle through statuses: AVAILABLE → OCCUPIED → RESERVED → AVAILABLE
+    function cycleTableStatus(tableId, currentStatus) {
+        let nextStatus;
+        
+        if (currentStatus === 'AVAILABLE') {
+            nextStatus = 'OCCUPIED';
+        } else if (currentStatus === 'OCCUPIED') {
+            nextStatus = 'RESERVED';
+        } else {
+            nextStatus = 'AVAILABLE';
+        }
+        
+        console.log('Changing status from', currentStatus, 'to', nextStatus);
+        
+        // Send AJAX request to change status
+        fetch(`/restaurant/reception/tables/${tableId}/quick-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `status=${nextStatus}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response:', data);
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating table status');
+        });
+    }
+</script>
 {% endblock %}

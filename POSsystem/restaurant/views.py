@@ -661,9 +661,7 @@ def process_payment(request, invoice_id):
 
 
 def esewa_payment(request, invoice_id):
-    """Initiate eSewa payment"""
-    from .esewa_utils import prepare_esewa_payment_data
-    
+    """Initiate eSewa payment - Mock version"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
 
     # Check if invoice is already paid
@@ -671,33 +669,114 @@ def esewa_payment(request, invoice_id):
         messages.error(request, 'This invoice is already paid!')
         return redirect('guest_bill', invoice_id=invoice.id)
 
-    # Prepare eSewa payment data
-    success_url = request.build_absolute_uri(f"/reception/esewa/success/")
-    failure_url = request.build_absolute_uri(f"/reception/esewa/failure/")
-    
-    payment_data, transaction_uuid = prepare_esewa_payment_data(invoice, success_url, failure_url)
-    
-    # Save transaction UUID to invoice for verification
-    invoice.transaction_uuid = transaction_uuid
-    invoice.save()
-    
-    # Create pending payment record
-    ReceptionPayment.objects.create(
-        business=invoice.business,
+    # Check if there's already a pending payment for this invoice
+    existing_payment = ReceptionPayment.objects.filter(
         invoice=invoice,
         payment_method='ESEWA',
-        amount=invoice.total_amount,
-        payment_status='PENDING',
-        processed_by=invoice.created_by,
-        transaction_uuid=transaction_uuid,
-        note=f"eSewa payment initiated - UUID: {transaction_uuid}"
-    )
+        payment_status='PENDING'
+    ).first()
     
+    if not existing_payment:
+        # Generate new transaction UUID only if no pending payment exists
+        import uuid
+        transaction_uuid = str(uuid.uuid4())
+        
+        # Save transaction UUID to invoice
+        invoice.transaction_uuid = transaction_uuid
+        invoice.save()
+        
+        # Create pending payment record
+        ReceptionPayment.objects.create(
+            business=invoice.business,
+            invoice=invoice,
+            payment_method='ESEWA',
+            amount=invoice.total_amount,
+            payment_status='PENDING',
+            processed_by=invoice.created_by,
+            transaction_uuid=transaction_uuid,
+            note=f"eSewa payment initiated (Mock) - UUID: {transaction_uuid}"
+        )
+    
+    # Render mock eSewa page
     context = {
         'invoice': invoice,
-        'payment_data': payment_data,
     }
-    return render(request, 'restaurant/esewa_payment.html', context)
+    return render(request, 'restaurant/esewa_mock_payment.html', context)
+
+
+def esewa_mock_process(request, invoice_id):
+    """Process mock eSewa payment"""
+    if request.method != 'POST':
+        return redirect('esewa_payment', invoice_id=invoice_id)
+    
+    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
+    mpin = request.POST.get('mpin', '')
+    
+    # Mock validation (accept any MPIN for demo)
+    if mpin:
+        # Update payment to completed
+        payment = ReceptionPayment.objects.filter(
+            invoice=invoice,
+            payment_status='PENDING'
+        ).first()
+        
+        if payment:
+            payment.payment_status = 'COMPLETED'
+            payment.transaction_id = f"ESEWA-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+            payment.note = f"eSewa payment completed (Mock) - MPIN verified"
+            payment.save()
+            
+            # Update invoice status
+            invoice.status = 'PAID'
+            invoice.save()
+            
+            # Update table status
+            if invoice.table:
+                invoice.table.status = 'AVAILABLE'
+                invoice.table.save()
+            
+            # Add loyalty points
+            if invoice.customer_phone:
+                points_earned = int(invoice.total_amount / 10)
+                ReceptionLoyaltyTransaction.objects.create(
+                    business=invoice.business,
+                    invoice=invoice,
+                    customer_phone=invoice.customer_phone,
+                    customer_name=invoice.customer_name or 'Customer',
+                    transaction_type='EARN',
+                    points=points_earned,
+                    balance_after=0,
+                    description=f'Points earned from invoice {invoice.invoice_number}',
+                    created_by=invoice.created_by
+                )
+            
+            messages.success(request, '✅ Payment completed successfully via eSewa!')
+            return redirect('payment_success', payment_id=payment.id)
+    
+    messages.error(request, 'Invalid MPIN! Please try again.')
+    return redirect('esewa_payment', invoice_id=invoice_id)
+
+
+def esewa_mock_cancel(request, invoice_id):
+    """Cancel mock eSewa payment"""
+    if request.method != 'POST':
+        return redirect('esewa_payment', invoice_id=invoice_id)
+    
+    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
+    
+    # Update payment to failed
+    payment = ReceptionPayment.objects.filter(
+        invoice=invoice,
+        payment_status='PENDING'
+    ).first()
+    
+    if payment:
+        payment.payment_status = 'FAILED'
+        payment.note = 'Payment cancelled by user'
+        payment.save()
+    
+    messages.warning(request, 'Payment cancelled.')
+    return redirect('process_payment', invoice_id=invoice_id)
 
 
 @csrf_exempt
@@ -1006,7 +1085,19 @@ def quick_status_change(request, table_id):
         if status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
             table.status = status
             table.save()
-            messages.success(request, f'Table {table.table_number} is now {status}')
+            
+            # Check if it's an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': f'Table {table.name} is now {status}'})
+            
+            messages.success(request, f'Table {table.name} is now {status}')
+            return redirect('table_check')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Invalid status'}, status=400)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
     
     return redirect('table_check')
 
