@@ -13,8 +13,6 @@ env/
 venv/
 .vscode/
 
-migrations
-
 # Database
 db.sqlite3
 
