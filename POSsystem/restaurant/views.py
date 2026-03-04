@@ -457,6 +457,30 @@ def kitchen_order_status_update(request, order_id):
 
     kitchen_status = (request.POST.get("kitchen_status") or "").strip().upper()
     if kitchen_status in KITCHEN_STATUSES:
+        kitchen_order_status_map = {
+            "PENDING": "PENDING",
+            "COOKING": "PREPARING",
+            "READY": "READY",
+        }
+        mapped_status = kitchen_order_status_map.get(kitchen_status, "PENDING")
+        kitchen_order, _ = KitchenOrder.objects.get_or_create(
+            order=order,
+            business=business,
+            defaults={"status": mapped_status},
+        )
+        kitchen_order.status = mapped_status
+        if kitchen_status == "READY":
+            kitchen_order.ready_at = timezone.now()
+            if not kitchen_order.sent_at:
+                kitchen_order.sent_at = timezone.now()
+        elif kitchen_status == "COOKING":
+            if not kitchen_order.sent_at:
+                kitchen_order.sent_at = timezone.now()
+            kitchen_order.ready_at = None
+        else:
+            kitchen_order.ready_at = None
+        kitchen_order.save(update_fields=["status", "sent_at", "ready_at", "updated_at"])
+
         kitchen_status_map = _get_kitchen_status_map(request)
         kitchen_status_map[str(order.id)] = kitchen_status
         request.session["kitchen_order_statuses"] = kitchen_status_map
