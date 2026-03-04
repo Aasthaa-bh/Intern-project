@@ -10,6 +10,7 @@ __pycache__/
 .myenv/
 env/
 .env/
+.vscode/
 
 migrations
 

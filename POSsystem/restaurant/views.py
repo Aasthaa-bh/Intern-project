@@ -4,6 +4,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
 import json
 # import requests
 from .models import (
@@ -40,7 +41,7 @@ def kitchen_dashboard(request):
     if business is None:
         business = _get_dev_business_fallback()
 
-    open_orders = Order.objects.filter(status="OPEN").select_related("table")
+    open_orders = Order.objects.filter(status="OPEN").select_related("table").prefetch_related("items")
     if business:
         open_orders = open_orders.filter(business=business)
     open_order_ids = list(open_orders.values_list("id", flat=True))
@@ -54,14 +55,46 @@ def kitchen_dashboard(request):
             .order_by("item_name_snapshot")
         )
 
+    stage_filter = (request.GET.get("stage") or "ALL").strip().upper()
+    valid_stage_filters = ("ALL",) + KITCHEN_STATUSES
+    if stage_filter not in valid_stage_filters:
+        stage_filter = "ALL"
+
     kitchen_status_map = _get_kitchen_status_map(request)
-    orders = list(open_orders.order_by("opened_at")[:20])
-    for order in orders:
+    all_orders = list(open_orders.order_by("opened_at"))
+    for order in all_orders:
         order.kitchen_status = kitchen_status_map.get(str(order.id), "PENDING")
+        order.kitchen_note = (order.notes or "").strip()
+        order.kitchen_items = [
+            f"{order_item.item_name_snapshot} x{order_item.quantity}"
+            for order_item in order.items.all()
+        ]
 
     kitchen_status_counts = {status: 0 for status in KITCHEN_STATUSES}
-    for order in orders:
+    for order in all_orders:
         kitchen_status_counts[order.kitchen_status] = kitchen_status_counts.get(order.kitchen_status, 0) + 1
+
+    if stage_filter == "ALL":
+        orders = all_orders[:50]
+    else:
+        orders = [order for order in all_orders if order.kitchen_status == stage_filter][:50]
+
+    now = timezone.now()
+    for order in orders:
+        opened_at = order.opened_at
+        if opened_at is None:
+            order.elapsed_minutes = 0
+            order.waiting_badge_class = "text-bg-secondary"
+            continue
+
+        elapsed_minutes = int(max(0, (now - opened_at).total_seconds() // 60))
+        order.elapsed_minutes = elapsed_minutes
+        if elapsed_minutes >= 30:
+            order.waiting_badge_class = "text-bg-danger"
+        elif elapsed_minutes >= 15:
+            order.waiting_badge_class = "text-bg-warning"
+        else:
+            order.waiting_badge_class = "text-bg-success"
 
     context = {
         "open_order_count": open_orders.count(),
@@ -70,9 +103,11 @@ def kitchen_dashboard(request):
         "delivery_count": open_orders.filter(order_type="DELIVERY").count(),
         "grouped_items": grouped_items,
         "orders": orders,
+        "stage_filter": stage_filter,
         "pending_count": kitchen_status_counts.get("PENDING", 0),
         "cooking_count": kitchen_status_counts.get("COOKING", 0),
         "ready_count": kitchen_status_counts.get("READY", 0),
+        "ready_alert_count": kitchen_status_counts.get("READY", 0),
     }
     return render(request, "restaurant/kitchen_dashboard.html", context)
 
@@ -132,6 +167,8 @@ def kitchen_stock(request):
     if business is None:
         business = _get_dev_business_fallback()
     form_error = None
+    selected_month = (request.GET.get("month") or "").strip()
+    month_filter_error = None
 
     if request.method == "POST":
         actor_user = _get_stock_actor_user(request, business)
@@ -201,15 +238,57 @@ def kitchen_stock(request):
 
     ingredients = Ingredient.objects.none()
     recent_changes = InventoryStockHistory.objects.none()
-    low_stock_count = 0
+    total_added_stock_price = Decimal("0")
+    total_price_month_label = ""
 
     if business:
         ingredients = list(Ingredient.objects.filter(business=business).order_by("name"))
-        recent_changes = list(
-            InventoryStockHistory.objects.filter(business=business)
-            .select_related("ingredient", "changed_by")
-            .order_by("-changed_at", "-id")[:20]
+        change_qs = InventoryStockHistory.objects.filter(business=business).select_related(
+            "ingredient", "changed_by"
         )
+        if selected_month:
+            try:
+                year_text, month_text = selected_month.split("-", 1)
+                year = int(year_text)
+                month = int(month_text)
+                if month < 1 or month > 12:
+                    raise ValueError
+                change_qs = change_qs.filter(
+                    change_type="ADD",
+                    changed_at__year=year,
+                    changed_at__month=month,
+                )
+            except (ValueError, TypeError):
+                month_filter_error = "Invalid month selected. Use YYYY-MM format."
+                selected_month = ""
+
+        if selected_month:
+            recent_changes = list(change_qs.order_by("-changed_at", "-id"))
+        else:
+            recent_changes = list(change_qs.order_by("-changed_at", "-id")[:20])
+
+        month_key = selected_month
+        if not month_key:
+            now = timezone.localtime(timezone.now())
+            month_key = f"{now.year:04d}-{now.month:02d}"
+        total_price_month_label = month_key
+        try:
+            year_text, month_text = month_key.split("-", 1)
+            total_year = int(year_text)
+            total_month = int(month_text)
+            total_added_stock_price = (
+                InventoryStockHistory.objects.filter(
+                    business=business,
+                    change_type="ADD",
+                    changed_at__year=total_year,
+                    changed_at__month=total_month,
+                ).aggregate(total=Sum("total_price"))["total"]
+                or Decimal("0")
+            )
+        except (ValueError, TypeError):
+            total_added_stock_price = Decimal("0")
+            total_price_month_label = ""
+
         for change in recent_changes:
             change.edit_note = (change.note or "").strip()
             change.edit_price = change.price
@@ -231,14 +310,15 @@ def kitchen_stock(request):
         for item in ingredients:
             item.latest_price = ingredient_price_map.get(item.id, "")
 
-        low_stock_count = sum(1 for item in ingredients if item.quantity <= item.min_stock)
-
     context = {
         "ingredients": ingredients,
         "recent_changes": recent_changes,
-        "low_stock_count": low_stock_count,
         "business": business,
         "form_error": form_error,
+        "selected_month": selected_month,
+        "month_filter_error": month_filter_error,
+        "total_added_stock_price": total_added_stock_price,
+        "total_price_month_label": total_price_month_label,
     }
     return render(request, "restaurant/kitchen_stock.html", context)
 
@@ -275,24 +355,6 @@ def kitchen_stock_change_delete(request, change_id):
     ingredient.save(update_fields=["quantity", "updated_at"])
     change.delete()
 
-    return redirect("restaurant_kitchen_stock")
-
-
-def kitchen_ingredient_delete(request, ingredient_id):
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"])
-
-    business = _get_request_business(request)
-    if business is None:
-        business = _get_dev_business_fallback()
-    actor_user = _get_stock_actor_user(request, business)
-    if not business or actor_user is None:
-        return HttpResponseForbidden(
-            "No business/user available for kitchen stock update. Create a business and at least one user."
-        )
-
-    ingredient = get_object_or_404(Ingredient, pk=ingredient_id, business=business)
-    ingredient.delete()
     return redirect("restaurant_kitchen_stock")
 
 
@@ -372,13 +434,58 @@ def kitchen_order_status_update(request, order_id):
         return HttpResponseForbidden("No business available to update order status.")
 
     order = get_object_or_404(Order, pk=order_id, business=business)
+    stage_filter = (request.POST.get("stage_filter") or "ALL").strip().upper()
+    if stage_filter not in (("ALL",) + KITCHEN_STATUSES):
+        stage_filter = "ALL"
+
+    def _dashboard_redirect():
+        dashboard_url = reverse("restaurant_kitchen_dashboard")
+        if stage_filter != "ALL":
+            return redirect(f"{dashboard_url}?stage={stage_filter}")
+        return redirect("restaurant_kitchen_dashboard")
+
+    kitchen_note_value = request.POST.get("kitchen_note")
+    if kitchen_note_value is not None:
+        actor_user = _get_stock_actor_user(request, business)
+        order.notes = (kitchen_note_value or "").strip()
+        update_fields = ["notes", "updated_at"]
+        if actor_user:
+            order.updated_by = actor_user
+            update_fields.insert(1, "updated_by")
+        order.save(update_fields=update_fields)
+        return _dashboard_redirect()
+
     kitchen_status = (request.POST.get("kitchen_status") or "").strip().upper()
     if kitchen_status in KITCHEN_STATUSES:
+        kitchen_order_status_map = {
+            "PENDING": "PENDING",
+            "COOKING": "PREPARING",
+            "READY": "READY",
+        }
+        mapped_status = kitchen_order_status_map.get(kitchen_status, "PENDING")
+        kitchen_order, _ = KitchenOrder.objects.get_or_create(
+            order=order,
+            business=business,
+            defaults={"status": mapped_status},
+        )
+        kitchen_order.status = mapped_status
+        if kitchen_status == "READY":
+            kitchen_order.ready_at = timezone.now()
+            if not kitchen_order.sent_at:
+                kitchen_order.sent_at = timezone.now()
+        elif kitchen_status == "COOKING":
+            if not kitchen_order.sent_at:
+                kitchen_order.sent_at = timezone.now()
+            kitchen_order.ready_at = None
+        else:
+            kitchen_order.ready_at = None
+        kitchen_order.save(update_fields=["status", "sent_at", "ready_at", "updated_at"])
+
         kitchen_status_map = _get_kitchen_status_map(request)
         kitchen_status_map[str(order.id)] = kitchen_status
         request.session["kitchen_order_statuses"] = kitchen_status_map
         request.session.modified = True
-        return redirect("restaurant_kitchen_dashboard")
+        return _dashboard_redirect()
 
     next_status = (request.POST.get("status") or "").strip().upper()
     allowed_statuses = {"OPEN", "COMPLETED", "CANCELLED"}
@@ -397,7 +504,7 @@ def kitchen_order_status_update(request, order_id):
             update_fields.insert(1, "updated_by")
         order.save(update_fields=update_fields)
 
-    return redirect("restaurant_kitchen_dashboard")
+    return _dashboard_redirect()
   
 def create_order(request, table_number):
     if request.method == "POST":
@@ -661,9 +768,7 @@ def process_payment(request, invoice_id):
 
 
 def esewa_payment(request, invoice_id):
-    """Initiate eSewa payment"""
-    from .esewa_utils import prepare_esewa_payment_data
-    
+    """Initiate eSewa payment - Mock version"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
 
     # Check if invoice is already paid
@@ -671,33 +776,114 @@ def esewa_payment(request, invoice_id):
         messages.error(request, 'This invoice is already paid!')
         return redirect('guest_bill', invoice_id=invoice.id)
 
-    # Prepare eSewa payment data
-    success_url = request.build_absolute_uri(f"/reception/esewa/success/")
-    failure_url = request.build_absolute_uri(f"/reception/esewa/failure/")
-    
-    payment_data, transaction_uuid = prepare_esewa_payment_data(invoice, success_url, failure_url)
-    
-    # Save transaction UUID to invoice for verification
-    invoice.transaction_uuid = transaction_uuid
-    invoice.save()
-    
-    # Create pending payment record
-    ReceptionPayment.objects.create(
-        business=invoice.business,
+    # Check if there's already a pending payment for this invoice
+    existing_payment = ReceptionPayment.objects.filter(
         invoice=invoice,
         payment_method='ESEWA',
-        amount=invoice.total_amount,
-        payment_status='PENDING',
-        processed_by=invoice.created_by,
-        transaction_uuid=transaction_uuid,
-        note=f"eSewa payment initiated - UUID: {transaction_uuid}"
-    )
+        payment_status='PENDING'
+    ).first()
     
+    if not existing_payment:
+        # Generate new transaction UUID only if no pending payment exists
+        import uuid
+        transaction_uuid = str(uuid.uuid4())
+        
+        # Save transaction UUID to invoice
+        invoice.transaction_uuid = transaction_uuid
+        invoice.save()
+        
+        # Create pending payment record
+        ReceptionPayment.objects.create(
+            business=invoice.business,
+            invoice=invoice,
+            payment_method='ESEWA',
+            amount=invoice.total_amount,
+            payment_status='PENDING',
+            processed_by=invoice.created_by,
+            transaction_uuid=transaction_uuid,
+            note=f"eSewa payment initiated (Mock) - UUID: {transaction_uuid}"
+        )
+    
+    # Render mock eSewa page
     context = {
         'invoice': invoice,
-        'payment_data': payment_data,
     }
-    return render(request, 'restaurant/esewa_payment.html', context)
+    return render(request, 'restaurant/esewa_mock_payment.html', context)
+
+
+def esewa_mock_process(request, invoice_id):
+    """Process mock eSewa payment"""
+    if request.method != 'POST':
+        return redirect('esewa_payment', invoice_id=invoice_id)
+    
+    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
+    mpin = request.POST.get('mpin', '')
+    
+    # Mock validation (accept any MPIN for demo)
+    if mpin:
+        # Update payment to completed
+        payment = ReceptionPayment.objects.filter(
+            invoice=invoice,
+            payment_status='PENDING'
+        ).first()
+        
+        if payment:
+            payment.payment_status = 'COMPLETED'
+            payment.transaction_id = f"ESEWA-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+            payment.note = f"eSewa payment completed (Mock) - MPIN verified"
+            payment.save()
+            
+            # Update invoice status
+            invoice.status = 'PAID'
+            invoice.save()
+            
+            # Update table status
+            if invoice.table:
+                invoice.table.status = 'AVAILABLE'
+                invoice.table.save()
+            
+            # Add loyalty points
+            if invoice.customer_phone:
+                points_earned = int(invoice.total_amount / 10)
+                ReceptionLoyaltyTransaction.objects.create(
+                    business=invoice.business,
+                    invoice=invoice,
+                    customer_phone=invoice.customer_phone,
+                    customer_name=invoice.customer_name or 'Customer',
+                    transaction_type='EARN',
+                    points=points_earned,
+                    balance_after=0,
+                    description=f'Points earned from invoice {invoice.invoice_number}',
+                    created_by=invoice.created_by
+                )
+            
+            messages.success(request, '✅ Payment completed successfully via eSewa!')
+            return redirect('payment_success', payment_id=payment.id)
+    
+    messages.error(request, 'Invalid MPIN! Please try again.')
+    return redirect('esewa_payment', invoice_id=invoice_id)
+
+
+def esewa_mock_cancel(request, invoice_id):
+    """Cancel mock eSewa payment"""
+    if request.method != 'POST':
+        return redirect('esewa_payment', invoice_id=invoice_id)
+    
+    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
+    
+    # Update payment to failed
+    payment = ReceptionPayment.objects.filter(
+        invoice=invoice,
+        payment_status='PENDING'
+    ).first()
+    
+    if payment:
+        payment.payment_status = 'FAILED'
+        payment.note = 'Payment cancelled by user'
+        payment.save()
+    
+    messages.warning(request, 'Payment cancelled.')
+    return redirect('process_payment', invoice_id=invoice_id)
 
 
 @csrf_exempt
@@ -1006,7 +1192,19 @@ def quick_status_change(request, table_id):
         if status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
             table.status = status
             table.save()
-            messages.success(request, f'Table {table.table_number} is now {status}')
+            
+            # Check if it's an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': f'Table {table.name} is now {status}'})
+            
+            messages.success(request, f'Table {table.name} is now {status}')
+            return redirect('table_check')
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Invalid status'}, status=400)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
     
     return redirect('table_check')
 

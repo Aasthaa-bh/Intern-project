@@ -174,6 +174,64 @@
         border-radius: 10px;
         backdrop-filter: blur(10px);
     }
+
+    .ready-alert-panel {
+        margin: 0 auto 28px;
+        max-width: 1100px;
+        background: #fff7ed;
+        border: 2px solid #fdba74;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .ready-alert-title {
+        margin: 0 0 12px;
+        color: #9a3412;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .ready-orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 12px;
+    }
+
+    .ready-order-card {
+        background: #ffffff;
+        border: 1px solid #fed7aa;
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .ready-order-card h4 {
+        margin: 0 0 6px;
+        color: #7c2d12;
+        font-size: 17px;
+    }
+
+    .ready-order-meta {
+        color: #7c2d12;
+        font-size: 13px;
+        margin: 3px 0;
+    }
+
+    .ready-order-btn {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: #ea580c;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .ready-order-btn:hover {
+        background: #c2410c;
+    }
 </style>
 {% endblock %}
 
@@ -335,6 +393,22 @@
 {% endblock %}
 
 {% block content %}
+{% if ready_orders_count %}
+<div class="ready-alert-panel">
+    <h3 class="ready-alert-title"> Ready Orders Alert ({{ ready_orders_count }})</h3>
+    <div class="ready-orders-grid">
+        {% for kitchen_order in ready_orders %}
+        <div class="ready-order-card">
+            <h4>Order {{ kitchen_order.order.order_no }}</h4>
+            <p class="ready-order-meta">Table: {% if kitchen_order.order.table %}{{ kitchen_order.order.table.name }}{% else %}No table{% endif %}</p>
+            <p class="ready-order-meta">Waiting: {{ kitchen_order.ready_wait_minutes }} min</p>
+            <a class="ready-order-btn" href="{% url 'order_detail' kitchen_order.order.id %}">Open Order</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div class="dashboard-header">
     <h2>Create New Order</h2>
     <p>Select order type first</p>

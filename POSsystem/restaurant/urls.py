@@ -8,11 +8,6 @@ urlpatterns = [
     path("kitchen/", views.kitchen_dashboard, name="restaurant_kitchen_dashboard"),
     path("kitchen/stock/", views.kitchen_stock, name="restaurant_kitchen_stock"),
     path(
-        "kitchen/stock/ingredients/<int:ingredient_id>/delete/",
-        views.kitchen_ingredient_delete,
-        name="restaurant_kitchen_ingredient_delete",
-    ),
-    path(
         "kitchen/stock/changes/<int:change_id>/delete/",
         views.kitchen_stock_change_delete,
         name="restaurant_kitchen_stock_change_delete",
@@ -58,8 +53,10 @@ urlpatterns = [
     path('reception/payment/history/', views.payment_history, name='payment_history'),
     path('reception/payment/success/<int:payment_id>/', views.payment_success, name='payment_success'),
     
-    # eSewa Payment
+    # eSewa Payment (Mock)
     path('reception/esewa/<int:invoice_id>/', views.esewa_payment, name='esewa_payment'),
+    path('reception/esewa/<int:invoice_id>/process/', views.esewa_mock_process, name='esewa_mock_process'),
+    path('reception/esewa/<int:invoice_id>/cancel/', views.esewa_mock_cancel, name='esewa_mock_cancel'),
     path('reception/esewa/success/', views.esewa_success, name='esewa_success'),
     path('reception/esewa/failure/', views.esewa_failure, name='esewa_failure'),
     
