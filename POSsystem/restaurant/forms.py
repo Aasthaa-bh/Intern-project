@@ -7,6 +7,7 @@ class TableCategoryForm(forms.ModelForm):
         model = TableCategory
         fields = ["name", "code_prefix"]
         
+        
 class DiningTableForm(forms.ModelForm):
 
     class Meta:

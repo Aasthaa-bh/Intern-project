@@ -1,26 +1,134 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Get Started</title>
+
+  <!-- Tailwind CDN (quick setup) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Business Registration Request</h2>
 
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <!-- Page Wrapper -->
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Request</button>
-  </form>
+      <!-- Header -->
+      <div class="mb-6 text-center">
+        <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900">
+          Business Registration Request
+        </h1>
+        <p class="mt-2 text-sm text-slate-600">
+          Fill in the details below to submit your business registration request.
+        </p>
+      </div>
 
-  <br>
-  <a href="{% url 'home' %}">Back to Home</a>
+      <!-- Messages -->
+      {% if messages %}
+        <div class="mb-5 space-y-2">
+          {% for message in messages %}
+            <div
+              class="rounded-lg border p-4 text-sm
+                     {% if message.tags == 'success' %}
+                        border-emerald-200 bg-emerald-50 text-emerald-800
+                     {% elif message.tags == 'error' %}
+                        border-rose-200 bg-rose-50 text-rose-800
+                     {% elif message.tags == 'warning' %}
+                        border-amber-200 bg-amber-50 text-amber-800
+                     {% else %}
+                        border-slate-200 bg-white text-slate-700
+                     {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div class="p-6 sm:p-8">
+
+          <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Form fields -->
+            <div class="space-y-4">
+              {{ form.as_p }}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pt-2">
+              <a
+                href="{% url 'home' %}"
+                class="inline-flex justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                ← Back to Home
+              </a>
+
+              <button
+                type="submit"
+                class="inline-flex justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition">
+                Submit Request
+              </button>
+            </div>
+          </form>
+
+          <!-- Small footer note -->
+          <p class="mt-6 text-xs text-slate-500">
+            By submitting, you confirm the provided details are accurate.
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- OPTIONAL: Make Django form look nicer without editing forms.py -->
+  <style>
+    /* Tailwind-like polish for default Django form.as_p output */
+    form p { margin: 0; }
+    form p label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #334155; /* slate-700 */
+      margin-bottom: 0.375rem;
+    }
+    form p input, form p select, form p textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1; /* slate-300 */
+      border-radius: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.95rem;
+      outline: none;
+      background: #fff;
+    }
+    form p input:focus, form p select:focus, form p textarea:focus {
+      border-color: #0f172a; /* slate-900 */
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
+    }
+    form p .helptext {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b; /* slate-500 */
+      margin-top: 0.25rem;
+    }
+    form ul.errorlist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 0.5rem 0;
+      color: #b91c1c; /* red-700 */
+      font-size: 0.875rem;
+    }
+    form ul.errorlist li {
+      background: #fef2f2; /* red-50 */
+      border: 1px solid #fecaca; /* red-200 */
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+  </style>
 </body>
 </html>
