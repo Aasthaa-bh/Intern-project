@@ -8,11 +8,6 @@ urlpatterns = [
     path("kitchen/", views.kitchen_dashboard, name="restaurant_kitchen_dashboard"),
     path("kitchen/stock/", views.kitchen_stock, name="restaurant_kitchen_stock"),
     path(
-        "kitchen/stock/ingredients/<int:ingredient_id>/delete/",
-        views.kitchen_ingredient_delete,
-        name="restaurant_kitchen_ingredient_delete",
-    ),
-    path(
         "kitchen/stock/changes/<int:change_id>/delete/",
         views.kitchen_stock_change_delete,
         name="restaurant_kitchen_stock_change_delete",

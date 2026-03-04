@@ -15,10 +15,26 @@ def waiter_dashboard(request):
     """Main waiter dashboard showing available tables"""
     business = request.user.business
     tables = DiningTable.objects.filter(business=business).select_related('category')
+    ready_orders = list(
+        KitchenOrder.objects.filter(
+            business=business,
+            status='READY',
+            order__status='OPEN'
+        )
+        .select_related('order__table')
+        .order_by('ready_at', 'sent_at', 'created_at')
+    )
+
+    now = timezone.now()
+    for kitchen_order in ready_orders:
+        ready_time = kitchen_order.ready_at or kitchen_order.sent_at or kitchen_order.created_at
+        kitchen_order.ready_wait_minutes = int(max(0, (now - ready_time).total_seconds() // 60))
     
     context = {
         'tables': tables,
-        'user': request.user
+        'user': request.user,
+        'ready_orders': ready_orders,
+        'ready_orders_count': len(ready_orders),
     }
     return render(request, 'pos/waiter_dashboard.html', context)
 

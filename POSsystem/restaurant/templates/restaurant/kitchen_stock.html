@@ -4,71 +4,141 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kitchen Stock</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    :root {
-      --bg: #f3f5f7;
-      --panel: #fff;
-      --line: #d9e0e6;
-      --ink: #102331;
-      --sub: #556571;
-      --accent: #0f6c9c;
-      --danger: #b42318;
-      --ok: #0f766e;
+    body {
+      background: #f4f5f7;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: #1f2937;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--ink); }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; gap: 16px; }
-    .header { background: linear-gradient(120deg, #0f6c9c, #0b4f73); color: #fff; border-radius: 12px; padding: 18px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
-    .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
-    .muted { color: var(--sub); }
-    .pill { border: 1px solid rgba(255,255,255,.45); border-radius: 999px; padding: 5px 10px; font-size: 12px; }
-    .back { color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 13px; }
-    .error { color: var(--danger); background: #fee4e2; border: 1px solid #fecdca; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-    .notice { color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-    form { display: grid; gap: 10px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    label { font-size: 13px; color: var(--sub); display:block; margin-bottom: 4px; }
-    input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
-    button { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 10px 12px; font-weight: 600; cursor: pointer; }
-    .btn-danger { background: #b42318; }
-    .btn-small { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
-    .btn-secondary { background: #475467; }
-    .inline-form { display: inline; margin: 0; }
-    .edit-box { margin-top: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; }
-    .edit-box form { display: grid; gap: 8px; }
-    .edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-    .action-stack { display: grid; gap: 6px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    th { color: var(--sub); font-weight: 600; }
-    .low { color: var(--danger); font-weight: 700; }
-    .ok { color: var(--ok); font-weight: 600; }
-    @media (max-width: 900px) { .grid, .row { grid-template-columns: 1fr; } }
+    .dash-wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 20px 14px 28px;
+    }
+    .stock-header {
+      background: linear-gradient(135deg, #111827, #374151);
+      color: #fff;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 24px rgba(17, 24, 39, .18);
+    }
+    .stock-header .sub {
+      color: rgba(255,255,255,.82);
+      margin: 6px 0 0;
+      font-size: 14px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.4);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      background: rgba(255,255,255,.08);
+    }
+    .chip:hover { background: #fff; color: #111827; }
+    .panel {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .04);
+    }
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid #edf0f4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .panel-body-pad { padding: 14px 16px; }
+    .table th {
+      color: #6b7280;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+      border-bottom-width: 1px;
+      white-space: nowrap;
+    }
+    .table td {
+      vertical-align: middle;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+    .notice {
+      color: #9a3412;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .edit-box {
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid #dbe2ea;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .empty {
+      color: #6b7280;
+      padding: 16px;
+      margin: 0;
+      font-weight: 600;
+    }
+    .action-col {
+      min-width: 220px;
+    }
+    summary {
+      cursor: pointer;
+      color: #0d6efd;
+      font-weight: 600;
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="header">
-      <div>
-        <h1 style="margin:0">Kitchen Stock</h1>
-        <p style="margin:6px 0 0; opacity:.9">
+  <main class="dash-wrap">
+    <section class="stock-header mb-3">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <h1 class="h3 mb-0">Kitchen Stock</h1>
+          <p class="sub">
           {% if business %}{{ business.business_name }} inventory{% else %}Sign in with a business account to manage inventory{% endif %}
         </p>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <a class="back" href="{% url 'restaurant_kitchen_dashboard' %}">Kitchen Dashboard</a>
-        <span class="pill">Low Stock: {{ low_stock_count }}</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <a class="chip" href="{% url 'restaurant_kitchen_dashboard' %}">Kitchen Dashboard</a>
+          <a class="chip" href="{% url 'logout' %}">Logout</a>
+        </div>
       </div>
     </section>
 
-    <section class="grid">
-      <article class="panel">
-        <h2 style="margin:0 0 8px">Ingredients</h2>
+    <section class="row g-3">
+      <article class="col-12 col-xl-5">
+        <div class="panel h-100">
+        <div class="panel-head">
+          <h2 class="panel-title">Added Stock</h2>
+          <span class="badge text-bg-light border">Items</span>
+        </div>
         {% if ingredients %}
-          <table>
+          <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
             <thead>
-              <tr><th>Name</th><th>Qty</th><th>Unit</th><th>Min</th><th>Status</th></tr>
+              <tr><th>Name</th><th>Qty</th><th>Unit</th><th>Price</th></tr>
             </thead>
             <tbody>
               {% for ingredient in ingredients %}
@@ -76,124 +146,136 @@
                   <td>{{ ingredient.name }}</td>
                   <td>{{ ingredient.quantity }}</td>
                   <td>{{ ingredient.unit }}</td>
-                  <td>{{ ingredient.min_stock }}</td>
-                  <td>
-                    {% if ingredient.quantity <= ingredient.min_stock %}
-                      <span class="low">Low</span>
-                    {% else %}
-                      <span class="ok">OK</span>
-                    {% endif %}
-                  </td>
+                  <td>{{ ingredient.latest_price }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         {% else %}
-          <p class="muted">No kitchen ingredients added yet.</p>
+          <p class="empty">No kitchen stock items added yet.</p>
         {% endif %}
+        </div>
       </article>
 
-      <article class="panel">
-        <h2 style="margin:0 0 8px">Add Stock</h2>
+      <article class="col-12 col-xl-7">
+        <div class="panel h-100">
+        <div class="panel-head">
+          <h2 class="panel-title">Add Stock</h2>
+          <span class="badge text-bg-light border">Manage</span>
+        </div>
+        <div class="panel-body-pad">
         {% if form_error %}
-          <div class="error">{{ form_error }}</div>
+          <div class="alert alert-danger py-2 px-3 mb-3">{{ form_error }}</div>
         {% endif %}
-        {% if low_stock_count %}
-          <div class="notice">{{ low_stock_count }} ingredient{{ low_stock_count|pluralize }} below minimum stock.</div>
-        {% endif %}
-        <form method="post">
+        <form method="post" class="mb-4">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_stock">
-          <div>
-            <label for="ingredient_id">Existing ingredient (optional)</label>
-            <select id="ingredient_id" name="ingredient_id">
-              <option value="">Create new ingredient</option>
-              {% for ingredient in ingredients %}
-                <option value="{{ ingredient.id }}">{{ ingredient.name }} ({{ ingredient.quantity }} {{ ingredient.unit }})</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="row">
-            <div>
-              <label for="ingredient_name">Ingredient name (for new item)</label>
-              <input id="ingredient_name" name="ingredient_name" type="text" placeholder="Rice">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label for="ingredient_name" class="form-label">Stock item name</label>
+              <input id="ingredient_name" name="ingredient_name" type="text" placeholder="Rice" class="form-control">
             </div>
-            <div>
-              <label for="unit">Unit (for new item)</label>
-              <input id="unit" name="unit" type="text" placeholder="kg">
+            <div class="col-12 col-md-6">
+              <label for="unit" class="form-label">Unit</label>
+              <input id="unit" name="unit" type="text" placeholder="kg" class="form-control">
             </div>
           </div>
-          <div class="row">
-            <div>
-              <label for="quantity">Quantity to add</label>
-              <input id="quantity" name="quantity" type="number" step="0.01" min="0.01" required>
+          <div class="row g-3 mt-0">
+            <div class="col-12 col-md-6">
+              <label for="quantity" class="form-label">Quantity to add</label>
+              <input id="quantity" name="quantity" type="number" step="0.01" min="0.01" required class="form-control">
             </div>
-            <div>
-              <label for="price">Price</label>
-              <input id="price" name="price" type="number" step="0.01" min="0" placeholder="0.00">
+            <div class="col-12 col-md-6">
+              <label for="price" class="form-label">Price</label>
+              <input id="price" name="price" type="number" step="0.01" min="0" placeholder="0.00" class="form-control">
             </div>
           </div>
-          <div>
-            <label for="note">Note (optional)</label>
-            <input id="note" name="note" type="text" placeholder="Morning supply delivery">
+          <div class="mt-3">
+            <label for="note" class="form-label">Note (optional)</label>
+            <input id="note" name="note" type="text" placeholder="Morning supply delivery" class="form-control">
           </div>
-          <button type="submit">Add Kitchen Stock</button>
+          <button type="submit" class="btn btn-primary mt-3">Add Kitchen Stock</button>
         </form>
 
-        <h3 style="margin:18px 0 8px">Recent Changes</h3>
+        <h3 class="h5 mb-2">Added Stock (Month-wise)</h3>
+        <form method="get" class="row g-2 align-items-end mb-3">
+          <div class="col-12 col-sm-6 col-md-4">
+            <label for="month" class="form-label">Select month</label>
+            <input id="month" name="month" type="month" value="{{ selected_month }}" class="form-control">
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
+          </div>
+          <div class="col-auto">
+            <a href="{% url 'restaurant_kitchen_stock' %}" class="btn btn-link btn-sm">Clear</a>
+          </div>
+        </form>
+        {% if month_filter_error %}
+          <div class="alert alert-danger py-2 px-3 mb-3">{{ month_filter_error }}</div>
+        {% endif %}
+        <div class="notice">
+          Total Added Stock Price{% if total_price_month_label %} ({{ total_price_month_label }}){% endif %}: {{ total_added_stock_price }}
+        </div>
         {% if recent_changes %}
-          <table>
-            <thead><tr><th>Ingredient</th><th>Type</th><th>Qty</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
+          <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Stock Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total Price</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
             <tbody>
               {% for change in recent_changes %}
                 <tr>
                   <td>{{ change.ingredient.name }}</td>
                   <td>{{ change.get_change_type_display }}</td>
                   <td>{{ change.quantity_change }}</td>
+                  <td>{{ change.price }}</td>
+                  <td>{{ change.total_price }}</td>
                   <td>{{ change.changed_by.username }}</td>
                   <td>{{ change.note|default:"-" }}</td>
-                  <td>
+                  <td class="action-col">
                     {% if change.change_type == "ADD" %}
-                      <div class="action-stack">
+                      <div class="d-grid gap-2">
                         <details>
-                          <summary style="cursor:pointer; color:#0f6c9c; font-weight:600;">Edit</summary>
+                          <summary>Edit</summary>
                           <div class="edit-box">
                             <form method="post" action="{% url 'restaurant_kitchen_stock_change_edit' change.id %}">
                               {% csrf_token %}
-                              <div class="edit-row">
-                                <div>
-                                  <label>Qty</label>
-                                  <input type="number" step="0.01" min="0.01" name="quantity" value="{{ change.quantity_change }}" required>
+                              <div class="row g-2">
+                                <div class="col-12 col-md-6">
+                                  <label class="form-label mb-1">Qty</label>
+                                  <input type="number" step="0.01" min="0.01" name="quantity" value="{{ change.quantity_change }}" required class="form-control form-control-sm">
                                 </div>
-                                <div>
-                                  <label>Price</label>
-                                  <input type="number" step="0.01" min="0" name="price" value="{{ change.edit_price }}" placeholder="0.00">
+                                <div class="col-12 col-md-6">
+                                  <label class="form-label mb-1">Price</label>
+                                  <input type="number" step="0.01" min="0" name="price" value="{{ change.edit_price }}" placeholder="0.00" class="form-control form-control-sm">
                                 </div>
-                                <div>
-                                  <label>Note</label>
-                                  <input type="text" name="note" value="{{ change.edit_note }}" placeholder="Optional note">
+                                <div class="col-12">
+                                  <label class="form-label mb-1">Note</label>
+                                  <input type="text" name="note" value="{{ change.edit_note }}" placeholder="Optional note" class="form-control form-control-sm">
                                 </div>
                               </div>
-                              <button type="submit" class="btn-secondary btn-small">Save Edit</button>
+                              <button type="submit" class="btn btn-secondary btn-sm mt-2">Save Edit</button>
                             </form>
                           </div>
                         </details>
-                        <form method="post" action="{% url 'restaurant_kitchen_stock_change_delete' change.id %}" class="inline-form" onsubmit="return confirm('Delete this stock add entry and rollback quantity?');">
+                        <form method="post" action="{% url 'restaurant_kitchen_stock_change_delete' change.id %}" onsubmit="return confirm('Delete this stock add entry and rollback quantity?');">
                           {% csrf_token %}
-                          <button type="submit" class="btn-danger btn-small">Delete</button>
+                          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                       </div>
                     {% else %}
-                      <span class="muted">-</span>
+                      <span class="text-muted">-</span>
                     {% endif %}
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         {% else %}
-          <p class="muted">No stock changes recorded yet.</p>
+          <p class="empty">No stock changes recorded yet.</p>
         {% endif %}
+        </div>
+        </div>
       </article>
     </section>
   </main>
