@@ -6,28 +6,33 @@
 
 {% block content %}
 
-<div class="max-w-xl bg-white border border-gray-200 rounded-2xl p-6">
-  <h2 class="text-xl font-semibold mb-4">Plan: {{ subscription.package.name }}</h2>
+<div class="max-w-xl bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+  <h2 class="text-xl font-semibold text-gray-900 mb-4">
+    Plan: {{ subscription.package.name }}
+  </h2>
 
   <div class="space-y-2 text-sm text-gray-700">
     <div class="flex justify-between">
       <span>Duration</span>
       <span class="font-semibold">{{ subscription.package.duration_months }} month(s)</span>
     </div>
+
     <div class="flex justify-between">
       <span>Max Users</span>
       <span class="font-semibold">{{ subscription.package.max_users }}</span>
     </div>
-    <div class="flex justify-between text-base mt-2">
+
+    <div class="flex justify-between text-base mt-2 pt-2 border-t border-gray-100">
       <span class="font-semibold">Amount</span>
-      <span class="font-bold">Rs {{ subscription.package.price }}</span>
+      <span class="font-bold text-gray-900">Rs {{ subscription.package.price }}</span>
     </div>
   </div>
 
-  <!-- DEBUG: check esewa url (remove later) -->
-  <p class="mt-4 text-xs text-gray-500 break-all">
-    eSewa URL: {{ form_data.esewa_url }}
-  </p>
+  {% if debug %}
+    <p class="mt-4 text-xs text-gray-500 break-all">
+      eSewa URL: {{ form_data.esewa_url }}
+    </p>
+  {% endif %}
 
   <form class="mt-6" action="{{ form_data.esewa_url }}" method="POST">
     {% csrf_token %}
@@ -45,10 +50,12 @@
     <input type="hidden" name="signature" value="{{ form_data.signature }}">
 
     <button type="submit"
-            class="w-full mt-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">
+            class="w-full mt-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
       Pay Now
     </button>
   </form>
+
+  
 
   <a href="{% url 'business_package_list' %}"
      class="inline-block mt-4 text-sm text-gray-600 hover:underline">

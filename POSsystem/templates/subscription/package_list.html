@@ -1,119 +1,90 @@
 {% extends "superadmin/base.html" %}
 
-{% block title %}Payments{% endblock %}
-{% block page_title %}Payments{% endblock %}
-{% block page_subtitle %}Search, filter, and review payment attempts{% endblock %}
+{% block title %}Packages{% endblock %}
+{% block page_title %}Packages{% endblock %}
+{% block page_subtitle %}Manage subscription plans for businesses{% endblock %}
 
 {% block content %}
 
 <div class="max-w-7xl mx-auto">
 
-  <!-- Filters -->
-  <form method="GET" action="{% url 'payment_list' %}" class="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
-    <div class="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
-
-      <div class="flex-1">
-        <label class="text-xs text-gray-500">Search (Business / Transaction Ref)</label>
-        <input type="text" name="q" value="{{ q }}"
-               placeholder="Search business name or transaction ref..."
-               class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300">
-      </div>
-
-      <div class="w-full md:w-56">
-        <label class="text-xs text-gray-500">Status</label>
-        <select name="status"
-                class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-300">
-          <option value="" {% if not status %}selected{% endif %}>All</option>
-          <option value="PENDING" {% if status == "PENDING" %}selected{% endif %}>Pending</option>
-          <option value="VERIFIED" {% if status == "VERIFIED" %}selected{% endif %}>Verified</option>
-          <option value="CANCELLED" {% if status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
-          <option value="REJECTED" {% if status == "REJECTED" %}selected{% endif %}>Rejected</option>
-        </select>
-      </div>
-
-      <div class="flex gap-2">
-        <button type="submit"
-                class="px-4 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-900">
-          Apply
-        </button>
-
-        <a href="{% url 'payment_list' %}"
-           class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
-          Reset
-        </a>
-      </div>
-
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">All Packages</h2>
+      <p class="text-sm text-gray-500">Create, edit, and manage package availability.</p>
     </div>
-  </form>
+
+    <a href="{% url 'package_create' %}"
+       class="inline-flex items-center px-4 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-900 transition">
+      + Create Package
+    </a>
+  </div>
 
   <!-- Table -->
   <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-      <div class="font-semibold text-gray-900">Payments</div>
-      <div class="text-sm text-gray-500">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-      </div>
+      <div class="font-semibold text-gray-900">Packages</div>
+      <div class="text-sm text-gray-500">Total: {{ packages|length }}</div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-600">
           <tr>
-            <th class="text-left px-5 py-3 font-medium">Business</th>
-            <th class="text-left px-5 py-3 font-medium">Package</th>
-            <th class="text-left px-5 py-3 font-medium">Amount</th>
-            <th class="text-left px-5 py-3 font-medium">Method</th>
+            <th class="text-left px-5 py-3 font-medium">Name</th>
+            <th class="text-left px-5 py-3 font-medium">Duration</th>
+            <th class="text-left px-5 py-3 font-medium">Max Users</th>
+            <th class="text-left px-5 py-3 font-medium">Price</th>
             <th class="text-left px-5 py-3 font-medium">Status</th>
-            <th class="text-left px-5 py-3 font-medium">Transaction Ref</th>
-            <th class="text-left px-5 py-3 font-medium">Paid At</th>
+            <th class="text-left px-5 py-3 font-medium">Actions</th>
           </tr>
         </thead>
 
         <tbody class="divide-y divide-gray-100">
-          {% for p in page_obj %}
+          {% for p in packages %}
             <tr class="hover:bg-gray-50">
-              <td class="px-5 py-3 font-medium text-gray-900">
-                {{ p.subscription.business.business_name }}
-              </td>
+              <td class="px-5 py-3 font-medium text-gray-900">{{ p.name }}</td>
 
               <td class="px-5 py-3 text-gray-700">
-                {{ p.subscription.package.name }}
+                {{ p.duration_months }} month{% if p.duration_months|add:0 > 1 %}s{% endif %}
               </td>
 
-              <td class="px-5 py-3 text-gray-700">
-                Rs {{ p.amount }}
-              </td>
+              <td class="px-5 py-3 text-gray-700">{{ p.max_users }}</td>
 
-              <td class="px-5 py-3 text-gray-700">
-                {{ p.method }}
-              </td>
+              <td class="px-5 py-3 text-gray-700">Rs {{ p.price }}</td>
 
               <td class="px-5 py-3">
-                {% if p.status == "VERIFIED" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">VERIFIED</span>
-                {% elif p.status == "PENDING" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">PENDING</span>
-                {% elif p.status == "CANCELLED" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">CANCELLED</span>
+                {% if p.is_active %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                    Active
+                  </span>
                 {% else %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">{{ p.status }}</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                    Inactive
+                  </span>
                 {% endif %}
               </td>
 
               <td class="px-5 py-3">
-                <span class="font-mono text-xs text-gray-700 break-all">
-                  {{ p.transaction_ref|default:"-" }}
-                </span>
-              </td>
+                <div class="flex items-center gap-2">
+                  <a href="{% url 'package_update' p.id %}"
+                     class="px-3 py-1 rounded-md border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50">
+                    Edit
+                  </a>
 
-              <td class="px-5 py-3 text-gray-700">
-                {% if p.paid_at %}{{ p.paid_at|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+                  <a href="{% url 'package_delete' p.id %}"
+                     class="px-3 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+                     onclick="return confirm('Delete this package?');">
+                    Delete
+                  </a>
+                </div>
               </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="7" class="px-5 py-10 text-center text-gray-500">
-                No payments found.
+              <td colspan="6" class="px-5 py-10 text-center text-gray-500">
+                No packages found.
               </td>
             </tr>
           {% endfor %}
@@ -121,38 +92,6 @@
 
       </table>
     </div>
-
-    <!-- Pagination -->
-    <div class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
-      <div class="text-sm text-gray-500">
-        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
-      </div>
-
-      <div class="flex items-center gap-2">
-        {% if page_obj.has_previous %}
-          <a class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50"
-             href="?q={{ q }}&status={{ status }}&page={{ page_obj.previous_page_number }}">
-            Prev
-          </a>
-        {% else %}
-          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Prev</span>
-        {% endif %}
-
-        <span class="text-sm text-gray-600">
-          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-        </span>
-
-        {% if page_obj.has_next %}
-          <a class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50"
-             href="?q={{ q }}&status={{ status }}&page={{ page_obj.next_page_number }}">
-            Next
-          </a>
-        {% else %}
-          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Next</span>
-        {% endif %}
-      </div>
-    </div>
-
   </div>
 
 </div>

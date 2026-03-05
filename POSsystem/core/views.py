@@ -16,11 +16,10 @@ from django.db.models import Q
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 
 from core.models import Business
 from subscription.models import Package, BusinessSubscription
+from subscription.utils import get_active_subscription, get_business_user_limit
 
 
 
@@ -288,36 +287,12 @@ def request_detail(request, request_id):
 
 @login_required
 def owner_dashboard(request):
-
     if request.user.role != "OWNER":
         return redirect("login")
 
     business = request.user.business
 
-    subscription = BusinessSubscription.objects.filter(
-        business=business,
-        is_current=True
-    ).first()
-
-    days_remaining = None
-
-    if subscription and subscription.end_date:
-        days_remaining = (subscription.end_date - timezone.now()).days
-
-    context = {
-        "business": business,
-        "subscription": subscription,
-        "days_remaining": days_remaining
-    }
-
-@login_required
-def owner_dashboard(request):
-
-    if request.user.role != "OWNER":
-        return redirect("login")
-
-    business = request.user.business
-
+    # Staff counts
     total_staff = User.objects.filter(
         business=business
     ).exclude(role="OWNER").count()
@@ -327,6 +302,7 @@ def owner_dashboard(request):
         is_active=True
     ).exclude(role="OWNER").count()
 
+    # Menu counts
     total_categories = Category.objects.filter(
         business=business
     ).count()
@@ -340,9 +316,29 @@ def owner_dashboard(request):
         is_active=True
     ).count()
 
+    # Table counts
     total_tables = DiningTable.objects.filter(
         business=business
     ).count()
+
+    # Subscription/package info
+    active_subscription = get_active_subscription(business)
+
+    days_remaining = None
+    max_users = get_business_user_limit(business)
+
+    # If package limit should count owner too, use count()
+    # If package limit should count only staff, use exclude(role="OWNER")
+    current_users = User.objects.filter(
+        business=business
+    ).count()
+
+    remaining_users = max_users - current_users
+    if remaining_users < 0:
+        remaining_users = 0
+
+    if active_subscription and active_subscription.end_date:
+        days_remaining = (active_subscription.end_date - timezone.now()).days
 
     context = {
         "total_staff": total_staff,
@@ -351,6 +347,12 @@ def owner_dashboard(request):
         "total_items": total_items,
         "active_items": active_items,
         "total_tables": total_tables,
+
+        "active_subscription": active_subscription,
+        "days_remaining": days_remaining,
+        "max_users": max_users,
+        "current_users": current_users,
+        "remaining_users": remaining_users,
     }
 
     return render(request, "owner/dashboard.html", context)

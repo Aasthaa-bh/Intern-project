@@ -1,26 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Get Started</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business Registration Request</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Business Registration Request</h2>
+<body class="bg-gray-100 min-h-screen">
 
-  {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  <div class="max-w-5xl mx-auto py-10 px-4">
+    
+    <!-- Heading -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900">Business Registration Request</h1>
+      <p class="mt-2 text-gray-600 text-lg">
+        Fill in your business details to submit your registration request.
+      </p>
+    </div>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Request</button>
-  </form>
+    <!-- Messages -->
+    {% if messages %}
+      <div class="mb-6 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-lg border border-black bg-white px-4 py-3 text-sm text-black shadow-sm">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-  <br>
-  <a href="{% url 'home' %}">Back to Home</a>
+    <!-- Main Form Card -->
+    <div class="bg-white border border-gray-300 rounded-2xl shadow-sm p-8 md:p-10">
+      <form method="POST" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Business Name -->
+          <div>
+            <label for="{{ form.business_name.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Business Name
+            </label>
+            {{ form.business_name }}
+            {% if form.business_name.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.business_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Owner Name -->
+          <div>
+            <label for="{{ form.owner_name.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Owner Name
+            </label>
+            {{ form.owner_name }}
+            {% if form.owner_name.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.owner_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Email
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label for="{{ form.phone_no.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Phone No
+            </label>
+            {{ form.phone_no }}
+            {% if form.phone_no.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.phone_no.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Business Type -->
+          <div class="md:col-span-2">
+            <label for="{{ form.business_type.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Business Type
+            </label>
+            {{ form.business_type }}
+            {% if form.business_type.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.business_type.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label for="{{ form.address.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Address
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.address.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- PAN Image -->
+          <div>
+            <label for="{{ form.pan_image.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              PAN Image
+            </label>
+            {{ form.pan_image }}
+            {% if form.pan_image.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.pan_image.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Citizenship Image -->
+          <div>
+            <label for="{{ form.citizenship_image.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Citizenship Image
+            </label>
+            {{ form.citizenship_image }}
+            {% if form.citizenship_image.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.citizenship_image.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-end gap-4 pt-4">
+          <a href="{% url 'home' %}"
+             class="px-6 py-3 rounded-xl border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition">
+            Back to Home
+          </a>
+          <button type="submit"
+                  class="px-6 py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition shadow-sm">
+            Submit Request
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

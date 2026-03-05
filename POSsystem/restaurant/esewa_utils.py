@@ -31,10 +31,11 @@ def generate_esewa_signature(total_amount, transaction_uuid, product_code="EPAYT
 
 def verify_esewa_payment(transaction_uuid, total_amount, product_code="EPAYTEST"):
     """
-    Server-to-server verification
+    Verify eSewa v2 payment status (server-to-server)
     """
     try:
         amount_str = f"{Decimal(total_amount):.2f}"
+
         verify_url = (
             f"{ESEWA_VERIFY_URL}"
             f"?product_code={product_code}"
@@ -46,12 +47,23 @@ def verify_esewa_payment(transaction_uuid, total_amount, product_code="EPAYTEST"
 
         if response.status_code == 200:
             data = response.json()
-            return {"success": True, "data": data}
+            return {
+                "success": True,
+                "data": data,
+                "status": data.get("status"),
+                "ref_id": data.get("ref_id"),
+                "message": "Payment verified successfully"
+            }
 
-        return {"success": False, "message": f"Verify failed: {response.status_code}", "body": response.text}
+        return {
+            "success": False,
+            "message": f"Verification failed with status {response.status_code}",
+            "response_text": response.text
+        }
 
     except Exception as e:
         return {"success": False, "message": str(e)}
+        
 
 
 def prepare_esewa_payment_data(invoice, success_url, failure_url, product_code="EPAYTEST"):

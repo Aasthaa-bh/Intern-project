@@ -9,15 +9,9 @@ from datetime import timedelta
 from .models import Package, BusinessSubscription, SubscriptionPayment
 from django.core.paginator import Paginator
 from django.db.models import Q
-from subscription.models import SubscriptionPayment, BusinessSubscription
-
-
 # Reuse eSewa from restaurant
-from restaurant.esewa_utils import (
-    prepare_esewa_form_data,
-    generate_transaction_uuid,
-    verify_esewa_payment,
-)
+from restaurant.esewa_utils import (prepare_esewa_form_data,generate_transaction_uuid,verify_esewa_payment,)
+from django.conf import settings
 
 
 # -----------------------------
@@ -211,6 +205,9 @@ def payment_page(request, subscription_id):
     payment = SubscriptionPayment.objects.filter(subscription=subscription).order_by("-id").first()
     if not payment:
         return HttpResponseBadRequest("Payment record not found.")
+    
+    if settings.DEBUG:
+        return redirect("sub_esewa_mock_payment", subscription_id=subscription.id)
 
     success_url = request.build_absolute_uri(reverse("esewa_success"))
     failure_url = request.build_absolute_uri(reverse("esewa_failure"))
@@ -221,12 +218,14 @@ def payment_page(request, subscription_id):
         success_url=success_url,
         failure_url=failure_url,
         product_code="EPAYTEST",
+        
     )
 
     return render(request, "subscription/payment_page.html", {
         "subscription": subscription,
         "payment": payment,
         "form_data": form_data,
+        "debug": settings.DEBUG,
     })
 
 
@@ -390,4 +389,113 @@ def payment_list(request):
         "page_obj": page_obj,
         "q": q,
         "status": status,
+        "debug": settings.DEBUG,
     })
+
+
+from django.conf import settings
+
+@login_required
+def sub_esewa_mock_payment(request, subscription_id):
+    """
+    Mock eSewa login page for subscription payment.
+    Safe: only affects subscription models.
+    """
+    if not settings.DEBUG:
+        return HttpResponseBadRequest("Not allowed")
+
+    if request.user.role != "OWNER":
+        return redirect("owner_dashboard")
+
+    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
+
+    if subscription.business != request.user.business:
+        return redirect("owner_dashboard")
+
+    payment = SubscriptionPayment.objects.filter(
+        subscription=subscription,
+        status="PENDING"
+    ).order_by("-id").first()
+
+    if not payment:
+        return HttpResponseBadRequest("No pending payment found.")
+
+    context = {
+        "subscription": subscription,
+        "payment": payment,
+    }
+    return render(request, "subscription/esewa_mock_payment.html", context)
+
+
+@login_required
+def sub_esewa_mock_process(request, subscription_id):
+    """
+    Process mock eSewa payment.
+    Accept any MPIN for demo/testing.
+    """
+    if not settings.DEBUG:
+        return HttpResponseBadRequest("Not allowed")
+
+    if request.method != "POST":
+        return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
+
+    if request.user.role != "OWNER":
+        return redirect("owner_dashboard")
+
+    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
+
+    if subscription.business != request.user.business:
+        return redirect("owner_dashboard")
+
+    payment = SubscriptionPayment.objects.filter(
+        subscription=subscription,
+        status="PENDING"
+    ).order_by("-id").first()
+
+    if not payment:
+        return HttpResponseBadRequest("No pending payment found.")
+
+    mpin = request.POST.get("mpin", "").strip()
+
+    # Accept any MPIN for mock/demo
+    if mpin:
+        payment.transaction_ref = payment.transaction_ref or f"MOCK-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        _activate_subscription(subscription, payment)
+
+        messages.success(request, "✅ Payment completed successfully via mock eSewa!")
+        return render(request, "subscription/payment_success.html", {"subscription": subscription})
+
+    messages.error(request, "Invalid MPIN! Please try again.")
+    return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
+
+
+@login_required
+def sub_esewa_mock_cancel(request, subscription_id):
+    """
+    Cancel mock eSewa payment.
+    """
+    if not settings.DEBUG:
+        return HttpResponseBadRequest("Not allowed")
+
+    if request.method != "POST":
+        return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
+
+    if request.user.role != "OWNER":
+        return redirect("owner_dashboard")
+
+    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
+
+    if subscription.business != request.user.business:
+        return redirect("owner_dashboard")
+
+    payment = SubscriptionPayment.objects.filter(
+        subscription=subscription,
+        status="PENDING"
+    ).order_by("-id").first()
+
+    if payment:
+        payment.status = "REJECTED"
+        payment.save()
+
+    messages.warning(request, "Payment cancelled.")
+    return render(request, "subscription/payment_failed.html", {"reason": "Payment cancelled by user"})

@@ -5,13 +5,12 @@
 {% block page_subtitle %}Track all subscription payment attempts{% endblock %}
 
 {% block content %}
-
 <div class="max-w-7xl mx-auto">
 
   <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
       <div class="font-semibold text-gray-900">All Payments</div>
-      <div class="text-sm text-gray-500">Total: {{ payments|length }}</div>
+      <div class="text-sm text-gray-500">Total: {{ page_obj.paginator.count }}</div>
     </div>
 
     <div class="overflow-x-auto">
@@ -29,51 +28,15 @@
         </thead>
 
         <tbody class="divide-y divide-gray-100">
-          {% for p in payments %}
+          {% for p in page_obj %}
             <tr class="hover:bg-gray-50">
-              <td class="px-5 py-3 font-medium text-gray-900">
-                {{ p.subscription.business.business_name }}
-              </td>
-
-              <td class="px-5 py-3 text-gray-700">
-                {{ p.subscription.package.name }}
-              </td>
-
-              <td class="px-5 py-3 text-gray-700">
-                Rs {{ p.amount }}
-              </td>
-
-              <td class="px-5 py-3 text-gray-700">
-                {{ p.method }}
-              </td>
-
+              <td class="px-5 py-3">{{ p.subscription.business.business_name }}</td>
+              <td class="px-5 py-3">{{ p.subscription.package.name }}</td>
+              <td class="px-5 py-3">Rs {{ p.amount }}</td>
+              <td class="px-5 py-3">{{ p.method }}</td>
+              <td class="px-5 py-3">{{ p.status }}</td>
+              <td class="px-5 py-3">{{ p.transaction_ref }}</td>
               <td class="px-5 py-3">
-                {% if p.status == "VERIFIED" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                    VERIFIED
-                  </span>
-                {% elif p.status == "PENDING" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                    PENDING
-                  </span>
-                {% elif p.status == "CANCELLED" %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                    CANCELLED
-                  </span>
-                {% else %}
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                    {{ p.status }}
-                  </span>
-                {% endif %}
-              </td>
-
-              <td class="px-5 py-3">
-                <span class="font-mono text-xs text-gray-700 break-all">
-                  {{ p.transaction_ref|default:"-" }}
-                </span>
-              </td>
-
-              <td class="px-5 py-3 text-gray-700">
                 {% if p.paid_at %}{{ p.paid_at|date:"M d, Y h:i a" }}{% else %}-{% endif %}
               </td>
             </tr>
@@ -85,11 +48,33 @@
             </tr>
           {% endfor %}
         </tbody>
-
       </table>
+    </div>
+
+    <div class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
+      <div class="text-sm text-gray-500">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?q={{ q }}&status={{ status }}&page={{ page_obj.previous_page_number }}"
+             class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50">Prev</a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Prev</span>
+        {% endif %}
+
+        <span class="text-sm text-gray-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+          <a href="?q={{ q }}&status={{ status }}&page={{ page_obj.next_page_number }}"
+             class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50">Next</a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Next</span>
+        {% endif %}
+      </div>
     </div>
   </div>
 
 </div>
-
 {% endblock %}

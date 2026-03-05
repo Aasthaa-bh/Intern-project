@@ -9,6 +9,8 @@ from django.views.decorators.http import require_POST
 
 from accounts.forms import StaffCreateForm, StaffUpdateForm
 from core.decorators import owner_required
+from accounts.models import User
+from subscription.utils import get_active_subscription, get_business_user_limit
 
 User = get_user_model()
 
@@ -30,9 +32,31 @@ def staff_list(request):
     return render(request, "owner/staff/staff_list.html", {"staff_list": staff_qs})
 
 
+
 @owner_required
 def staff_create(request):
     business = request.user.business
+
+    # Get active subscription
+    active_subscription = get_active_subscription(business)
+
+    # Get max allowed users from package
+    max_users = get_business_user_limit(business)
+
+    # Count current users in this business
+    # If you want to count owner also, keep this:
+    current_users = User.objects.filter(business=business).count()
+
+    # If you want to count only staff and not owner, use this instead:
+    # current_users = User.objects.filter(business=business).exclude(role="OWNER").count()
+
+    # Block staff creation if limit reached
+    if current_users >= max_users:
+        messages.error(
+            request,
+            f"User limit reached. Your current package allows only {max_users} users."
+        )
+        return redirect("business_package_list")
 
     if request.method == "POST":
         form = StaffCreateForm(request.POST)
@@ -46,7 +70,6 @@ def staff_create(request):
             user.set_password(temp_password)
             user.save()
 
-            # For highest marks: show temp password once in message (or email later)
             messages.success(
                 request,
                 f"Staff created successfully. Temporary password for {user.username}: {temp_password}"
@@ -55,8 +78,13 @@ def staff_create(request):
     else:
         form = StaffCreateForm()
 
-    return render(request, "owner/staff/staff_form.html", {"form": form, "mode": "create"})
-
+    return render(request, "owner/staff/staff_form.html", {
+        "form": form,
+        "mode": "create",
+        "max_users": max_users,
+        "current_users": current_users,
+        "active_subscription": active_subscription,
+    })
 
 @owner_required
 def staff_edit(request, staff_id):
