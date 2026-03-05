@@ -49,6 +49,25 @@
             margin-top: 5px;
         }
 
+        .user-info {
+            padding: 15px 20px;
+            background: #2a2a2a;
+            margin: 0 10px 10px;
+            border-radius: 4px;
+        }
+
+        .user-info .username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .user-info .role {
+            font-size: 12px;
+            color: #999;
+        }
+
         .sidebar-menu {
             list-style: none;
         }
@@ -306,6 +325,14 @@
             <h2>FlexiPOS</h2>
             <p>Reception System</p>
         </div>
+        
+        {% if user.is_authenticated %}
+        <div class="user-info">
+            <div class="username">👤 {{ user.username }}</div>
+            <div class="role">{{ user.get_full_name|default:"Staff" }}</div>
+        </div>
+        {% endif %}
+        
         <ul class="sidebar-menu">
             <li>
                 <a href="{% url 'reception_dashboard' %}" class="{% if request.resolver_match.url_name == 'reception_dashboard' %}active{% endif %}">
@@ -347,6 +374,12 @@
                 <a href="{% url 'daily_payment_report' %}" class="{% if request.resolver_match.url_name == 'daily_payment_report' %}active{% endif %}">
                     <span class="icon">📈</span>
                     <span>Daily Report</span>
+                </a>
+            </li>
+            <li style="margin-top: 20px; border-top: 1px solid #333; padding-top: 10px;">
+                <a href="/accounts/logout/" style="color: #ff6b6b;">
+                    <span class="icon">🚪</span>
+                    <span>Logout</span>
                 </a>
             </li>
         </ul>

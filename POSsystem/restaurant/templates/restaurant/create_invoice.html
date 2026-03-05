@@ -2,13 +2,48 @@
 
 {% block title %}Create Invoice{% endblock %}
 
-{% block page_title %}Create Invoice for Table {{ table.table_number }}{% endblock %}
+{% block page_title %}Create Invoice for Table {{ table.name }}{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'table_bill' table.id %}" class="btn btn-secondary">← Back</a>
 {% endblock %}
 
 {% block content %}
+{% if ready_orders %}
+<div class="card">
+    <div class="card-header">Orders Ready for Billing</div>
+    {% for order in ready_orders %}
+    <div style="margin-bottom: 15px; padding: 12px; background: #f9f9f9; border-radius: 4px;">
+        <strong>Order #{{ order.order_no }}</strong>
+        <table style="width: 100%; margin-top: 8px; font-size: 14px;">
+            <thead>
+                <tr style="background: #e0e0e0;">
+                    <th style="padding: 6px;">Item</th>
+                    <th style="padding: 6px; text-align: center;">Qty</th>
+                    <th style="padding: 6px; text-align: right;">Price</th>
+                    <th style="padding: 6px; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td style="padding: 6px;">{{ item.item_name_snapshot }}</td>
+                    <td style="padding: 6px; text-align: center;">{{ item.quantity }}</td>
+                    <td style="padding: 6px; text-align: right;">Rs. {{ item.unit_price }}</td>
+                    <td style="padding: 6px; text-align: right;">Rs. {{ item.line_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    
+    <div style="background: #e8f5e9; padding: 12px; border-radius: 4px; margin-top: 10px;">
+        <strong>Total from Orders: Rs. {{ calculated_subtotal }}</strong>
+    </div>
+</div>
+{% endif %}
+
 <div class="card">
     <div class="card-header">Invoice Information</div>
     <form method="POST">
@@ -26,7 +61,7 @@
         
         <div class="form-group">
             <label>Subtotal Amount (Rs.)</label>
-            <input type="number" name="subtotal" class="form-control" step="0.01" required placeholder="0.00">
+            <input type="number" name="subtotal" class="form-control" step="0.01" required placeholder="0.00" value="{{ calculated_subtotal|default:'0' }}">
         </div>
         
         <div class="form-group">

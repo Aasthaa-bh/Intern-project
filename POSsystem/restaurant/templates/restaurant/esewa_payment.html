@@ -74,7 +74,7 @@
             <p><strong>Invoice:</strong> {{ invoice.invoice_number }}</p>
             <p><strong>Customer:</strong> {{ invoice.customer_name|default:"Guest" }}</p>
             {% if invoice.table %}
-            <p><strong>Table:</strong> {{ invoice.table.table_number }}</p>
+            <p><strong>Table:</strong> {{ invoice.table.name }}</p>
             {% endif %}
         </div>
         

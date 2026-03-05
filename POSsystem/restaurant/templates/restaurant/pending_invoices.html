@@ -25,7 +25,7 @@
             <tr>
                 <td><strong>{{ invoice.invoice_number }}</strong></td>
                 <td>{{ invoice.created_at|date:"M d, Y h:i A" }}</td>
-                <td>{% if invoice.table %}Table {{ invoice.table.table_number }}{% else %}N/A{% endif %}</td>
+                <td>{% if invoice.table %}{{ invoice.table.name }}{% else %}N/A{% endif %}</td>
                 <td>{{ invoice.customer_name|default:"Guest" }}</td>
                 <td><strong>Rs. {{ invoice.total_amount }}</strong></td>
                 <td>

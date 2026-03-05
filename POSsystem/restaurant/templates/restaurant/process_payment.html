@@ -22,7 +22,7 @@
         </tr>
         <tr>
             <td><strong>Table:</strong></td>
-            <td>{% if invoice.table %}Table {{ invoice.table.table_number }}{% else %}N/A{% endif %}</td>
+            <td>{% if invoice.table %}{{ invoice.table.name }}{% else %}N/A{% endif %}</td>
         </tr>
         <tr style="background: #f0f0f0;">
             <td><strong>Total Amount:</strong></td>

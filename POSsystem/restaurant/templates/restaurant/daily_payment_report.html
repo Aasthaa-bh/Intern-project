@@ -8,31 +8,30 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            background: #f5f5f5;
             min-height: 100vh;
         }
         .header { 
-            background: rgba(255,255,255,0.95);
+            background: #fff;
             padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #1a1a1a;
         }
-        .header h1 { color: #c44569; font-size: 32px; }
+        .header h1 { color: #1a1a1a; font-size: 32px; }
         .back-btn { 
-            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            background: #1a1a1a;
             color: white;
             padding: 12px 25px;
             text-decoration: none;
-            border-radius: 25px;
+            border-radius: 4px;
             font-weight: 600;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(196, 69, 105, 0.4);
         }
         .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(196, 69, 105, 0.6);
+            background: #333;
         }
         .container { 
             max-width: 1400px;
@@ -47,18 +46,14 @@
         }
         .summary-card {
             background: white;
-            border-radius: 20px;
+            border-radius: 8px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-        }
-        .summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
         }
         .summary-card h3 {
             font-size: 16px;
-            color: #7f8c8d;
+            color: #666;
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -67,24 +62,24 @@
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 10px;
+            color: #1a1a1a;
         }
-        .cash-card .amount { color: #27ae60; }
-        .esewa-card .amount { color: #60D937; }
-        .qr-card .amount { color: #3498db; }
         .total-card {
-            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            background: #1a1a1a;
             color: white;
+            border: none;
         }
-        .total-card h3 { color: rgba(255,255,255,0.9); }
+        .total-card h3 { color: #ccc; }
         .total-card .amount { color: white; font-size: 42px; }
         .report-card {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
             overflow: hidden;
         }
         .report-header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+            background: #1a1a1a;
             color: white;
             padding: 20px 30px;
         }
@@ -93,7 +88,7 @@
             margin-bottom: 5px;
         }
         .report-header p {
-            opacity: 0.9;
+            opacity: 0.8;
             font-size: 14px;
         }
         table { 
@@ -124,22 +119,20 @@
             background: #f8f9fa;
         }
         tbody tr.today-row {
-            background: #fff3cd;
+            background: #f0f0f0;
             font-weight: 600;
         }
         .amount-cell {
             font-weight: 600;
             font-size: 16px;
+            color: #1a1a1a;
         }
-        .cash-amount { color: #27ae60; }
-        .esewa-amount { color: #60D937; }
-        .total-amount { color: #c44569; }
         .date-badge {
             display: inline-block;
             padding: 4px 10px;
-            background: #ff6b6b;
+            background: #1a1a1a;
             color: white;
-            border-radius: 12px;
+            border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
             margin-left: 8px;
@@ -204,9 +197,9 @@
                             {{ day.date|date:"d M Y (D)" }}
                             {% if day.is_today %}<span class="date-badge">TODAY</span>{% endif %}
                         </td>
-                        <td class="amount-cell cash-amount">Rs. {{ day.cash|floatformat:2 }}</td>
-                        <td class="amount-cell esewa-amount">Rs. {{ day.khalti|floatformat:2 }}</td>
-                        <td class="amount-cell total-amount">Rs. {{ day.total|floatformat:2 }}</td>
+                        <td class="amount-cell">Rs. {{ day.cash|floatformat:2 }}</td>
+                        <td class="amount-cell">Rs. {{ day.khalti|floatformat:2 }}</td>
+                        <td class="amount-cell">Rs. {{ day.total|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
