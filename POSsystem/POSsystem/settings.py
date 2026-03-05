@@ -144,6 +144,14 @@ LOGIN_REDIRECT_URL = "waiter_dashboard"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+
+# -------------------------
+# eSewa (Test/UAT) Settings
+# -------------------------
+ESEWA_PRODUCT_CODE = "EPAYTEST"          # merchant code (test)
+ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"   # secret key (test)
+ESEWA_FORM_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

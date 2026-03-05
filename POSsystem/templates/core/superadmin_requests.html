@@ -1,90 +1,129 @@
 {% extends "superadmin/base.html" %}
-           
+
+{% block title %}Business Requests{% endblock %}
+{% block page_title %}Business Requests{% endblock %}
+{% block page_subtitle %}Search and filter requests easily{% endblock %}
 
 {% block content %}
 
-<h2>Business Requests</h2>
+<div class="max-w-7xl mx-auto">
 
-<!-- Pending Requests -->
-<h3>Pending Requests</h3>
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Business</th>
-        <th>Owner</th>
-        <th>Email</th>
-        <th>Action</th>
-    </tr>
+  <!-- Filters -->
+  <form method="GET" action="{% url 'superadmin_requests' %}" class="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
+    <div class="flex flex-col md:flex-row gap-3 md:items-end md:justify-between">
 
-    {% for req in pending_requests %}
-    <tr>
-        <td>{{ req.business_name }}</td>
-        <td>{{ req.owner_name }}</td>
-        <td>{{ req.email }}</td>
-        <td>
-            <a href="{% url 'request_detail' req.id %}">View</a> |
-            <a href="{% url 'approve_request' req.id %}">Approve</a> |
-            <a href="{% url 'reject_request' req.id %}">Reject</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">No Pending Requests</td>
-    </tr>
-    {% endfor %}
-</table>
+      <div class="flex-1">
+        <label class="text-xs text-gray-500">Search (business / owner / email)</label>
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+               placeholder="Search by business name, owner, or email..."
+               class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300">
+      </div>
 
-<br>
+      <div class="w-full md:w-56">
+        <label class="text-xs text-gray-500">Status</label>
+        <select name="status"
+                class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-300">
 
-<!-- Approved Requests -->
-<h3>Approved Requests</h3>
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Business</th>
-        <th>Owner</th>
-        <th>Email</th>
-        <th>Reviewed At</th>
-    </tr>
+          <option value="PENDING"
+                  {% if request.GET.status == "PENDING" or not request.GET.status %}selected{% endif %}>
+            Pending
+          </option>
 
-    {% for req in approved_requests %}
-    <tr>
-        <td>{{ req.business_name }}</td>
-        <td>{{ req.owner_name }}</td>
-        <td>{{ req.email }}</td>
-        <td>{{ req.reviewed_at }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">No Approved Requests</td>
-    </tr>
-    {% endfor %}
-</table>
+          <option value="APPROVED"
+                  {% if request.GET.status == "APPROVED" %}selected{% endif %}>
+            Approved
+          </option>
 
-<br>
+          <option value="REJECTED"
+                  {% if request.GET.status == "REJECTED" %}selected{% endif %}>
+            Rejected
+          </option>
+        </select>
+      </div>
 
-<!-- Rejected Requests -->
-<h3>Rejected Requests</h3>
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Business</th>
-        <th>Owner</th>
-        <th>Email</th>
-        <th>Reason</th>
-        <th>Reviewed At</th>
-    </tr>
+      <div class="flex gap-2">
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-900">
+          Apply
+        </button>
 
-    {% for req in rejected_requests %}
-    <tr>
-        <td>{{ req.business_name }}</td>
-        <td>{{ req.owner_name }}</td>
-        <td>{{ req.email }}</td>
-        <td>{{ req.rejection_reason }}</td>
-        <td>{{ req.reviewed_at }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="5">No Rejected Requests</td>
-    </tr>
-    {% endfor %}
-</table>
+        <a href="{% url 'superadmin_requests' %}"
+           class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
+          Reset
+        </a>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="font-semibold text-gray-900">
+        {{ request.GET.status|default:"PENDING"|title }} Requests
+      </div>
+      <div class="text-sm text-gray-500">
+        Total: {{ requests|length }}
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Business</th>
+            <th class="text-left px-5 py-3 font-medium">Owner</th>
+            <th class="text-left px-5 py-3 font-medium">Email</th>
+            <th class="text-left px-5 py-3 font-medium">Phone</th>
+            <th class="text-left px-5 py-3 font-medium">Reviewed At</th>
+            <th class="text-left px-5 py-3 font-medium">Action</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          {% for r in requests %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3 font-medium text-gray-900">{{ r.business_name }}</td>
+              <td class="px-5 py-3 text-gray-700">{{ r.owner_name }}</td>
+              <td class="px-5 py-3 text-gray-700">{{ r.email }}</td>
+              <td class="px-5 py-3 text-gray-700">{{ r.phone_no }}</td>
+              <td class="px-5 py-3 text-gray-700">
+                {% if r.reviewed_at %}{{ r.reviewed_at|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+              </td>
+
+              <td class="px-5 py-3">
+                {% if r.status == "PENDING" %}
+                  <a href="{% url 'approve_request' r.id %}"
+                     class="inline-flex px-3 py-1 rounded-md bg-green-600 text-white text-xs font-semibold hover:bg-green-700">
+                    Approve
+                  </a>
+                  <a href="{% url 'reject_request' r.id %}"
+                     class="inline-flex px-3 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700 ml-2">
+                    Reject
+                  </a>
+                {% else %}
+                  <span class="px-3 py-1 rounded-md text-xs font-semibold
+                    {% if r.status == 'APPROVED' %} bg-green-100 text-green-700
+                    {% elif r.status == 'REJECTED' %} bg-red-100 text-red-700
+                    {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                    {{ r.status }}
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="px-5 py-8 text-center text-gray-500">
+                No {{ request.GET.status|default:"pending"|lower }} requests found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}

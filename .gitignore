@@ -10,9 +10,8 @@ __pycache__/
 .myenv/
 env/
 .env/
+venv/
 .vscode/
-
-migrations
 
 # Database
 db.sqlite3

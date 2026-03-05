@@ -1,33 +1,80 @@
 {% extends "superadmin/base.html" %}
 
+{% block title %}Payments{% endblock %}
+{% block page_title %}Payments{% endblock %}
+{% block page_subtitle %}Track all subscription payment attempts{% endblock %}
+
 {% block content %}
-<h2>Payments</h2>
+<div class="max-w-7xl mx-auto">
 
-<table border="1" cellpadding="8">
-  <tr>
-    <th>Business</th>
-    <th>Package</th>
-    <th>Amount</th>
-    <th>Method</th>
-    <th>Status</th>
-    <th>Transaction Ref</th>
-    <th>Paid At</th>
-  </tr>
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="font-semibold text-gray-900">All Payments</div>
+      <div class="text-sm text-gray-500">Total: {{ page_obj.paginator.count }}</div>
+    </div>
 
-  {% for p in payments %}
-  <tr>
-    <td>{{ p.subscription.business.business_name }}</td>
-    <td>{{ p.subscription.package.name }}</td>
-    <td>Rs {{ p.amount }}</td>
-    <td>{{ p.method }}</td>
-    <td>{{ p.status }}</td>
-    <td>{{ p.transaction_ref|default:"-" }}</td>
-    <td>{{ p.paid_at }}</td>
-  </tr>
-  {% empty %}
-  <tr>
-    <td colspan="7">No payments found.</td>
-  </tr>
-  {% endfor %}
-</table>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Business</th>
+            <th class="text-left px-5 py-3 font-medium">Package</th>
+            <th class="text-left px-5 py-3 font-medium">Amount</th>
+            <th class="text-left px-5 py-3 font-medium">Method</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-left px-5 py-3 font-medium">Transaction Ref</th>
+            <th class="text-left px-5 py-3 font-medium">Paid At</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          {% for p in page_obj %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3">{{ p.subscription.business.business_name }}</td>
+              <td class="px-5 py-3">{{ p.subscription.package.name }}</td>
+              <td class="px-5 py-3">Rs {{ p.amount }}</td>
+              <td class="px-5 py-3">{{ p.method }}</td>
+              <td class="px-5 py-3">{{ p.status }}</td>
+              <td class="px-5 py-3">{{ p.transaction_ref }}</td>
+              <td class="px-5 py-3">
+                {% if p.paid_at %}{{ p.paid_at|date:"M d, Y h:i a" }}{% else %}-{% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="px-5 py-10 text-center text-gray-500">
+                No payments found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-5 py-4 border-t border-gray-200 flex items-center justify-between">
+      <div class="text-sm text-gray-500">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+      </div>
+
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?q={{ q }}&status={{ status }}&page={{ page_obj.previous_page_number }}"
+             class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50">Prev</a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Prev</span>
+        {% endif %}
+
+        <span class="text-sm text-gray-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+          <a href="?q={{ q }}&status={{ status }}&page={{ page_obj.next_page_number }}"
+             class="px-3 py-1 rounded-md border border-gray-200 hover:bg-gray-50">Next</a>
+        {% else %}
+          <span class="px-3 py-1 rounded-md border border-gray-100 text-gray-300">Next</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

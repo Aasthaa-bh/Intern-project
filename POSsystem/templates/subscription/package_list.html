@@ -1,34 +1,99 @@
 {% extends "superadmin/base.html" %}
 
+{% block title %}Packages{% endblock %}
+{% block page_title %}Packages{% endblock %}
+{% block page_subtitle %}Manage subscription plans for businesses{% endblock %}
+
 {% block content %}
-<h2>Packages</h2>
 
-<a href="{% url 'package_create' %}">Create Package</a>
+<div class="max-w-7xl mx-auto">
 
-<table border="1">
-<tr>
-    <th>Name</th>
-    <th>Duration</th>
-    <th>Max Users</th>
-    <th>Price</th>
-    <th>Status</th>
-    <th>Actions</th>
-</tr>
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">All Packages</h2>
+      <p class="text-sm text-gray-500">Create, edit, and manage package availability.</p>
+    </div>
 
-{% for package in packages %}
-<tr>
-    <td>{{ package.name }}</td>
-    <td>{{ package.duration_months }}</td>
-    <td>{{ package.max_users }}</td>
-    <td>{{ package.price }}</td>
-    <td>{{ package.is_active }}</td>
-    <td>
-        <a href="{% url 'package_update' package.id %}">Edit</a>
-        <a href="{% url 'package_delete' package.id %}">Delete</a>
-    </td>
-</tr>
-{% endfor %}
+    <a href="{% url 'package_create' %}"
+       class="inline-flex items-center px-4 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-900 transition">
+      + Create Package
+    </a>
+  </div>
 
-</table>
+  <!-- Table -->
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="font-semibold text-gray-900">Packages</div>
+      <div class="text-sm text-gray-500">Total: {{ packages|length }}</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Name</th>
+            <th class="text-left px-5 py-3 font-medium">Duration</th>
+            <th class="text-left px-5 py-3 font-medium">Max Users</th>
+            <th class="text-left px-5 py-3 font-medium">Price</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-left px-5 py-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          {% for p in packages %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3 font-medium text-gray-900">{{ p.name }}</td>
+
+              <td class="px-5 py-3 text-gray-700">
+                {{ p.duration_months }} month{% if p.duration_months|add:0 > 1 %}s{% endif %}
+              </td>
+
+              <td class="px-5 py-3 text-gray-700">{{ p.max_users }}</td>
+
+              <td class="px-5 py-3 text-gray-700">Rs {{ p.price }}</td>
+
+              <td class="px-5 py-3">
+                {% if p.is_active %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                    Active
+                  </span>
+                {% else %}
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                    Inactive
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-2">
+                  <a href="{% url 'package_update' p.id %}"
+                     class="px-3 py-1 rounded-md border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50">
+                    Edit
+                  </a>
+
+                  <a href="{% url 'package_delete' p.id %}"
+                     class="px-3 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+                     onclick="return confirm('Delete this package?');">
+                    Delete
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="px-5 py-10 text-center text-gray-500">
+                No packages found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}

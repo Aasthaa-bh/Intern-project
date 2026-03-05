@@ -1,29 +1,81 @@
 {% extends "owner/base.html" %}
 
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of your business, staff, and package usage{% endblock %}
+
 {% block content %}
 
-<h1 class="text-3xl font-bold mb-8">Dashboard</h1>
+<h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
-<div class="grid grid-cols-3 gap-6">
+<!-- Package / Subscription Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-2xl font-bold">{{ total_staff }}</h2>
-        <p class="text-gray-500">Total Staff</p>
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Active Package</p>
+        <h2 class="text-2xl font-bold text-gray-900 mt-2">
+            {% if active_subscription %}
+                {{ active_subscription.package.name }}
+            {% else %}
+                Free / No Package
+            {% endif %}
+        </h2>
+        <p class="text-sm text-gray-500 mt-2">
+            {% if active_subscription and active_subscription.end_date %}
+                Valid until {{ active_subscription.end_date|date:"M d, Y" }}
+            {% else %}
+                Upgrade to unlock more users
+            {% endif %}
+        </p>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-2xl font-bold">{{ total_categories }}</h2>
-        <p class="text-gray-500">Menu Categories</p>
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">User Limit</p>
+        <h2 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ current_users }} / {{ max_users }}
+        </h2>
+        <p class="text-sm text-gray-500 mt-2">
+            Users currently used
+        </p>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-2xl font-bold">{{ total_items }}</h2>
-        <p class="text-gray-500">Menu Items</p>
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Remaining Users</p>
+        <h2 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ remaining_users }}
+        </h2>
+        <p class="text-sm text-gray-500 mt-2">
+            {% if days_remaining != None %}
+                {{ days_remaining }} day(s) left
+            {% else %}
+                No active subscription
+            {% endif %}
+        </p>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-2xl font-bold">{{ total_tables }}</h2>
-        <p class="text-gray-500">Total Tables</p>
+</div>
+
+<!-- Business Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900">{{ total_staff }}</h2>
+        <p class="text-gray-500 mt-2">Total Staff</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900">{{ total_categories }}</h2>
+        <p class="text-gray-500 mt-2">Menu Categories</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900">{{ total_items }}</h2>
+        <p class="text-gray-500 mt-2">Menu Items</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900">{{ total_tables }}</h2>
+        <p class="text-gray-500 mt-2">Total Tables</p>
     </div>
 
 </div>

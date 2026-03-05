@@ -4,131 +4,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Get Started</title>
-
-  <!-- Tailwind CDN (quick setup) -->
+  <title>Business Registration Request</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 min-h-screen">
 
-<body class="min-h-screen bg-slate-50 text-slate-800">
-  <!-- Page Wrapper -->
-  <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-2xl">
+  <div class="max-w-5xl mx-auto py-10 px-4">
+    
+    <!-- Heading -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900">Business Registration Request</h1>
+      <p class="mt-2 text-gray-600 text-lg">
+        Fill in your business details to submit your registration request.
+      </p>
+    </div>
 
-      <!-- Header -->
-      <div class="mb-6 text-center">
-        <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900">
-          Business Registration Request
-        </h1>
-        <p class="mt-2 text-sm text-slate-600">
-          Fill in the details below to submit your business registration request.
-        </p>
+    <!-- Messages -->
+    {% if messages %}
+      <div class="mb-6 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-lg border border-black bg-white px-4 py-3 text-sm text-black shadow-sm">
+            {{ message }}
+          </div>
+        {% endfor %}
       </div>
+    {% endif %}
 
-      <!-- Messages -->
-      {% if messages %}
-        <div class="mb-5 space-y-2">
-          {% for message in messages %}
-            <div
-              class="rounded-lg border p-4 text-sm
-                     {% if message.tags == 'success' %}
-                        border-emerald-200 bg-emerald-50 text-emerald-800
-                     {% elif message.tags == 'error' %}
-                        border-rose-200 bg-rose-50 text-rose-800
-                     {% elif message.tags == 'warning' %}
-                        border-amber-200 bg-amber-50 text-amber-800
-                     {% else %}
-                        border-slate-200 bg-white text-slate-700
-                     {% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
+    <!-- Main Form Card -->
+    <div class="bg-white border border-gray-300 rounded-2xl shadow-sm p-8 md:p-10">
+      <form method="POST" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Business Name -->
+          <div>
+            <label for="{{ form.business_name.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Business Name
+            </label>
+            {{ form.business_name }}
+            {% if form.business_name.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.business_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Owner Name -->
+          <div>
+            <label for="{{ form.owner_name.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Owner Name
+            </label>
+            {{ form.owner_name }}
+            {% if form.owner_name.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.owner_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Email
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label for="{{ form.phone_no.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Phone No
+            </label>
+            {{ form.phone_no }}
+            {% if form.phone_no.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.phone_no.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Business Type -->
+          <div class="md:col-span-2">
+            <label for="{{ form.business_type.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Business Type
+            </label>
+            {{ form.business_type }}
+            {% if form.business_type.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.business_type.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label for="{{ form.address.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Address
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.address.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- PAN Image -->
+          <div>
+            <label for="{{ form.pan_image.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              PAN Image
+            </label>
+            {{ form.pan_image }}
+            {% if form.pan_image.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.pan_image.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Citizenship Image -->
+          <div>
+            <label for="{{ form.citizenship_image.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+              Citizenship Image
+            </label>
+            {{ form.citizenship_image }}
+            {% if form.citizenship_image.errors %}
+              <p class="text-red-500 text-sm mt-1">{{ form.citizenship_image.errors.0 }}</p>
+            {% endif %}
+          </div>
+
         </div>
-      {% endif %}
 
-      <!-- Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div class="p-6 sm:p-8">
-
-          <form method="POST" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-
-            <!-- Form fields -->
-            <div class="space-y-4">
-              {{ form.as_p }}
-            </div>
-
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pt-2">
-              <a
-                href="{% url 'home' %}"
-                class="inline-flex justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
-                ← Back to Home
-              </a>
-
-              <button
-                type="submit"
-                class="inline-flex justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition">
-                Submit Request
-              </button>
-            </div>
-          </form>
-
-          <!-- Small footer note -->
-          <p class="mt-6 text-xs text-slate-500">
-            By submitting, you confirm the provided details are accurate.
-          </p>
-
+        <!-- Buttons -->
+        <div class="flex justify-end gap-4 pt-4">
+          <a href="{% url 'home' %}"
+             class="px-6 py-3 rounded-xl border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition">
+            Back to Home
+          </a>
+          <button type="submit"
+                  class="px-6 py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition shadow-sm">
+            Submit Request
+          </button>
         </div>
-      </div>
 
+      </form>
     </div>
   </div>
 
-  <!-- OPTIONAL: Make Django form look nicer without editing forms.py -->
-  <style>
-    /* Tailwind-like polish for default Django form.as_p output */
-    form p { margin: 0; }
-    form p label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #334155; /* slate-700 */
-      margin-bottom: 0.375rem;
-    }
-    form p input, form p select, form p textarea {
-      width: 100%;
-      border: 1px solid #cbd5e1; /* slate-300 */
-      border-radius: 0.5rem;
-      padding: 0.625rem 0.75rem;
-      font-size: 0.95rem;
-      outline: none;
-      background: #fff;
-    }
-    form p input:focus, form p select:focus, form p textarea:focus {
-      border-color: #0f172a; /* slate-900 */
-      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
-    }
-    form p .helptext {
-      display: block;
-      font-size: 0.75rem;
-      color: #64748b; /* slate-500 */
-      margin-top: 0.25rem;
-    }
-    form ul.errorlist {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 0.5rem 0;
-      color: #b91c1c; /* red-700 */
-      font-size: 0.875rem;
-    }
-    form ul.errorlist li {
-      background: #fef2f2; /* red-50 */
-      border: 1px solid #fecaca; /* red-200 */
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      margin-bottom: 0.25rem;
-    }
-  </style>
 </body>
 </html>

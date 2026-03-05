@@ -1,41 +1,66 @@
-<h2>Payment</h2>
+{% extends "owner/base.html" %}
 
-<div style="border:1px solid #ccc; padding:20px; width:350px; border-radius:6px;">
-    <h3>Plan: {{ subscription.package.name }}</h3>
-    <p>Duration: {{ subscription.package.duration_months }} months</p>
-    <p>Max Users: {{ subscription.package.max_users }}</p>
-    <p><strong>Amount: Rs {{ subscription.package.price }}</strong></p>
+{% block title %}Payment{% endblock %}
+{% block page_title %}Payment{% endblock %}
+{% block page_subtitle %}Complete payment to activate your plan{% endblock %}
 
-    <hr>
+{% block content %}
 
-    <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+<div class="max-w-xl bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+  <h2 class="text-xl font-semibold text-gray-900 mb-4">
+    Plan: {{ subscription.package.name }}
+  </h2>
 
-        <input type="hidden" name="amount" value="{{ total_amount }}">
-        <input type="hidden" name="tax_amount" value="0">
-        <input type="hidden" name="total_amount" value="{{ total_amount }}">
-        <input type="hidden" name="transaction_uuid" value="{{ transaction_uuid }}">
-        <input type="hidden" name="product_code" value="{{ product_code }}">
-        <input type="hidden" name="product_service_charge" value="0">
-        <input type="hidden" name="product_delivery_charge" value="0">
+  <div class="space-y-2 text-sm text-gray-700">
+    <div class="flex justify-between">
+      <span>Duration</span>
+      <span class="font-semibold">{{ subscription.package.duration_months }} month(s)</span>
+    </div>
 
-        <input type="hidden" name="success_url"
-        value="https://nonsystematic-cary-modestly.ngrok-free.dev/esewa/success/">
+    <div class="flex justify-between">
+      <span>Max Users</span>
+      <span class="font-semibold">{{ subscription.package.max_users }}</span>
+    </div>
 
-        <input type="hidden" name="failure_url"
-        value="https://nonsystematic-cary-modestly.ngrok-free.dev/esewa/failure/">
+    <div class="flex justify-between text-base mt-2 pt-2 border-t border-gray-100">
+      <span class="font-semibold">Amount</span>
+      <span class="font-bold text-gray-900">Rs {{ subscription.package.price }}</span>
+    </div>
+  </div>
 
-        <!-- IMPORTANT NEW FIELDS -->
-        <input type="hidden" name="signed_field_names"
-        value="total_amount,transaction_uuid,product_code">
+  {% if debug %}
+    <p class="mt-4 text-xs text-gray-500 break-all">
+      eSewa URL: {{ form_data.esewa_url }}
+    </p>
+  {% endif %}
 
-        <input type="hidden" name="signature" value="{{ signature }}">
+  <form class="mt-6" action="{{ form_data.esewa_url }}" method="POST">
+    {% csrf_token %}
 
-        <button type="submit">Pay with eSewa</button>
+    <input type="hidden" name="amount" value="{{ form_data.amount }}">
+    <input type="hidden" name="tax_amount" value="{{ form_data.tax_amount }}">
+    <input type="hidden" name="total_amount" value="{{ form_data.total_amount }}">
+    <input type="hidden" name="transaction_uuid" value="{{ form_data.transaction_uuid }}">
+    <input type="hidden" name="product_code" value="{{ form_data.product_code }}">
+    <input type="hidden" name="product_service_charge" value="{{ form_data.product_service_charge }}">
+    <input type="hidden" name="product_delivery_charge" value="{{ form_data.product_delivery_charge }}">
+    <input type="hidden" name="success_url" value="{{ form_data.success_url }}">
+    <input type="hidden" name="failure_url" value="{{ form_data.failure_url }}">
+    <input type="hidden" name="signed_field_names" value="{{ form_data.signed_field_names }}">
+    <input type="hidden" name="signature" value="{{ form_data.signature }}">
 
-    </form>
+    <button type="submit"
+            class="w-full mt-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+      Pay Now
+    </button>
+  </form>
 
-        
+  
 
-    <br>
-    <a href="{% url 'owner_dashboard' %}">Cancel</a>
+  <a href="{% url 'business_package_list' %}"
+     class="inline-block mt-4 text-sm text-gray-600 hover:underline">
+    Cancel
+  </a>
 </div>
+
+{% endblock %}

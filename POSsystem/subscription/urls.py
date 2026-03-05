@@ -14,6 +14,10 @@ urlpatterns = [
     path("plans/", views.business_package_list, name="business_package_list"),
     path("choose/<int:pk>/", views.choose_package, name="choose_package"),
     path("payment/<int:subscription_id>/", views.payment_page, name="payment_page"),
-    path("payment-success/<int:subscription_id>/", views.payment_success, name="payment_success"),
+    path("esewa/success/", views.esewa_success, name="esewa_success"),
+    path("esewa/failure/", views.esewa_failure, name="esewa_failure"),
+    path("mock/esewa/<int:subscription_id>/", views.sub_esewa_mock_payment, name="sub_esewa_mock_payment"),
+    path("mock/esewa/<int:subscription_id>/process/", views.sub_esewa_mock_process, name="sub_esewa_mock_process"),
+    path("mock/esewa/<int:subscription_id>/cancel/", views.sub_esewa_mock_cancel, name="sub_esewa_mock_cancel"),
 
 ]

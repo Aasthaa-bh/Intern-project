@@ -1,16 +1,46 @@
 {% extends "superadmin/base.html" %}
 
+{% block title %}SuperAdmin Dashboard{% endblock %}
+{% block page_title %}SuperAdmin Dashboard{% endblock %}
+{% block page_subtitle %}Welcome {{ request.user.full_name|default:request.user.username }}{% endblock %}
+
 {% block content %}
-<h1>SuperAdmin Dashboard</h1>
 
-<p>Welcome {{ request.user.username }}</p>
+<div class="max-w-7xl mx-auto">
 
-<h3>Quick Stats</h3>
-<ul>
-    <li>Total Businesses: {{ total_business }}</li>
-    <li>Total Packages: {{ total_packages }}</li>
-    <li>Total Subscriptions: {{ total_subscriptions }}</li>
-    <li>Active Subscriptions: {{ active_subscriptions }}</li>
-</ul>
+  <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Stats</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Total Businesses -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6
+                transition duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div class="text-sm text-gray-500">Total Businesses</div>
+      <div class="text-3xl font-bold text-gray-900 mt-2">{{ total_businesses }}</div>
+    </div>
+
+    <!-- Total Packages -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6
+                transition duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div class="text-sm text-gray-500">Total Packages</div>
+      <div class="text-3xl font-bold text-gray-900 mt-2">{{ total_packages }}</div>
+    </div>
+
+    <!-- Total Subscriptions -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6
+                transition duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div class="text-sm text-gray-500">Total Subscriptions</div>
+      <div class="text-3xl font-bold text-gray-900 mt-2">{{ total_subscriptions }}</div>
+    </div>
+
+    <!-- Active Subscriptions -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6
+                transition duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div class="text-sm text-gray-500">Active Subscriptions</div>
+      <div class="text-3xl font-bold text-gray-900 mt-2">{{ active_subscriptions }}</div>
+    </div>
+
+  </div>
+</div>
 
 {% endblock %}
