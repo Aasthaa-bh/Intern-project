@@ -58,6 +58,43 @@
     </div>
 </div>
 
+<!-- Takeaway Orders Ready for Billing -->
+{% if takeaway_orders %}
+<div class="card">
+    <div class="card-header">
+        🥡 Takeaway Orders Ready for Billing
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Order No</th>
+                <th>Time</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order_data in takeaway_orders %}
+            <tr>
+                <td><strong>{{ order_data.order.order_no }}</strong></td>
+                <td>{{ order_data.order.opened_at|date:"h:i A" }}</td>
+                <td>{{ order_data.order.customer.full_name|default:"Walk-in" }}</td>
+                <td>{{ order_data.order.items.count }} item(s)</td>
+                <td><strong>Rs. {{ order_data.subtotal }}</strong></td>
+                <td>
+                    <a href="{% url 'takeaway_bill' order_data.order.id %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">
+                        Create Bill
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 <!-- Recent Completed Payments -->
 {% if recent_payments %}
 <div class="card">
