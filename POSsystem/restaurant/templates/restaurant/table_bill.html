@@ -1,8 +1,8 @@
 {% extends 'restaurant/base.html' %}
 
-{% block title %}Table {{ table.table_number }} - FlexiPOS{% endblock %}
+{% block title %}Table {{ table.name }} - FlexiPOS{% endblock %}
 
-{% block page_title %}Table {{ table.table_number }} Bill{% endblock %}
+{% block page_title %}Table {{ table.name }} Bill{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'table_check' %}" class="btn btn-secondary">← Back to Tables</a>
@@ -34,6 +34,58 @@
         </div>
     </div>
 </div>
+
+{% if ready_orders %}
+<div class="card">
+    <div class="card-header">Orders Ready for Billing (Sent to Cashier)</div>
+    {% for order_data in ready_orders %}
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong>Order #{{ order_data.order.order_no }}</strong>
+            <span style="background: #4CAF50; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px;">
+                {{ order_data.order.kitchen_order.status }}
+            </span>
+        </div>
+        
+        <table style="width: 100%; margin-top: 10px;">
+            <thead>
+                <tr style="background: #e0e0e0;">
+                    <th style="padding: 8px; text-align: left;">Item</th>
+                    <th style="padding: 8px; text-align: center;">Qty</th>
+                    <th style="padding: 8px; text-align: right;">Price</th>
+                    <th style="padding: 8px; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_data.items %}
+                <tr>
+                    <td style="padding: 8px;">{{ item.item_name_snapshot }}</td>
+                    <td style="padding: 8px; text-align: center;">{{ item.quantity }}</td>
+                    <td style="padding: 8px; text-align: right;">Rs. {{ item.unit_price }}</td>
+                    <td style="padding: 8px; text-align: right;"><strong>Rs. {{ item.line_total }}</strong></td>
+                </tr>
+                {% endfor %}
+                <tr style="background: #f0f0f0; font-weight: bold;">
+                    <td colspan="3" style="padding: 8px; text-align: right;">Order Subtotal:</td>
+                    <td style="padding: 8px; text-align: right;">Rs. {{ order_data.subtotal }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    
+    <div style="background: #e8f5e9; padding: 15px; border-radius: 4px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 16px;">Total Amount (All Orders):</strong>
+            <strong style="font-size: 20px; color: #2e7d32;">Rs. {{ total_amount }}</strong>
+        </div>
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <a href="{% url 'create_invoice' table.id %}" class="btn btn-primary">Create Invoice from Orders</a>
+    </div>
+</div>
+{% endif %}
 
 {% if invoice %}
 <div class="card">

@@ -541,6 +541,25 @@ def table_bill(request, table_id):
     # Get last completed invoice for this table (for reference)
     last_completed = ReceptionInvoice.objects.filter(table=table, status='PAID').order_by('-created_at').first()
     
+    # Get orders sent to cashier for this table (regardless of order status)
+    ready_orders = Order.objects.filter(
+        table=table,
+        kitchen_order__status='SENT_TO_CASHIER'
+    ).select_related('kitchen_order').prefetch_related('items')
+    
+    # Calculate totals for ready orders
+    from decimal import Decimal
+    orders_with_totals = []
+    total_amount = Decimal('0')
+    for order in ready_orders:
+        subtotal = order.items.aggregate(total=Sum('line_total'))['total'] or Decimal('0')
+        orders_with_totals.append({
+            'order': order,
+            'subtotal': subtotal,
+            'items': order.items.all()
+        })
+        total_amount += subtotal
+    
     # Auto-update table status to RESERVED if there's a pending invoice
     if invoice and table.status == 'AVAILABLE':
         table.status = 'RESERVED'
@@ -550,6 +569,8 @@ def table_bill(request, table_id):
         'table': table,
         'invoice': invoice,
         'last_completed': last_completed,
+        'ready_orders': orders_with_totals,
+        'total_amount': total_amount,
     }
     return render(request, 'restaurant/table_bill.html', context)
 
@@ -559,9 +580,15 @@ def guest_bill(request, invoice_id):
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
     payments = ReceptionPayment.objects.filter(invoice=invoice)
     
+    # Get order items if order is linked
+    order_items = []
+    if invoice.order:
+        order_items = invoice.order.items.all()
+    
     context = {
         'invoice': invoice,
         'payments': payments,
+        'order_items': order_items,
     }
     return render(request, 'restaurant/guest_bill.html', context)
 
@@ -1144,10 +1171,14 @@ def create_invoice(request, table_id):
         # Get user for created_by field
         user = User.objects.filter(is_superuser=True).first() or User.objects.first()
 
+        # Get the order for this table (if exists)
+        order = Order.objects.filter(table=table, status='OPEN').first()
+
         # Create invoice
         invoice = ReceptionInvoice.objects.create(
             business=table.business,
             table=table,
+            order=order,
             invoice_number=invoice_number,
             customer_name=customer_name,
             customer_phone=customer_phone,
@@ -1166,7 +1197,24 @@ def create_invoice(request, table_id):
         messages.success(request, f'Invoice {invoice_number} created successfully!')
         return redirect('table_bill', table_id=table.id)
 
-    context = {'table': table}
+    # Get orders ready for billing (regardless of order status)
+    ready_orders = Order.objects.filter(
+        table=table,
+        kitchen_order__status='SENT_TO_CASHIER'
+    ).select_related('kitchen_order').prefetch_related('items')
+    
+    # Calculate total from orders
+    from decimal import Decimal
+    calculated_subtotal = Decimal('0')
+    for order in ready_orders:
+        order_total = order.items.aggregate(total=Sum('line_total'))['total'] or Decimal('0')
+        calculated_subtotal += order_total
+    
+    context = {
+        'table': table,
+        'ready_orders': ready_orders,
+        'calculated_subtotal': calculated_subtotal,
+    }
     return render(request, 'restaurant/create_invoice.html', context)
 
 

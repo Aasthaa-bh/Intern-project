@@ -1,42 +1,29 @@
 from django.contrib import admin
-from .models import (
-    TableCategory,
-    DiningTable, 
-    Ingredient, 
-    InventoryStockHistory,
-)
-
-@admin.register(TableCategory)
-class TableCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code_prefix','business', 'created_at']
-    list_filter = ['business']
-    search_fields = ['name']
-
+from .models import DiningTable
 
 @admin.register(DiningTable)
 class DiningTableAdmin(admin.ModelAdmin):
     list_display = ['number', 'name', 'capacity', 'category', 'status', 'business', 'created_at']
     list_filter = ['status', 'category', 'business']
-    search_fields = ['number']
+    search_fields = ['number', 'name']
     list_editable = ['status']
-
-
-@admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'unit', 'quantity', 'min_stock', 'business', 'created_at']
-    list_filter = ['unit', 'business']
-    search_fields = ['name']
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        # Highlight low stock items
+        # If user is not superadmin, show only their business tables
+        if not request.user.is_superuser:
+            if hasattr(request.user, 'business') and request.user.business:
+                qs = qs.filter(business=request.user.business)
         return qs
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Filter business field for non-superusers
+        if db_field.name == "business" and not request.user.is_superuser:
+            if hasattr(request.user, 'business') and request.user.business:
+                kwargs["queryset"] = db_field.related_model.objects.filter(id=request.user.business.id)
+        # Filter category based on business
+        if db_field.name == "category":
+            if hasattr(request.user, 'business') and request.user.business:
+                kwargs["queryset"] = db_field.related_model.objects.filter(business=request.user.business)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-
-@admin.register(InventoryStockHistory)
-class InventoryStockHistoryAdmin(admin.ModelAdmin):
-    list_display = ['ingredient', 'change_type', 'quantity_change', 'changed_by', 'changed_at', 'business']
-    list_filter = ['change_type', 'changed_at', 'business']
-    search_fields = ['ingredient__name', 'note']
-    readonly_fields = ['created_at']
-    date_hierarchy = 'changed_at'

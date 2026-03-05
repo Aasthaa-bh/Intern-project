@@ -132,6 +132,7 @@ class ReceptionInvoice(models.Model):
     )
     business = models.ForeignKey('core.Business', on_delete=models.CASCADE)
     table = models.ForeignKey(DiningTable, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey('pos.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='reception_invoices')
     invoice_number = models.CharField(max_length=50, unique=True)
     customer_name = models.CharField(max_length=100, blank=True)
     customer_phone = models.CharField(max_length=20, blank=True)

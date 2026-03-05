@@ -95,7 +95,7 @@
 <body>
     <div class="form-card">
         <h1>🍽️ Update Table Status</h1>
-        <div class="table-info">Table {{ table.table_number }}</div>
+        <div class="table-info">{{ table.name }}</div>
         
         <form method="POST">
             {% csrf_token %}
