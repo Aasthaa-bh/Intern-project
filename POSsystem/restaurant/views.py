@@ -572,6 +572,23 @@ def reception_dashboard(request):
         payment_status='COMPLETED'
     ).select_related('invoice').order_by('-processed_at')[:5]
     
+    # Get takeaway orders ready for billing
+    takeaway_orders = Order.objects.filter(
+        business=business,
+        order_type='TAKEAWAY',
+        status='OPEN',
+        kitchen_order__status='SENT_TO_CASHIER'
+    ).select_related('kitchen_order').prefetch_related('items')[:10]
+    
+    # Calculate takeaway orders totals
+    takeaway_with_totals = []
+    for order in takeaway_orders:
+        subtotal = order.items.aggregate(total=Sum('line_total'))['total'] or Decimal('0')
+        takeaway_with_totals.append({
+            'order': order,
+            'subtotal': subtotal,
+        })
+    
     # Get eSewa payment summary (today)
     esewa_today = ReceptionPayment.objects.filter(
         business=business,
@@ -607,6 +624,7 @@ def reception_dashboard(request):
         'pending_invoices': pending_invoices,
         'pending_payments': pending_payments,
         'recent_payments': recent_payments,
+        'takeaway_orders': takeaway_with_totals,
         'esewa_today_amount': esewa_today_amount,
         'esewa_today_count': esewa_today_count,
         'cash_today_amount': cash_today_amount,

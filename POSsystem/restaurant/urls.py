@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import views_table
+from . import views_takeaway
 from .views import create_order
 
 urlpatterns = [
@@ -32,6 +33,9 @@ urlpatterns = [
     path("owner/tables/create/", views_table.table_create, name="table_create"),
     # Reception Dashboard
     path('reception/', views.reception_dashboard, name='reception_dashboard'),
+    
+    # Takeaway
+    path('reception/takeaway/<int:order_id>/', views_takeaway.takeaway_bill, name='takeaway_bill'),
     
     # Table Management
     path('reception/tables/', views.table_check, name='table_check'),
