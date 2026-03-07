@@ -18,66 +18,6 @@
             padding: 20px;
         }
 
-        .navbar {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .navbar h1 {
-            color: #667eea;
-            font-size: 24px;
-        }
-
-        .navbar .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .navbar .user-info span {
-            color: #666;
-        }
-
-        .logout-btn {
-            padding: 8px 16px;
-            background: #f56565;
-            color: white !important;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .logout-btn:hover {
-            background: #e53e3e;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .nav-links a {
-            color: #667eea;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .nav-links a:hover {
-            background: #667eea;
-            color: white;
-        }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -182,20 +122,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="navbar">
-        <h1>FlexiPOS - Waiter</h1>
-        <div class="nav-links">
-            <a href="{% url 'waiter_dashboard' %}">Dashboard</a>
-            <a href="{% url 'kitchen_display' %}">Kitchen</a>
-            <a href="{% url 'cashier_view' %}">Cashier</a>
-            <a href="{% url 'table_management' %}">Tables</a>
-        </div>
-        <div class="user-info">
-            <span>{{ user.get_full_name|default:user.username }}</span>
-            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
-        </div>
-    </div>
-
     <div class="container">
         {% block content %}{% endblock %}
     </div>

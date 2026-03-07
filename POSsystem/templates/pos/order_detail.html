@@ -241,6 +241,9 @@
                     <th>Price</th>
                     <th>Qty</th>
                     <th>Total</th>
+                    {% if not is_locked %}
+                    <th>Action</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -250,6 +253,14 @@
                     <td>Rs{{ item.unit_price }}</td>
                     <td>{{ item.quantity }}</td>
                     <td><strong>Rs{{ item.line_total }}</strong></td>
+                    {% if not is_locked %}
+                    <td>
+                        <button onclick="deleteItem({{ item.id }})" 
+                                style="background: #e53e3e; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer;">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -295,24 +306,21 @@
         </div>
 
         {% if kitchen_order.status == 'SENT_TO_CASHIER' %}
-        <div style="text-align: center; padding: 20px; background: #fed7d7; color: #742a2a; border-radius: 10px; margin-bottom: 15px;">
-            Bill LOCKED<br>
-            <small>Sent to Cashier - No Editing</small>
+        <div style="text-align: center; padding: 20px; background: #c6f6d5; color: #22543d; border-radius: 10px; margin-bottom: 15px;">
+            ✅ Order Confirmed<br>
+            <small>Sent to Kitchen & Receptionist</small>
         </div>
         {% else %}
-        <button class="btn btn-success action-btn" onclick="sendToKitchen()">
-            Send to Kitchen
-        </button>
-        <button class="btn btn-primary action-btn" onclick="sendToCashier()" style="background: #ed8936;">
-            Send to Cashier (Lock Order)
+        <button class="btn btn-success action-btn" onclick="confirmOrder()" style="background: #48bb78; font-size: 18px; padding: 15px;">
+            ✅ Confirm Order
         </button>
         <div style="text-align: center; padding: 10px; font-size: 12px; color: #718096;">
-            You can add items until sent to cashier
+            This will send order to kitchen and receptionist
         </div>
         {% endif %}
 
         <a href="{% url 'waiter_dashboard' %}" class="btn btn-secondary action-btn">
-            Back to Tables
+            Back to Dashboard
         </a>
     </div>
 </div>
@@ -410,34 +418,7 @@
             const data = await response.json();
             
             if (data.success) {
-                alert(' Items added successfully!');
-                location.reload();
-            } else {
-                alert(' Error: ' + data.error);
-            }
-        } catch (error) {
-            alert(' Error: ' + error.message);
-        }
-    }
-
-    async function sendToKitchen() {
-        if (!confirm('Send this order to kitchen?\n\nNote: You can still add more items after sending to kitchen.')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/pos/order/${orderId}/send-to-kitchen/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('✅ ' + data.message);
+                // Auto-reload to show updated items
                 location.reload();
             } else {
                 alert('❌ Error: ' + data.error);
@@ -447,13 +428,13 @@
         }
     }
 
-    async function sendToCashier() {
-        if (!confirm('Send this order to CASHIER?\n\n⚠️ WARNING: Order will be LOCKED and you cannot add more items!\n\nAre you sure?')) {
+    async function confirmOrder() {
+        if (!confirm('Confirm this order?\n\nThis will send the order to kitchen and receptionist.')) {
             return;
         }
         
         try {
-            const response = await fetch(`/pos/order/${orderId}/send-to-cashier/`, {
+            const response = await fetch(`/pos/order/${orderId}/confirm/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -464,8 +445,51 @@
             const data = await response.json();
             
             if (data.success) {
-                alert('✅ ' + data.message);
-                location.reload();
+                // Show detailed success message
+                const details = data.order_details;
+                let message = `Order Confirmed Successfully!\n\n`;
+                message += `Order ID: ${details.order_no}\n`;
+                message += `Table: ${details.table}\n`;
+                message += `Order Type: ${details.order_type}\n`;
+                message += `Waiter: ${details.waiter}\n`;
+                message += `Items: ${details.items_count}\n\n`;
+                message += `Sent to Kitchen & Receptionist!`;
+                
+                alert(message);
+                
+                // Redirect to dashboard
+                window.location.href = '{% url "waiter_dashboard" %}';
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function deleteItem(itemId) {
+        if (!confirm('Delete this item from the order?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/pos/order-item/${itemId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Auto-reload to show updated order
+                if (data.order_deleted) {
+                    window.location.href = '{% url "waiter_dashboard" %}';
+                } else {
+                    location.reload();
+                }
             } else {
                 alert('❌ Error: ' + data.error);
             }

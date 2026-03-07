@@ -45,15 +45,17 @@ INSTALLED_APPS = [
     "restaurant",
     "subscription",
     "widget_tweaks",
+    "cloudinary storage",
+    "cloudinary",
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'adhikarireshika25@gmail.com'
-EMAIL_HOST_PASSWORD = 'arxz xtaf lzae izvu'
+EMAIL_HOST_USER = "adhikarireshika25@gmail.com"
+EMAIL_HOST_PASSWORD = "arxz xtaf lzae izvu"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 MIDDLEWARE = [
@@ -70,14 +72,14 @@ ROOT_URLCONF = "POSsystem.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
@@ -90,14 +92,25 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-
 pymysql.install_as_MySQLdb()
 
 DATABASES = {
-    'default': dj_database_url.parse(
+    "default": dj_database_url.parse(
         "mysql://root:yVkIwkFRpkmadeQWKoFDfoXtyfrTgWEI@gondola.proxy.rlwy.net:35058/railway"
     )
 }
+
+# Add connection options to prevent timeout
+DATABASES["default"]["OPTIONS"] = {
+    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+    "charset": "utf8mb4",
+    "connect_timeout": 10,
+    "read_timeout": 30,
+    "write_timeout": 30,
+}
+
+# Connection pooling settings
+DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections alive for 10 minutes
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -156,3 +169,12 @@ ESEWA_FORM_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": "dt9ia6wgv",
+    "API_KEY": "798442545946723",
+    "API_SECRET": "dAV20NVgUL0f1oa9Fx7Y6B4LMi0",
+}
+# MAKING CLOUDNARY THE DEFAULT FILE STORAGE
+DEFAULT_FILE_STORAGE = ("cloudinary_storage.storageMediaCloudinaryStorage",)
