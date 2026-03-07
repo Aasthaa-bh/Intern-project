@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Count, Q
 from decimal import Decimal
 from .models import Order, OrderItem, Item, Customer
 from restaurant.models import DiningTable, KitchenOrder
@@ -12,31 +12,106 @@ from django.utils import timezone
 
 @login_required
 def waiter_dashboard(request):
-    """Main waiter dashboard showing available tables"""
+    """Main waiter dashboard with statistics"""
     business = request.user.business
-    tables = DiningTable.objects.filter(business=business).select_related('category')
-    ready_orders = list(
-        KitchenOrder.objects.filter(
-            business=business,
-            status='READY',
-            order__status='OPEN'
-        )
-        .select_related('order__table')
-        .order_by('ready_at', 'sent_at', 'created_at')
-    )
-
-    now = timezone.now()
-    for kitchen_order in ready_orders:
-        ready_time = kitchen_order.ready_at or kitchen_order.sent_at or kitchen_order.created_at
-        kitchen_order.ready_wait_minutes = int(max(0, (now - ready_time).total_seconds() // 60))
+    
+    # Get statistics
+    total_tables = DiningTable.objects.filter(business=business).count()
+    
+    # Get most booked table (table with most orders)
+    most_booked_table = Order.objects.filter(
+        business=business,
+        table__isnull=False
+    ).values('table__name').annotate(
+        booking_count=Count('id')
+    ).order_by('-booking_count').first()
+    
+    # Get total tips (you can add a tips field to Order model later)
+    total_tips = Decimal('0.00')
+    
+    # Get ready orders count for alert
+    ready_orders_count = KitchenOrder.objects.filter(
+        business=business,
+        order__created_by=request.user,
+        status='READY',
+        order__status='OPEN'
+    ).count()
+    
+    # Get waiter's active orders
+    my_active_orders = Order.objects.filter(
+        business=business,
+        created_by=request.user,
+        status='OPEN'
+    ).select_related('table', 'kitchen_order').prefetch_related('items').order_by('-opened_at')
     
     context = {
-        'tables': tables,
-        'user': request.user,
-        'ready_orders': ready_orders,
-        'ready_orders_count': len(ready_orders),
+        'total_tables': total_tables,
+        'most_booked_table': most_booked_table,
+        'total_tips': total_tips,
+        'ready_orders_count': ready_orders_count,
+        'my_active_orders': my_active_orders,
+        'user': request.user
     }
     return render(request, 'pos/waiter_dashboard.html', context)
+
+
+@login_required
+def waiter_tables(request):
+    """Show all tables with their current status"""
+    business = request.user.business
+    tables = DiningTable.objects.filter(business=business).select_related('category')
+    
+    # Get ready orders count for navbar alert
+    ready_orders_count = KitchenOrder.objects.filter(
+        business=business,
+        order__created_by=request.user,
+        status='READY',
+        order__status='OPEN'
+    ).count()
+    
+    # Get active order for each table
+    tables_with_orders = []
+    for table in tables:
+        active_order = Order.objects.filter(
+            table=table,
+            status='OPEN'
+        ).select_related('kitchen_order').first()
+        
+        tables_with_orders.append({
+            'table': table,
+            'active_order': active_order
+        })
+    
+    context = {
+        'tables_with_orders': tables_with_orders,
+        'ready_orders_count': ready_orders_count,
+        'user': request.user
+    }
+    return render(request, 'pos/waiter_tables.html', context)
+
+
+@login_required
+def waiter_done_orders(request):
+    """Show orders that are ready from kitchen"""
+    business = request.user.business
+    
+    # Get ready orders for this waiter
+    ready_orders = KitchenOrder.objects.filter(
+        business=business,
+        order__created_by=request.user,
+        status='READY',
+        order__status='OPEN'
+    ).select_related('order__table').prefetch_related('order__items').order_by('-ready_at')
+    
+    # Get ready orders count for navbar alert
+    ready_orders_count = ready_orders.count()
+    
+    context = {
+        'ready_orders': ready_orders,
+        'ready_orders_count': ready_orders_count,
+        'user': request.user
+    }
+    return render(request, 'pos/waiter_done_orders.html', context)
 
 
 @login_required
@@ -244,7 +319,7 @@ def order_detail(request, order_id):
 @login_required
 @transaction.atomic
 def add_order_items(request, order_id):
-    """Add more items to an existing order"""
+    """Add more items to an existing order - auto-increment quantity if item exists"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=400)
     
@@ -262,32 +337,52 @@ def add_order_items(request, order_id):
         if not items_data:
             return JsonResponse({'error': 'No items selected'}, status=400)
         
-        # Add order items
+        # Add order items - check if item already exists and increment quantity
         for item_data in items_data:
             item = Item.objects.get(id=item_data['item_id'], business=request.user.business)
             quantity = Decimal(str(item_data['quantity']))
             
-            # Check stock if tracking is enabled
-            if item.track_stock:
-                if item.stock_qty < quantity:
-                    raise Exception(f'Insufficient stock for {item.name}')
-                
-                # Deduct stock
-                item.stock_qty -= quantity
-                item.save()
-            
-            # Calculate line total
-            unit_price = item.price
-            line_total = unit_price * quantity
-            
-            OrderItem.objects.create(
+            # Check if this item already exists in the order
+            existing_order_item = OrderItem.objects.filter(
                 order=order,
-                item=item,
-                item_name_snapshot=item.name,
-                unit_price=unit_price,
-                quantity=quantity,
-                line_total=line_total
-            )
+                item=item
+            ).first()
+            
+            if existing_order_item:
+                # Item exists - increment quantity
+                existing_order_item.quantity += quantity
+                existing_order_item.line_total = existing_order_item.unit_price * existing_order_item.quantity
+                existing_order_item.save()
+                
+                # Update stock if tracking is enabled
+                if item.track_stock:
+                    if item.stock_qty < quantity:
+                        raise Exception(f'Insufficient stock for {item.name}')
+                    item.stock_qty -= quantity
+                    item.save()
+            else:
+                # New item - create new order item
+                # Check stock if tracking is enabled
+                if item.track_stock:
+                    if item.stock_qty < quantity:
+                        raise Exception(f'Insufficient stock for {item.name}')
+                    
+                    # Deduct stock
+                    item.stock_qty -= quantity
+                    item.save()
+                
+                # Calculate line total
+                unit_price = item.price
+                line_total = unit_price * quantity
+                
+                OrderItem.objects.create(
+                    order=order,
+                    item=item,
+                    item_name_snapshot=item.name,
+                    unit_price=unit_price,
+                    quantity=quantity,
+                    line_total=line_total
+                )
         
         order.updated_by = request.user
         order.save()
@@ -366,7 +461,46 @@ def send_to_cashier(request, order_id):
     })
 
 
-
+@login_required
+@transaction.atomic
+def confirm_order(request, order_id):
+    """Confirm order - sends to BOTH kitchen AND cashier/receptionist"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=400)
+    
+    order = get_object_or_404(Order, id=order_id, business=request.user.business)
+    
+    # Get or create kitchen order
+    kitchen_order, created = KitchenOrder.objects.get_or_create(
+        order=order,
+        business=request.user.business,
+        defaults={'status': 'SENT_TO_KITCHEN'}
+    )
+    
+    # Check if already confirmed
+    if kitchen_order.status == 'SENT_TO_CASHIER':
+        return JsonResponse({'error': 'Order already confirmed'}, status=400)
+    
+    # Send to kitchen and cashier simultaneously
+    kitchen_order.status = 'SENT_TO_CASHIER'
+    kitchen_order.sent_at = timezone.now()
+    kitchen_order.sent_to_cashier_at = timezone.now()
+    kitchen_order.save()
+    
+    # Prepare order details for message
+    order_details = {
+        'order_no': order.order_no,
+        'table': order.table.name if order.table else 'N/A',
+        'order_type': order.get_order_type_display(),
+        'waiter': request.user.get_full_name() or request.user.username,
+        'items_count': order.items.count()
+    }
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Order confirmed and sent to kitchen & receptionist!',
+        'order_details': order_details
+    })
 
 
 @login_required
@@ -544,3 +678,87 @@ def update_table_status(request, table_id):
         'success': True,
         'message': f'Table {table.name} is now {new_status}'
     })
+
+
+@login_required
+@transaction.atomic
+def delete_order_item(request, order_item_id):
+    """Delete an item from a pending order"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=400)
+    
+    order_item = get_object_or_404(OrderItem, id=order_item_id, order__business=request.user.business)
+    order = order_item.order
+    
+    # Check if order is locked (sent to cashier)
+    kitchen_order = KitchenOrder.objects.filter(order=order).first()
+    if kitchen_order and kitchen_order.status == 'SENT_TO_CASHIER':
+        return JsonResponse({'error': 'Order is locked. Cannot delete items after sending to cashier'}, status=400)
+    
+    # Restore stock if tracking is enabled
+    if order_item.item.track_stock:
+        order_item.item.stock_qty += order_item.quantity
+        order_item.item.save()
+    
+    # Delete the item
+    order_item.delete()
+    
+    # Check if order has no items left, delete the order
+    if order.items.count() == 0:
+        if order.table:
+            order.table.status = 'AVAILABLE'
+            order.table.save()
+        order.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Item deleted. Order was empty and has been removed.',
+            'order_deleted': True
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Item deleted successfully',
+        'order_deleted': False
+    })
+
+
+@login_required
+def create_order_by_type(request, order_type):
+    """Create order for specific type (DINE_IN, TAKEAWAY, DELIVERY)"""
+    business = request.user.business
+    
+    # Get ready orders count for navbar alert
+    ready_orders_count = KitchenOrder.objects.filter(
+        business=business,
+        order__created_by=request.user,
+        status='READY',
+        order__status='OPEN'
+    ).count()
+    
+    if order_type == 'DINE_IN':
+        # Show tables for dine-in
+        tables = DiningTable.objects.filter(business=business).select_related('category')
+        
+        context = {
+            'tables': tables,
+            'order_type': order_type,
+            'ready_orders_count': ready_orders_count,
+            'user': request.user
+        }
+        return render(request, 'pos/select_table_for_order.html', context)
+    else:
+        # For TAKEAWAY and DELIVERY, go directly to menu
+        menu_items = Item.objects.filter(
+            business=business,
+            item_type='MENU',
+            is_active=True
+        ).select_related('category')
+        
+        context = {
+            'table': None,
+            'menu_items': menu_items,
+            'order_type': order_type,
+            'ready_orders_count': ready_orders_count,
+            'user': request.user
+        }
+        return render(request, 'pos/select_menu.html', context)

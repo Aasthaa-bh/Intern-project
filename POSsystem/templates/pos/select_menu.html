@@ -472,7 +472,8 @@
                 } else {
                     alert('Order created successfully!\n\nOrder Number: ' + data.order_no + '\nOrder Type: ' + orderType);
                 }
-                window.location.href = '/pos/kitchen/';
+                // Redirect to order detail page to add more items or confirm
+                window.location.href = '/pos/order/' + data.order_id + '/';
             } else {
                 alert('Error: ' + data.error);
                 submitBtn.disabled = false;

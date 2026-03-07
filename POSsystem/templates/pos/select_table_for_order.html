@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Table - FlexiPOS Waiter{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .waiter-header {
+        background: white;
+        padding: 15px 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .header-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .back-btn {
+        background: #718096;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .page-title {
+        color: white;
+        font-size: 32px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .tables-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .table-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .table-card.available {
+        border: 3px solid #48bb78;
+    }
+
+    .table-card.occupied {
+        border: 3px solid #f56565;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .table-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    .table-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+
+    .table-status {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .status-available {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-occupied {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="waiter-header">
+    <div class="header-title">Select Table for Dine-In</div>
+    <button class="back-btn" onclick="window.location.href='{% url 'waiter_dashboard' %}'">
+        ← Back to Dashboard
+    </button>
+</div>
+
+<h2 class="page-title">🪑 Choose a Table</h2>
+
+<div class="tables-grid">
+    {% for table in tables %}
+    <div class="table-card {{ table.status|lower }}" 
+         {% if table.status == 'AVAILABLE' %}
+         onclick="window.location.href='{% url 'select_table' table.id %}?order_type=DINE_IN'"
+         {% endif %}>
+        <div class="table-icon">
+            {% if table.status == 'AVAILABLE' %}🟢
+            {% else %}🔴
+            {% endif %}
+        </div>
+        <div class="table-name">{{ table.name }}</div>
+        <div style="color: #718096; font-size: 14px; margin-bottom: 15px;">
+            👥 Capacity: {{ table.capacity }}
+        </div>
+        <span class="table-status status-{{ table.status|lower }}">
+            {{ table.get_status_display }}
+        </span>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
