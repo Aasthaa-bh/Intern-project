@@ -326,6 +326,7 @@ def owner_dashboard(request):
 
     days_remaining = None
     max_users = get_business_user_limit(business)
+    max_tables = active_subscription.package.max_tables if active_subscription else 0
 
     # If package limit should count owner too, use count()
     # If package limit should count only staff, use exclude(role="OWNER")
@@ -351,8 +352,10 @@ def owner_dashboard(request):
         "active_subscription": active_subscription,
         "days_remaining": days_remaining,
         "max_users": max_users,
+        "max_tables": max_tables,
         "current_users": current_users,
         "remaining_users": remaining_users,
+        "total_tables": total_tables,
     }
 
     return render(request, "owner/dashboard.html", context)

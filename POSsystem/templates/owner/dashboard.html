@@ -9,7 +9,7 @@
 <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
 <!-- Package / Subscription Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
 
     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <p class="text-sm text-gray-500">Active Package</p>
@@ -36,6 +36,16 @@
         </h2>
         <p class="text-sm text-gray-500 mt-2">
             Users currently used
+        </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-sm text-gray-500">Table Limit</p>
+        <h2 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ total_tables }} / {{ max_tables }}
+        </h2>
+        <p class="text-sm text-gray-500 mt-2">
+            Tables currently used
         </p>
     </div>
 

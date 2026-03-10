@@ -7,6 +7,8 @@ class Package(models.Model):
     name = models.CharField(max_length=50)
     duration_months = models.IntegerField()
     max_users = models.IntegerField()
+    max_tables = models.IntegerField(default=0)  # added field for max tables
+
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_active = models.BooleanField(default=True)
 

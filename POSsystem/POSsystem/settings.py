@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 import dj_database_url
 import pymysql
@@ -45,7 +46,7 @@ INSTALLED_APPS = [
     "restaurant",
     "subscription",
     "widget_tweaks",
-    "cloudinary storage",
+    "cloudinary_storage",
     "cloudinary",
 ]
 
@@ -92,26 +93,21 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-pymysql.install_as_MySQLdb()
+
+
+
+import dj_database_url
 
 DATABASES = {
     "default": dj_database_url.parse(
-        "mysql://root:yVkIwkFRpkmadeQWKoFDfoXtyfrTgWEI@gondola.proxy.rlwy.net:35058/railway"
+        "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
     )
 }
 
-# Add connection options to prevent timeout
-DATABASES["default"]["OPTIONS"] = {
-    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-    "charset": "utf8mb4",
-    "connect_timeout": 10,
-    "read_timeout": 30,
-    "write_timeout": 30,
-}
 
 # Connection pooling settings
-DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections alive for 10 minutes
-
+DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections open for 10 minutes
+DATABASES["default"]["POOL_SIZE"] = 20  # Maximum number of connections in the
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -170,7 +166,7 @@ ESEWA_FORM_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
+import cloudinary
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": "dt9ia6wgv",
     "API_KEY": "798442545946723",
