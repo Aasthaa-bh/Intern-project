@@ -1,107 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eSewa Payment - FlexiPOS</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #f5f5f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .payment-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            text-align: center;
-        }
-        .esewa-logo {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #1a1a1a;
-            margin-bottom: 10px;
-        }
-        .amount {
-            font-size: 48px;
-            font-weight: bold;
-            color: #1a1a1a;
-            margin: 20px 0;
-        }
-        .info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        .info p {
-            margin: 8px 0;
-            color: #666;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #1a1a1a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div class="payment-container">
-        <div class="esewa-logo">📱</div>
-        <h1>Redirecting to eSewa</h1>
-        <p style="color: #666; margin-bottom: 20px;">Please wait...</p>
-        
-        <div class="amount">Rs. {{ invoice.total_amount }}</div>
-        
-        <div class="info">
-            <p><strong>Invoice:</strong> {{ invoice.invoice_number }}</p>
-            <p><strong>Customer:</strong> {{ invoice.customer_name|default:"Guest" }}</p>
-            {% if invoice.table %}
-            <p><strong>Table:</strong> {{ invoice.table.name }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="spinner"></div>
-        <p style="color: #999; font-size: 14px;">You will be redirected to eSewa payment gateway...</p>
+{% extends "restaurant/base.html" %}
+
+{% block title %}Pay with eSewa{% endblock %}
+{% block page_title %}Pay with eSewa{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+    <div class="card-header">eSewa Payment</div>
+
+    <table>
+        <tr>
+            <td><strong>Invoice Number:</strong></td>
+            <td>{{ invoice.invoice_number }}</td>
+        </tr>
+        <tr>
+            <td><strong>Customer:</strong></td>
+            <td>{{ invoice.customer_name|default:"Guest" }}</td>
+        </tr>
+        <tr>
+            <td><strong>Amount:</strong></td>
+            <td><strong style="font-size: 20px;">Rs. {{ payment.amount }}</strong></td>
+        </tr>
+    </table>
+
+    {% if debug %}
+    <div style="margin-top: 16px; padding: 12px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">
+        <div><strong>eSewa URL:</strong> {{ form_data.action }}</div>
+        <div><strong>Transaction UUID:</strong> {{ payment.transaction_uuid }}</div>
     </div>
-    
-    <!-- eSewa Payment Form - Auto Submit -->
-    <form id="esewaForm" action="{{ payment_data.esewa_url }}" method="POST">
-        <input type="hidden" name="amount" value="{{ payment_data.amount }}">
-        <input type="hidden" name="tax_amount" value="{{ payment_data.tax_amount }}">
-        <input type="hidden" name="total_amount" value="{{ payment_data.total_amount }}">
-        <input type="hidden" name="transaction_uuid" value="{{ payment_data.transaction_uuid }}">
-        <input type="hidden" name="product_code" value="{{ payment_data.product_code }}">
-        <input type="hidden" name="product_service_charge" value="{{ payment_data.product_service_charge }}">
-        <input type="hidden" name="product_delivery_charge" value="{{ payment_data.product_delivery_charge }}">
-        <input type="hidden" name="success_url" value="{{ payment_data.success_url }}">
-        <input type="hidden" name="failure_url" value="{{ payment_data.failure_url }}">
-        <input type="hidden" name="signed_field_names" value="{{ payment_data.signed_field_names }}">
-        <input type="hidden" name="signature" value="{{ payment_data.signature }}">
+    {% endif %}
+
+    <form method="POST" action="{{ form_data.action }}" style="margin-top: 24px;">
+        {% for key, value in form_data.fields.items %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; padding: 15px; font-size: 16px; background: #60bb46; border-color: #60bb46;"
+        >
+            Continue to eSewa
+        </button>
     </form>
-    
-    <script>
-        // Auto-submit form after 2 seconds
-        setTimeout(function() {
-            document.getElementById("esewaForm").submit();
-        }, 2000);
-    </script>
-</body>
-</html>
+
+    <div style="margin-top: 16px;">
+        <a href="{% url 'process_payment' invoice.id %}" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+{% endblock %}

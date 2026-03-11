@@ -1,21 +1,28 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone
-from django.http import HttpResponseBadRequest
-from django.urls import reverse
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import timedelta
-from .models import Package, BusinessSubscription, SubscriptionPayment
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-# Reuse eSewa from restaurant
-from restaurant.esewa_utils import (prepare_esewa_form_data,generate_transaction_uuid,verify_esewa_payment,)
-from django.conf import settings
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+
+from .models import Package, BusinessSubscription, SubscriptionPayment
+from restaurant.esewa_utils import (
+    prepare_esewa_form_data,
+    generate_transaction_uuid,
+    verify_esewa_payment,
+    verify_esewa_response_signature,
+    decode_esewa_callback_data,
+)
 
 
 # -----------------------------
-# Helpers: role checks
+# Helpers
 # -----------------------------
 def _require_role(request, role: str, redirect_name: str = "login"):
     if not request.user.is_authenticated:
@@ -27,9 +34,8 @@ def _require_role(request, role: str, redirect_name: str = "login"):
 
 def _activate_subscription(subscription: BusinessSubscription, payment: SubscriptionPayment):
     """
-    Activate subscription + mark payment verified.
+    Activate current subscription and mark payment verified.
     """
-    # Mark old current subscriptions not current
     BusinessSubscription.objects.filter(
         business=subscription.business,
         is_current=True
@@ -41,11 +47,18 @@ def _activate_subscription(subscription: BusinessSubscription, payment: Subscrip
     subscription.is_current = True
     subscription.start_date = now
     subscription.end_date = now + timedelta(days=30 * subscription.package.duration_months)
-    subscription.save()
+    subscription.save(update_fields=["status", "is_current", "start_date", "end_date"])
 
     payment.status = "VERIFIED"
     payment.paid_at = now
-    payment.save()
+    payment.save(update_fields=["status", "paid_at"])
+
+
+def _safe_decimal(value, default="0.00"):
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(default)
 
 
 # ============================================================
@@ -75,7 +88,7 @@ def package_create(request):
             max_users=int(request.POST.get("max_users") or 1),
             max_tables=int(request.POST.get("max_tables") or 1),   
             price=Decimal(request.POST.get("price") or "0"),
-            is_active=True if request.POST.get("is_active") else False
+            is_active=True if request.POST.get("is_active") else False,
         )
         messages.success(request, "Package created.")
         return redirect("package_list")
@@ -129,17 +142,22 @@ def business_package_list(request):
     if not ok:
         return resp
 
+    business = getattr(request.user, "business", None)
+    if not business:
+        messages.error(request, "Business not linked to your account.")
+        return redirect("owner_dashboard")
+
     packages = Package.objects.filter(is_active=True).order_by("price")
 
     current_sub = BusinessSubscription.objects.filter(
-        business=request.user.business,
+        business=business,
         status="ACTIVE",
         is_current=True
     ).select_related("package").first()
 
     return render(request, "subscription/business_package_list.html", {
         "packages": packages,
-        "current_sub": current_sub
+        "current_sub": current_sub,
     })
 
 
@@ -149,34 +167,34 @@ def choose_package(request, pk):
     if not ok:
         return resp
 
-    business = request.user.business
+    business = getattr(request.user, "business", None)
     if not business:
         messages.error(request, "Business not linked to your account.")
         return redirect("owner_dashboard")
 
     package = get_object_or_404(Package, pk=pk, is_active=True)
 
-    # Deactivate old "current" subscription
+    # old current subscriptions -> not current
     BusinessSubscription.objects.filter(
         business=business,
         is_current=True
     ).update(is_current=False)
 
-    # Cancel old pending payments
+    # old pending payments -> cancelled
     SubscriptionPayment.objects.filter(
         subscription__business=business,
         status="PENDING"
-    ).update(status="CANCELLED")  # make sure CANCELLED exists in model choices
+    ).update(status="CANCELLED")
 
-    # Create new pending subscription
+    # create pending subscription
     subscription = BusinessSubscription.objects.create(
         business=business,
         package=package,
         status="PENDING",
-        is_current=True
+        is_current=True,
     )
 
-    # Create payment record with UUID
+    # create pending payment
     txn = generate_transaction_uuid()
     SubscriptionPayment.objects.create(
         subscription=subscription,
@@ -190,7 +208,7 @@ def choose_package(request, pk):
 
 
 # ============================================================
-# OWNER: PAYMENT PAGE (posts to eSewa)
+# OWNER: PAYMENT PAGE
 # ============================================================
 
 @login_required
@@ -199,29 +217,43 @@ def payment_page(request, subscription_id):
     if not ok:
         return resp
 
-    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
+    subscription = get_object_or_404(
+        BusinessSubscription.objects.select_related("package", "business"),
+        id=subscription_id
+    )
 
-    # ensure owner owns the business
-    if subscription.business != request.user.business:
+    business = getattr(request.user, "business", None)
+    if not business or subscription.business != business:
+        messages.error(request, "Unauthorized access.")
         return redirect("owner_dashboard")
 
-    payment = SubscriptionPayment.objects.filter(subscription=subscription).order_by("-id").first()
+    payment = SubscriptionPayment.objects.filter(
+        subscription=subscription
+    ).order_by("-id").first()
+
     if not payment:
         return HttpResponseBadRequest("Payment record not found.")
-    
-    if settings.DEBUG:
-        return redirect("sub_esewa_mock_payment", subscription_id=subscription.id)
+
+    if payment.status == "VERIFIED":
+        return render(request, "subscription/payment_success.html", {
+            "subscription": subscription
+        })
+
+    if payment.status != "PENDING":
+        return render(request, "subscription/payment_failed.html", {
+            "reason": f"Payment is already {payment.status}."
+        })
+
 
     success_url = request.build_absolute_uri(reverse("esewa_success"))
     failure_url = request.build_absolute_uri(reverse("esewa_failure"))
 
     form_data = prepare_esewa_form_data(
-        total_amount=subscription.package.price,
+        total_amount=payment.amount,
         transaction_uuid=payment.transaction_ref,
         success_url=success_url,
         failure_url=failure_url,
-        product_code="EPAYTEST",
-        
+        product_code=settings.ESEWA_PRODUCT_CODE,
     )
 
     return render(request, "subscription/payment_page.html", {
@@ -233,83 +265,118 @@ def payment_page(request, subscription_id):
 
 
 # ============================================================
-# ESEWA CALLBACKS (SUCCESS / FAILURE)
+# ESEWA CALLBACKS
 # ============================================================
 
 def esewa_success(request):
     """
-    eSewa redirects here. We must VERIFY server-to-server before activating.
-    Expected v2: it may send data (base64 JSON) OR transaction_uuid in query.
-    We'll try both.
+    eSewa redirects here after a successful payment attempt.
+    We still must verify the payload signature and confirm via status API.
     """
-    data = request.GET.get("data") or request.POST.get("data")
+    encoded_data = request.GET.get("data") or request.POST.get("data")
 
+    callback_payload = None
     txn = None
-    total_amount = None
+    callback_total_amount = None
 
-    if data:
+    if encoded_data:
         try:
-            import json, base64
-            decoded_json_str = base64.b64decode(data).decode("utf-8")
-            payload = json.loads(decoded_json_str)
-            txn = payload.get("transaction_uuid")
-            total_amount = payload.get("total_amount")
+            callback_payload = decode_esewa_callback_data(encoded_data)
+            txn = callback_payload.get("transaction_uuid")
+            callback_total_amount = callback_payload.get("total_amount")
         except Exception:
-            pass
+            return HttpResponseBadRequest("Invalid eSewa callback data.")
 
-    # fallback (some redirects may include these)
+    # fallback if data is absent
     txn = txn or request.GET.get("transaction_uuid") or request.GET.get("pid") or request.GET.get("oid")
 
     if not txn:
-        return HttpResponseBadRequest("Missing transaction id")
+        return HttpResponseBadRequest("Missing transaction id.")
 
-    payment = SubscriptionPayment.objects.filter(transaction_ref=txn).select_related("subscription__package").first()
+    payment = SubscriptionPayment.objects.filter(
+        transaction_ref=txn
+    ).select_related("subscription__package", "subscription__business").first()
+
     if not payment:
-        return HttpResponseBadRequest("Transaction not found")
+        return HttpResponseBadRequest("Transaction not found.")
 
-    # already processed
+    # already completed previously
     if payment.status == "VERIFIED":
-        return render(request, "subscription/payment_success.html", {"subscription": payment.subscription})
+        return render(request, "subscription/payment_success.html", {
+            "subscription": payment.subscription
+        })
 
+    # if not pending, don't reactivate
     if payment.status != "PENDING":
-        return render(request, "subscription/payment_failed.html", {"reason": f"Payment status: {payment.status}"})
+        return render(request, "subscription/payment_failed.html", {
+            "reason": f"Payment status: {payment.status}"
+        })
 
-    # verify from eSewa server
-    verify_amount = total_amount or payment.amount
-    verify_result = verify_esewa_payment(transaction_uuid=txn, total_amount=verify_amount, product_code="EPAYTEST")
+    # 1. verify callback signature if callback payload exists
+    if callback_payload:
+        is_valid_signature = verify_esewa_response_signature(callback_payload)
+        if not is_valid_signature:
+            payment.status = "REJECTED"
+            payment.save(update_fields=["status"])
+            return render(request, "subscription/payment_failed.html", {
+                "reason": "Invalid eSewa response signature."
+            })
+
+    # 2. verify with status check API
+    verify_amount = _safe_decimal(callback_total_amount, default=str(payment.amount))
+    verify_result = verify_esewa_payment(
+        transaction_uuid=txn,
+        total_amount=verify_amount,
+        product_code=settings.ESEWA_PRODUCT_CODE,
+    )
 
     if not verify_result.get("success"):
         payment.status = "REJECTED"
-        payment.save()
-        return render(request, "subscription/payment_failed.html", {"reason": verify_result.get("message", "Verification failed")})
+        payment.save(update_fields=["status"])
+        return render(request, "subscription/payment_failed.html", {
+            "reason": verify_result.get("message", "Verification failed.")
+        })
 
     esewa_data = verify_result.get("data", {})
     esewa_status = str(esewa_data.get("status", "")).upper()
+    esewa_total = _safe_decimal(esewa_data.get("total_amount"), default=str(payment.amount))
 
-    # Typically COMPLETE means success
-    if esewa_status not in ["COMPLETE", "COMPLETED", "SUCCESS"]:
+    if esewa_status != "COMPLETE":
         payment.status = "REJECTED"
-        payment.save()
-        return render(request, "subscription/payment_failed.html", {"reason": f"eSewa status: {esewa_status}"})
+        payment.save(update_fields=["status"])
+        return render(request, "subscription/payment_failed.html", {
+            "reason": f"eSewa status: {esewa_status or 'UNKNOWN'}"
+        })
 
-    # Activate subscription
+    # 3. amount check
+    if esewa_total != _safe_decimal(payment.amount):
+        payment.status = "REJECTED"
+        payment.save(update_fields=["status"])
+        return render(request, "subscription/payment_failed.html", {
+            "reason": "Amount mismatch detected."
+        })
+
+    # 4. activate
     _activate_subscription(payment.subscription, payment)
 
-    return render(request, "subscription/payment_success.html", {"subscription": payment.subscription})
+    return render(request, "subscription/payment_success.html", {
+        "subscription": payment.subscription
+    })
 
 
 def esewa_failure(request):
-    data = request.GET.get("data") or request.POST.get("data")
-
+    """
+    eSewa redirects here on failure / cancel / pending-like failure.
+    """
+    encoded_data = request.GET.get("data") or request.POST.get("data")
     txn = None
-    if data:
+
+    if encoded_data:
         try:
-            import json, base64
-            decoded_json_str = base64.b64decode(data).decode("utf-8")
-            payload = json.loads(decoded_json_str)
+            payload = decode_esewa_callback_data(encoded_data)
             txn = payload.get("transaction_uuid")
         except Exception:
-            pass
+            txn = None
 
     txn = txn or request.GET.get("transaction_uuid") or request.GET.get("pid") or request.GET.get("oid")
 
@@ -317,39 +384,41 @@ def esewa_failure(request):
         payment = SubscriptionPayment.objects.filter(transaction_ref=txn).first()
         if payment and payment.status == "PENDING":
             payment.status = "REJECTED"
-            payment.save()
+            payment.save(update_fields=["status"])
 
-    return render(request, "subscription/payment_failed.html")
+    return render(request, "subscription/payment_failed.html", {
+        "reason": "Payment failed or cancelled."
+    })
 
 
 # ============================================================
 # SUPERADMIN: LIST SUBSCRIPTIONS + PAYMENTS
 # ============================================================
 
-
 @login_required
 def subscription_list(request):
-    if request.user.role != "SUPERADMIN":
-        return redirect("login")
+    ok, resp = _require_role(request, "SUPERADMIN", redirect_name="login")
+    if not ok:
+        return resp
 
     q = (request.GET.get("q") or "").strip()
-    status = (request.GET.get("status") or "").strip().upper()  # ACTIVE / PENDING / EXPIRED / CANCELLED
+    status = (request.GET.get("status") or "").strip().upper()
     page_number = request.GET.get("page", 1)
 
-    qs = BusinessSubscription.objects.select_related("business", "package").order_by("-created_at", "-id")
+    qs = BusinessSubscription.objects.select_related(
+        "business", "package"
+    ).order_by("-created_at", "-id")
 
-    # Status filter
     if status in ["ACTIVE", "PENDING", "EXPIRED", "CANCELLED"]:
         qs = qs.filter(status=status)
 
-    # Search
     if q:
         qs = qs.filter(
             Q(business__business_name__icontains=q) |
             Q(package__name__icontains=q)
         )
 
-    paginator = Paginator(qs, 10)  # 10 rows per page
+    paginator = Paginator(qs, 10)
     page_obj = paginator.get_page(page_number)
 
     return render(request, "subscription/subscription_list.html", {
@@ -359,14 +428,14 @@ def subscription_list(request):
     })
 
 
-
 @login_required
 def payment_list(request):
-    if request.user.role != "SUPERADMIN":
-        return redirect("login")
+    ok, resp = _require_role(request, "SUPERADMIN", redirect_name="login")
+    if not ok:
+        return resp
 
     q = (request.GET.get("q") or "").strip()
-    status = (request.GET.get("status") or "").strip().upper()   # VERIFIED / PENDING / CANCELLED
+    status = (request.GET.get("status") or "").strip().upper()
     page_number = request.GET.get("page", 1)
 
     qs = SubscriptionPayment.objects.select_related(
@@ -374,18 +443,16 @@ def payment_list(request):
         "subscription__package"
     ).order_by("-paid_at", "-id")
 
-    # Status filter
     if status in ["PENDING", "VERIFIED", "CANCELLED", "REJECTED"]:
         qs = qs.filter(status=status)
 
-    # Search
     if q:
         qs = qs.filter(
             Q(subscription__business__business_name__icontains=q) |
             Q(transaction_ref__icontains=q)
         )
 
-    paginator = Paginator(qs, 10)  # 10 rows per page
+    paginator = Paginator(qs, 10)
     page_obj = paginator.get_page(page_number)
 
     return render(request, "subscription/payment_list.html", {
@@ -396,109 +463,12 @@ def payment_list(request):
     })
 
 
-from django.conf import settings
-
-@login_required
-def sub_esewa_mock_payment(request, subscription_id):
-    """
-    Mock eSewa login page for subscription payment.
-    Safe: only affects subscription models.
-    """
-    if not settings.DEBUG:
-        return HttpResponseBadRequest("Not allowed")
-
-    if request.user.role != "OWNER":
-        return redirect("owner_dashboard")
-
-    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
-
-    if subscription.business != request.user.business:
-        return redirect("owner_dashboard")
-
-    payment = SubscriptionPayment.objects.filter(
-        subscription=subscription,
-        status="PENDING"
-    ).order_by("-id").first()
-
-    if not payment:
-        return HttpResponseBadRequest("No pending payment found.")
-
-    context = {
-        "subscription": subscription,
-        "payment": payment,
-    }
-    return render(request, "subscription/esewa_mock_payment.html", context)
 
 
-@login_required
-def sub_esewa_mock_process(request, subscription_id):
-    """
-    Process mock eSewa payment.
-    Accept any MPIN for demo/testing.
-    """
-    if not settings.DEBUG:
-        return HttpResponseBadRequest("Not allowed")
-
-    if request.method != "POST":
-        return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
-
-    if request.user.role != "OWNER":
-        return redirect("owner_dashboard")
-
-    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
-
-    if subscription.business != request.user.business:
-        return redirect("owner_dashboard")
-
-    payment = SubscriptionPayment.objects.filter(
-        subscription=subscription,
-        status="PENDING"
-    ).order_by("-id").first()
-
-    if not payment:
-        return HttpResponseBadRequest("No pending payment found.")
-
-    mpin = request.POST.get("mpin", "").strip()
-
-    # Accept any MPIN for mock/demo
-    if mpin:
-        payment.transaction_ref = payment.transaction_ref or f"MOCK-{timezone.now().strftime('%Y%m%d%H%M%S')}"
-        _activate_subscription(subscription, payment)
-
-        messages.success(request, "✅ Payment completed successfully via mock eSewa!")
-        return render(request, "subscription/payment_success.html", {"subscription": subscription})
-
-    messages.error(request, "Invalid MPIN! Please try again.")
-    return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
 
 
-@login_required
-def sub_esewa_mock_cancel(request, subscription_id):
-    """
-    Cancel mock eSewa payment.
-    """
-    if not settings.DEBUG:
-        return HttpResponseBadRequest("Not allowed")
 
-    if request.method != "POST":
-        return redirect("sub_esewa_mock_payment", subscription_id=subscription_id)
 
-    if request.user.role != "OWNER":
-        return redirect("owner_dashboard")
+      
 
-    subscription = get_object_or_404(BusinessSubscription, id=subscription_id)
 
-    if subscription.business != request.user.business:
-        return redirect("owner_dashboard")
-
-    payment = SubscriptionPayment.objects.filter(
-        subscription=subscription,
-        status="PENDING"
-    ).order_by("-id").first()
-
-    if payment:
-        payment.status = "REJECTED"
-        payment.save()
-
-    messages.warning(request, "Payment cancelled.")
-    return render(request, "subscription/payment_failed.html", {"reason": "Payment cancelled by user"})

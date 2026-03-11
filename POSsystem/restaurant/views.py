@@ -1,40 +1,137 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from decimal import Decimal, InvalidOperation
+from datetime import timedelta, date
+import json
+
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
+from django.http import (
+    JsonResponse,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
+)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 import json
 # import requests
+
+from core.models import Business
+from pos.models import Order, OrderItem, Item
+from restaurant.models import KitchenOrder
+
 from .models import (
-    DiningTable, 
-    Ingredient, 
+    DiningTable,
+    Ingredient,
     InventoryStockHistory,
     ReceptionInvoice,
     ReceptionPayment,
-    ReceptionLoyaltyTransaction
+    ReceptionLoyaltyTransaction,
 )
-from decimal import Decimal, InvalidOperation
-
-from django.conf import settings
-from django.db.models import Count, Sum
-from django.http import HttpResponseForbidden, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-
-from core.models import Business
-from pos.models import Order, OrderItem
-from .models import Ingredient, InventoryStockHistory
-from django.http import JsonResponse
-from .models import DiningTable
-from pos.models import Order, OrderItem, Item
-from restaurant.models import KitchenOrder
 from . import payment_service
-
+from .esewa_utils import (
+    prepare_esewa_form_data,
+    generate_transaction_uuid,
+    verify_esewa_payment,
+    verify_esewa_response_signature,
+    decode_esewa_callback_data,
+)
 
 KITCHEN_STATUSES = ("PENDING", "COOKING", "READY")
 
+
+# ============================================================
+# Common helpers
+# ============================================================
+
+def _parse_decimal(value, default=None):
+    if value in (None, ""):
+        return default
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+
+
+def _get_request_business(request):
+    user = getattr(request, "user", None)
+    if getattr(user, "is_authenticated", False) and getattr(user, "business_id", None):
+        return user.business
+    return None
+
+
+def _get_dev_business_fallback():
+    if not settings.DEBUG:
+        return None
+    return Business.objects.order_by("id").first()
+
+
+def _get_stock_actor_user(request, business):
+    user = getattr(request, "user", None)
+    if getattr(user, "is_authenticated", False):
+        return user
+
+    if not settings.DEBUG or business is None:
+        return None
+
+    business_user = business.users.order_by("id").first()
+    if business_user:
+        return business_user
+
+    from accounts.models import User
+    return User.objects.order_by("id").first()
+
+
+def _get_kitchen_status_map(request):
+    data = request.session.get("kitchen_order_statuses", {})
+    if isinstance(data, dict):
+        return data
+    return {}
+
+
+def _build_stock_note(note):
+    return (note or "").strip()
+
+
+def _safe_money(value, default="0.00"):
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(default)
+
+
+def _award_loyalty_points(invoice, created_by=None):
+    if not invoice.customer_phone:
+        return
+
+    points_earned = int(invoice.total_amount / 10)
+    ReceptionLoyaltyTransaction.objects.create(
+        business=invoice.business,
+        invoice=invoice,
+        customer_phone=invoice.customer_phone,
+        customer_name=invoice.customer_name or "Customer",
+        transaction_type="EARN",
+        points=points_earned,
+        balance_after=0,
+        description=f"Points earned from invoice {invoice.invoice_number}",
+        created_by=created_by or invoice.created_by,
+    )
+
+
+def _mark_invoice_paid(invoice):
+    invoice.status = "PAID"
+    invoice.save(update_fields=["status"])
+
+    if invoice.table:
+        invoice.table.status = "AVAILABLE"
+        invoice.table.save(update_fields=["status"])
+
+
+# ============================================================
+# Kitchen
+# ============================================================
 
 def kitchen_dashboard(request):
     business = _get_request_business(request)
@@ -44,6 +141,7 @@ def kitchen_dashboard(request):
     open_orders = Order.objects.filter(status="OPEN").select_related("table").prefetch_related("items")
     if business:
         open_orders = open_orders.filter(business=business)
+
     open_order_ids = list(open_orders.values_list("id", flat=True))
 
     grouped_items = []
@@ -112,60 +210,11 @@ def kitchen_dashboard(request):
     return render(request, "restaurant/kitchen_dashboard.html", context)
 
 
-def _parse_decimal(value, default=None):
-    if value in (None, ""):
-        return default
-    try:
-        return Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        return None
-
-
-def _get_request_business(request):
-    user = getattr(request, "user", None)
-    if getattr(user, "is_authenticated", False) and getattr(user, "business_id", None):
-        return user.business
-    return None
-
-
-def _get_dev_business_fallback():
-    if not settings.DEBUG:
-        return None
-    return Business.objects.order_by("id").first()
-
-
-def _get_stock_actor_user(request, business):
-    user = getattr(request, "user", None)
-    if getattr(user, "is_authenticated", False):
-        return user
-    if not settings.DEBUG or business is None:
-        return None
-
-    business_user = business.users.order_by("id").first()
-    if business_user:
-        return business_user
-
-    # Last resort for local dev: any existing user in the system.
-    from accounts.models import User
-
-    return User.objects.order_by("id").first()
-
-
-def _get_kitchen_status_map(request):
-    data = request.session.get("kitchen_order_statuses", {})
-    if isinstance(data, dict):
-        return data
-    return {}
-
-
-def _build_stock_note(note):
-    return (note or "").strip()
-
-
 def kitchen_stock(request):
     business = _get_request_business(request)
     if business is None:
         business = _get_dev_business_fallback()
+
     form_error = None
     selected_month = (request.GET.get("month") or "").strip()
     month_filter_error = None
@@ -196,11 +245,12 @@ def kitchen_stock(request):
                     form_error = "Ingredient and unit are required."
                 else:
                     ingredient = Ingredient.objects.filter(
-                        business=business, name__iexact=ingredient_name
+                        business=business,
+                        name__iexact=ingredient_name
                     ).first()
+
                     if ingredient:
-                        if unit:
-                            ingredient.unit = unit
+                        ingredient.unit = unit
                     else:
                         ingredient = Ingredient.objects.create(
                             business=business,
@@ -215,8 +265,10 @@ def kitchen_stock(request):
                     if price_value is not None:
                         price_note = f"Price: {price_value}"
                         note = f"{note} | {price_note}" if note else price_note
+
                     ingredient.quantity = (ingredient.quantity or Decimal("0")) + quantity_to_add
                     ingredient.save()
+
                     price_amount = price_value or Decimal("0")
 
                     InventoryStockHistory.objects.create(
@@ -292,12 +344,15 @@ def kitchen_stock(request):
         for change in recent_changes:
             change.edit_note = (change.note or "").strip()
             change.edit_price = change.price
+
         ingredient_price_map = {}
         ingredient_ids = [item.id for item in ingredients]
         if ingredient_ids:
             latest_adds = (
                 InventoryStockHistory.objects.filter(
-                    business=business, change_type="ADD", ingredient_id__in=ingredient_ids
+                    business=business,
+                    change_type="ADD",
+                    ingredient_id__in=ingredient_ids
                 )
                 .select_related("ingredient")
                 .order_by("ingredient_id", "-changed_at", "-id")
@@ -330,6 +385,7 @@ def kitchen_stock_change_delete(request, change_id):
     business = _get_request_business(request)
     if business is None:
         business = _get_dev_business_fallback()
+
     actor_user = _get_stock_actor_user(request, business)
     if not business or actor_user is None:
         return HttpResponseForbidden(
@@ -358,6 +414,25 @@ def kitchen_stock_change_delete(request, change_id):
     return redirect("restaurant_kitchen_stock")
 
 
+def kitchen_ingredient_delete(request, ingredient_id):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    business = _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
+
+    actor_user = _get_stock_actor_user(request, business)
+    if not business or actor_user is None:
+        return HttpResponseForbidden(
+            "No business/user available for kitchen stock update. Create a business and at least one user."
+        )
+
+    ingredient = get_object_or_404(Ingredient, pk=ingredient_id, business=business)
+    ingredient.delete()
+    return redirect("restaurant_kitchen_stock")
+
+
 def kitchen_stock_change_edit(request, change_id):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
@@ -365,6 +440,7 @@ def kitchen_stock_change_edit(request, change_id):
     business = _get_request_business(request)
     if business is None:
         business = _get_dev_business_fallback()
+
     actor_user = _get_stock_actor_user(request, business)
     if not business or actor_user is None:
         return HttpResponseForbidden(
@@ -376,6 +452,7 @@ def kitchen_stock_change_edit(request, change_id):
         pk=change_id,
         business=business,
     )
+
     if change.change_type != "ADD":
         return HttpResponseForbidden("Only ADD stock entries can be edited from kitchen history.")
 
@@ -430,6 +507,7 @@ def kitchen_order_status_update(request, order_id):
     business = _get_request_business(request)
     if business is None:
         business = _get_dev_business_fallback()
+
     if not business:
         return HttpResponseForbidden("No business available to update order status.")
 
@@ -499,6 +577,7 @@ def kitchen_order_status_update(request, order_id):
             order.closed_at = timezone.now()
         if next_status == "OPEN":
             order.closed_at = None
+
         update_fields = ["status", "closed_at", "updated_at"]
         if actor_user:
             update_fields.insert(1, "updated_by")
@@ -508,15 +587,13 @@ def kitchen_order_status_update(request, order_id):
   
 def create_order(request, table_number):
     if request.method == "POST":
-
-        # get table
         table = get_object_or_404(DiningTable, table_number=table_number)
 
-        # table status check
         if table.status == "occupied":
             return JsonResponse({"error": "Table is already occupied."}, status=400)
         if table.status == "reserved":
             return JsonResponse({"error": "Table is reserved."}, status=400)
+
         order = Order.objects.create(table=table, total_amount=0.00, status="pending")
         order.confirm()
         table.status = "occupied"
@@ -533,40 +610,51 @@ def create_order(request, table_number):
     return JsonResponse({"error": "Invalid request method."}, status=405)
 
 
+# ============================================================
+# Reception dashboard and billing
+# ============================================================
+
 def reception_dashboard(request):
-    print("DEBUG: Entered reception_dashboard view")
-    """Reception Dashboard - Overview of tables, orders, payments"""
-    from core.models import Business
     business = Business.objects.first()
-    
+
     if not business:
         context = {
-            'total_tables': 0,
-            'occupied_tables': 0,
-            'available_tables': 0,
-            'today_orders': 0,
-            'today_revenue': 0,
-            'pending_invoices': 0,
-            'pending_payments': 0,
+            "total_tables": 0,
+            "occupied_tables": 0,
+            "available_tables": 0,
+            "today_orders": 0,
+            "today_revenue": 0,
+            "pending_invoices": 0,
+            "pending_payments": 0,
         }
-        return render(request, 'restaurant/reception_dashboard.html', context)
-    
+        return render(request, "restaurant/reception_dashboard.html", context)
+
     total_tables = DiningTable.objects.filter(business=business).count()
-    occupied_tables = DiningTable.objects.filter(business=business, status='OCCUPIED').count()
-    available_tables = DiningTable.objects.filter(business=business, status='AVAILABLE').count()
-    
+    occupied_tables = DiningTable.objects.filter(business=business, status="OCCUPIED").count()
+    available_tables = DiningTable.objects.filter(business=business, status="AVAILABLE").count()
+
     today = timezone.now().date()
-    today_orders = ReceptionInvoice.objects.filter(business=business, created_at__date=today).count()
+    today_orders = ReceptionInvoice.objects.filter(
+        business=business,
+        created_at__date=today
+    ).count()
+
     today_revenue = ReceptionPayment.objects.filter(
         business=business,
-        payment_status='COMPLETED',
+        payment_status="COMPLETED",
         created_at__date=today
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    
-    pending_invoices = ReceptionInvoice.objects.filter(business=business, status='PENDING').count()
-    pending_payments = ReceptionPayment.objects.filter(business=business, payment_status='PENDING').count()
-    
-    # Get recent completed payments (last 5)
+    ).aggregate(total=Sum("amount"))["total"] or 0
+
+    pending_invoices = ReceptionInvoice.objects.filter(
+        business=business,
+        status="PENDING"
+    ).count()
+
+    pending_payments = ReceptionPayment.objects.filter(
+        business=business,
+        payment_status="PENDING"
+    ).count()
+
     recent_payments = ReceptionPayment.objects.filter(
         business=business,
         payment_status='COMPLETED'
@@ -592,74 +680,57 @@ def reception_dashboard(request):
     # Get eSewa payment summary (today)
     esewa_today = ReceptionPayment.objects.filter(
         business=business,
-        payment_method='ESEWA',
-        payment_status='COMPLETED',
+        payment_method="ESEWA",
+        payment_status="COMPLETED",
         created_at__date=today
-    ).aggregate(
-        total=Sum('amount'),
-        count=Count('id')
-    )
-    esewa_today_amount = esewa_today['total'] or 0
-    esewa_today_count = esewa_today['count'] or 0
-    
-    # Get Cash payment summary (today)
+    ).aggregate(total=Sum("amount"), count=Count("id"))
+
     cash_today = ReceptionPayment.objects.filter(
         business=business,
-        payment_method='CASH',
-        payment_status='COMPLETED',
+        payment_method="CASH",
+        payment_status="COMPLETED",
         created_at__date=today
-    ).aggregate(
-        total=Sum('amount'),
-        count=Count('id')
-    )
-    cash_today_amount = cash_today['total'] or 0
-    cash_today_count = cash_today['count'] or 0
-    
+    ).aggregate(total=Sum("amount"), count=Count("id"))
+
     context = {
-        'total_tables': total_tables,
-        'occupied_tables': occupied_tables,
-        'available_tables': available_tables,
-        'today_orders': today_orders,
-        'today_revenue': today_revenue,
-        'pending_invoices': pending_invoices,
-        'pending_payments': pending_payments,
-        'recent_payments': recent_payments,
-        'takeaway_orders': takeaway_with_totals,
-        'esewa_today_amount': esewa_today_amount,
-        'esewa_today_count': esewa_today_count,
-        'cash_today_amount': cash_today_amount,
-        'cash_today_count': cash_today_count,
+        "total_tables": total_tables,
+        "occupied_tables": occupied_tables,
+        "available_tables": available_tables,
+        "today_orders": today_orders,
+        "today_revenue": today_revenue,
+        "pending_invoices": pending_invoices,
+        "pending_payments": pending_payments,
+        "recent_payments": recent_payments,
+        "esewa_today_amount": esewa_today["total"] or 0,
+        "esewa_today_count": esewa_today["count"] or 0,
+        "cash_today_amount": cash_today["total"] or 0,
+        "cash_today_count": cash_today["count"] or 0,
     }
-    return render(request, 'restaurant/reception_dashboard.html', context)
+    return render(request, "restaurant/reception_dashboard.html", context)
 
 
 def table_check(request):
-    """View all tables and their status"""
-    from core.models import Business
     business = Business.objects.first()
-    
+
     if business:
-        tables = DiningTable.objects.filter(business=business).order_by('name')
-        
-        # Calculate table status counts dynamically
-        available_count = tables.filter(status='AVAILABLE').count()
-        occupied_count = tables.filter(status='OCCUPIED').count()
-        reserved_count = tables.filter(status='RESERVED').count()
+        tables = DiningTable.objects.filter(business=business).order_by("name")
+        available_count = tables.filter(status="AVAILABLE").count()
+        occupied_count = tables.filter(status="OCCUPIED").count()
+        reserved_count = tables.filter(status="RESERVED").count()
     else:
         tables = []
         available_count = occupied_count = reserved_count = 0
-    
+
     context = {
-        'tables': tables,
-        'available_count': available_count,
-        'occupied_count': occupied_count,
-        'reserved_count': reserved_count
+        "tables": tables,
+        "available_count": available_count,
+        "occupied_count": occupied_count,
+        "reserved_count": reserved_count,
     }
-    return render(request, 'restaurant/table_check.html', context)
+    return render(request, "restaurant/table_check.html", context)
 
 
 def table_bill(request, table_id):
-    """View bill for a specific table"""
     table = get_object_or_404(DiningTable, id=table_id)
     invoice = ReceptionInvoice.objects.filter(table=table, status='PENDING').order_by('-created_at').first()
     
@@ -697,11 +768,10 @@ def table_bill(request, table_id):
         'ready_orders': orders_with_totals,
         'total_amount': total_amount,
     }
-    return render(request, 'restaurant/table_bill.html', context)
+    return render(request, "restaurant/table_bill.html", context)
 
 
 def guest_bill(request, invoice_id):
-    """View guest bill for an invoice"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
     payments = ReceptionPayment.objects.filter(invoice=invoice)
     
@@ -715,585 +785,521 @@ def guest_bill(request, invoice_id):
         'payments': payments,
         'order_items': order_items,
     }
-    return render(request, 'restaurant/guest_bill.html', context)
+    return render(request, "restaurant/guest_bill.html", context)
 
 
 def payment_success(request, payment_id):
-    """Display payment success page"""
     payment = get_object_or_404(ReceptionPayment, id=payment_id)
     invoice = payment.invoice
-    
+
     context = {
-        'payment': payment,
-        'invoice': invoice,
+        "payment": payment,
+        "invoice": invoice,
     }
-    return render(request, 'restaurant/payment_success.html', context)
+    return render(request, "restaurant/payment_success.html", context)
 
 
 def process_payment(request, invoice_id):
-    """Process payment for an invoice"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    
-    if request.method == 'POST':
-        payment_method = request.POST.get('payment_method')
-        
-        # Debug: Print what we received
-        print(f"DEBUG: payment_method = {payment_method}")
-        print(f"DEBUG: POST data = {request.POST}")
-        
-        # Check if payment method is selected
+
+    if request.method == "POST":
+        payment_method = request.POST.get("payment_method")
+
         if not payment_method:
-            messages.error(request, 'Please select a payment method!')
-            return redirect('process_payment', invoice_id=invoice.id)
-        
-        amount = float(request.POST.get('amount', 0))
-        
-        print(f"DEBUG: Processing {payment_method} payment for amount {amount}")
-        
-        if payment_method == 'CASH':
-            # Direct cash payment
+            messages.error(request, "Please select a payment method!")
+            return redirect("process_payment", invoice_id=invoice.id)
+
+        amount = _safe_money(request.POST.get("amount", 0))
+
+        if payment_method == "CASH":
             payment = ReceptionPayment.objects.create(
                 business=invoice.business,
                 invoice=invoice,
                 payment_method=payment_method,
                 amount=amount,
-                payment_status='COMPLETED',
-                processed_by=invoice.created_by,
-                transaction_id=f"CASH-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+                payment_status="COMPLETED",
+                processed_by=request.user if request.user.is_authenticated else invoice.created_by,
+                transaction_id=f"CASH-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                processed_at=timezone.now(),
             )
-            
+
             total_paid = ReceptionPayment.objects.filter(
-                invoice=invoice, 
-                payment_status='COMPLETED'
-            ).aggregate(total=Sum('amount'))['total'] or 0
-            
+                invoice=invoice,
+                payment_status="COMPLETED"
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
             if total_paid >= invoice.total_amount:
-                invoice.status = 'PAID'
-                invoice.save()
-                
-                # Update table status to AVAILABLE
-                if invoice.table:
-                    invoice.table.status = 'AVAILABLE'
-                    invoice.table.save()
-                
-                # Add loyalty points if customer phone is available
-                if invoice.customer_phone:
-                    points_earned = int(invoice.total_amount / 10)  # 1 point per Rs. 10
-                    ReceptionLoyaltyTransaction.objects.create(
-                        business=invoice.business,
-                        invoice=invoice,
-                        customer_phone=invoice.customer_phone,
-                        customer_name=invoice.customer_name or 'Customer',
-                        transaction_type='EARN',
-                        points=points_earned,
-                        balance_after=0,  # Will be calculated in template
-                        description=f'Points earned from invoice {invoice.invoice_number}',
-                        created_by=request.user if request.user.is_authenticated else invoice.created_by
-                    )
-                
-                messages.success(request, 'Cash payment completed successfully! Table is now available.')
-                return redirect('payment_success', payment_id=payment.id)
-            else:
-                messages.info(request, f'Partial payment received. Remaining: Rs. {invoice.total_amount - total_paid}')
-            
-            return redirect('guest_bill', invoice_id=invoice.id)
-            
-        elif payment_method == 'ESEWA':
-            return redirect('esewa_payment', invoice_id=invoice.id)
-            
+                _mark_invoice_paid(invoice)
+                _award_loyalty_points(
+                    invoice,
+                    created_by=request.user if request.user.is_authenticated else invoice.created_by
+                )
+                messages.success(request, "Cash payment completed successfully! Table is now available.")
+                return redirect("payment_success", payment_id=payment.id)
+
+            messages.info(request, f"Partial payment received. Remaining: Rs. {invoice.total_amount - total_paid}")
+            return redirect("guest_bill", invoice_id=invoice.id)
+
+        elif payment_method == "ESEWA":
+            return redirect("esewa_payment", invoice_id=invoice.id)
+
         else:
-            messages.error(request, 'Invalid payment method selected!')
-            return redirect('process_payment', invoice_id=invoice.id)
-    
-    context = {'invoice': invoice}
-    return render(request, 'restaurant/process_payment.html', context)
+            messages.error(request, "Invalid payment method selected!")
+            return redirect("process_payment", invoice_id=invoice.id)
+
+    context = {"invoice": invoice}
+    return render(request, "restaurant/process_payment.html", context)
 
 
-
-
+# ============================================================
+# Real eSewa integration for restaurant invoices
+# ============================================================
 
 def esewa_payment(request, invoice_id):
-    """Initiate eSewa payment - Mock version"""
+    """
+    Real eSewa payment page.
+    Renders a form that posts directly to eSewa.
+    """
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
 
-    # Check if invoice is already paid
-    if invoice.status == 'PAID':
-        messages.error(request, 'This invoice is already paid!')
-        return redirect('guest_bill', invoice_id=invoice.id)
+    if invoice.status == "PAID":
+        messages.error(request, "This invoice is already paid!")
+        return redirect("guest_bill", invoice_id=invoice.id)
 
-    # Check if there's already a pending payment for this invoice
-    existing_payment = ReceptionPayment.objects.filter(
-        invoice=invoice,
-        payment_method='ESEWA',
-        payment_status='PENDING'
-    ).first()
-    
-    if not existing_payment:
-        # Generate new transaction UUID only if no pending payment exists
-        import uuid
-        transaction_uuid = str(uuid.uuid4())
-        
-        # Save transaction UUID to invoice
-        invoice.transaction_uuid = transaction_uuid
-        invoice.save()
-        
-        # Create pending payment record
-        ReceptionPayment.objects.create(
-            business=invoice.business,
-            invoice=invoice,
-            payment_method='ESEWA',
-            amount=invoice.total_amount,
-            payment_status='PENDING',
-            processed_by=invoice.created_by,
-            transaction_uuid=transaction_uuid,
-            note=f"eSewa payment initiated (Mock) - UUID: {transaction_uuid}"
-        )
-    
-    # Render mock eSewa page
-    context = {
-        'invoice': invoice,
-    }
-    return render(request, 'restaurant/esewa_mock_payment.html', context)
-
-
-def esewa_mock_process(request, invoice_id):
-    """Process mock eSewa payment"""
-    if request.method != 'POST':
-        return redirect('esewa_payment', invoice_id=invoice_id)
-    
-    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    mpin = request.POST.get('mpin', '')
-    
-    # Mock validation (accept any MPIN for demo)
-    if mpin:
-        # Update payment to completed
-        payment = ReceptionPayment.objects.filter(
-            invoice=invoice,
-            payment_status='PENDING'
-        ).first()
-        
-        if payment:
-            payment.payment_status = 'COMPLETED'
-            payment.transaction_id = f"ESEWA-{timezone.now().strftime('%Y%m%d%H%M%S')}"
-            payment.note = f"eSewa payment completed (Mock) - MPIN verified"
-            payment.save()
-            
-            # Update invoice status
-            invoice.status = 'PAID'
-            invoice.save()
-            
-            # Update table status
-            if invoice.table:
-                invoice.table.status = 'AVAILABLE'
-                invoice.table.save()
-            
-            # Add loyalty points
-            if invoice.customer_phone:
-                points_earned = int(invoice.total_amount / 10)
-                ReceptionLoyaltyTransaction.objects.create(
-                    business=invoice.business,
-                    invoice=invoice,
-                    customer_phone=invoice.customer_phone,
-                    customer_name=invoice.customer_name or 'Customer',
-                    transaction_type='EARN',
-                    points=points_earned,
-                    balance_after=0,
-                    description=f'Points earned from invoice {invoice.invoice_number}',
-                    created_by=invoice.created_by
-                )
-            
-            messages.success(request, '✅ Payment completed successfully via eSewa!')
-            return redirect('payment_success', payment_id=payment.id)
-    
-    messages.error(request, 'Invalid MPIN! Please try again.')
-    return redirect('esewa_payment', invoice_id=invoice_id)
-
-
-def esewa_mock_cancel(request, invoice_id):
-    """Cancel mock eSewa payment"""
-    if request.method != 'POST':
-        return redirect('esewa_payment', invoice_id=invoice_id)
-    
-    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    
-    # Update payment to failed
     payment = ReceptionPayment.objects.filter(
         invoice=invoice,
-        payment_status='PENDING'
-    ).first()
-    
-    if payment:
-        payment.payment_status = 'FAILED'
-        payment.note = 'Payment cancelled by user'
-        payment.save()
-    
-    messages.warning(request, 'Payment cancelled.')
-    return redirect('process_payment', invoice_id=invoice_id)
+        payment_method="ESEWA",
+        payment_status="PENDING"
+    ).order_by("-id").first()
+
+    if not payment:
+        transaction_uuid = generate_transaction_uuid()
+
+        invoice.transaction_uuid = transaction_uuid
+        invoice.save(update_fields=["transaction_uuid"])
+
+        payment = ReceptionPayment.objects.create(
+            business=invoice.business,
+            invoice=invoice,
+            payment_method="ESEWA",
+            amount=invoice.total_amount,
+            payment_status="PENDING",
+            processed_by=request.user if request.user.is_authenticated else invoice.created_by,
+            transaction_uuid=transaction_uuid,
+            note=f"eSewa payment initiated - UUID: {transaction_uuid}",
+        )
+
+    success_url = request.build_absolute_uri(reverse("restaurant_esewa_success"))
+    failure_url = request.build_absolute_uri(reverse("restaurant_esewa_failure"))
+
+    form_data = prepare_esewa_form_data(
+        total_amount=payment.amount,
+        transaction_uuid=payment.transaction_uuid,
+        success_url=success_url,
+        failure_url=failure_url,
+        product_code=settings.ESEWA_PRODUCT_CODE,
+    )
+
+    context = {
+        "invoice": invoice,
+        "payment": payment,
+        "form_data": form_data,
+        "debug": settings.DEBUG,
+    }
+    return render(request, "restaurant/esewa_payment.html", context)
 
 
 @csrf_exempt
-def esewa_success(request):
-    """Handle eSewa payment success callback"""
-    from .esewa_utils import verify_esewa_payment
-    
-    print(f"DEBUG: eSewa success callback received")
-    print(f"DEBUG: GET params: {request.GET}")
-    print(f"DEBUG: POST params: {request.POST}")
-    
-    # eSewa sends data in GET parameters
-    transaction_uuid = request.GET.get('transaction_uuid')
-    transaction_code = request.GET.get('transaction_code')
-    total_amount = request.GET.get('total_amount')
-    
-    print(f"DEBUG: transaction_uuid={transaction_uuid}, transaction_code={transaction_code}")
-    
+def restaurant_esewa_success(request):
+    """
+    Handle eSewa success callback.
+    """
+    encoded_data = request.GET.get("data") or request.POST.get("data")
+
+    callback_payload = None
+    transaction_uuid = None
+    callback_total_amount = None
+
+    if encoded_data:
+        try:
+            callback_payload = decode_esewa_callback_data(encoded_data)
+            transaction_uuid = callback_payload.get("transaction_uuid")
+            callback_total_amount = callback_payload.get("total_amount")
+        except Exception:
+            messages.error(request, "Invalid eSewa callback data.")
+            return redirect("reception_dashboard")
+
+    transaction_uuid = (
+        transaction_uuid
+        or request.GET.get("transaction_uuid")
+        or request.GET.get("pid")
+        or request.GET.get("oid")
+    )
+
     if not transaction_uuid:
-        messages.error(request, 'Invalid payment response - missing transaction UUID!')
-        return redirect('reception_dashboard')
-    
-    # Find invoice by transaction UUID
+        messages.error(request, "Missing transaction UUID.")
+        return redirect("reception_dashboard")
+
     try:
         invoice = ReceptionInvoice.objects.get(transaction_uuid=transaction_uuid)
-        print(f"DEBUG: Found invoice: {invoice.invoice_number}")
     except ReceptionInvoice.DoesNotExist:
-        print(f"DEBUG: Invoice not found for UUID: {transaction_uuid}")
-        messages.error(request, 'Invoice not found!')
-        return redirect('reception_dashboard')
-    
-    # Check if already paid
-    if invoice.status == 'PAID':
-        messages.info(request, 'This invoice is already paid!')
+        messages.error(request, "Invoice not found.")
+        return redirect("reception_dashboard")
+
+    if invoice.status == "PAID":
         payment = ReceptionPayment.objects.filter(
             invoice=invoice,
-            payment_status='COMPLETED'
-        ).first()
+            payment_method="ESEWA",
+            payment_status="COMPLETED",
+        ).order_by("-id").first()
+
         if payment:
-            return redirect('payment_success', payment_id=payment.id)
-        return redirect('guest_bill', invoice_id=invoice.id)
-    
-    # Verify payment with eSewa
-    print(f"DEBUG: Verifying payment with eSewa...")
-    verification = verify_esewa_payment(transaction_uuid)
-    
-    print(f"DEBUG: Verification result: {verification}")
-    
-    if verification['success'] and verification.get('status') == 'COMPLETE':
-        # Update payment status
-        payment = ReceptionPayment.objects.filter(
-            invoice=invoice,
-            transaction_uuid=transaction_uuid,
-            payment_status='PENDING'
-        ).first()
-        
-        if payment:
-            payment.payment_status = 'COMPLETED'
-            payment.transaction_id = verification.get('ref_id', transaction_code)
-            payment.note = f"eSewa payment verified - Ref: {verification.get('ref_id', transaction_code)}"
-            payment.save()
-            print(f"DEBUG: Payment updated to COMPLETED")
-            
-            # Update invoice status
-            invoice.status = 'PAID'
-            invoice.save()
-            print(f"DEBUG: Invoice marked as PAID")
-            
-            # Update table status to AVAILABLE
-            if invoice.table:
-                invoice.table.status = 'AVAILABLE'
-                invoice.table.save()
-                print(f"DEBUG: Table {invoice.table.table_number} set to AVAILABLE")
-            
-            # Add loyalty points
-            if invoice.customer_phone:
-                points_earned = int(invoice.total_amount / 10)
-                ReceptionLoyaltyTransaction.objects.create(
-                    business=invoice.business,
-                    invoice=invoice,
-                    customer_phone=invoice.customer_phone,
-                    customer_name=invoice.customer_name or 'Customer',
-                    transaction_type='EARN',
-                    points=points_earned,
-                    balance_after=0,
-                    description=f'Points earned from invoice {invoice.invoice_number}',
-                    created_by=invoice.created_by
-                )
-                print(f"DEBUG: Loyalty points added: {points_earned}")
-            
-            messages.success(request, 'Payment completed successfully!')
-            return redirect('payment_success', payment_id=payment.id)
-        else:
-            print(f"DEBUG: No pending payment found for this transaction")
-            messages.error(request, 'Payment record not found!')
-            return redirect('guest_bill', invoice_id=invoice.id)
-    
-    # Payment verification failed
-    error_msg = verification.get('message', 'Payment verification failed!')
-    print(f"DEBUG: Verification failed: {error_msg}")
-    messages.error(request, f'Payment verification failed: {error_msg}')
-    return redirect('process_payment', invoice_id=invoice.id)
+            return redirect("payment_success", payment_id=payment.id)
+        return redirect("guest_bill", invoice_id=invoice.id)
+
+    payment = ReceptionPayment.objects.filter(
+        invoice=invoice,
+        payment_method="ESEWA",
+        transaction_uuid=transaction_uuid,
+        payment_status="PENDING"
+    ).order_by("-id").first()
+
+    if not payment:
+        messages.error(request, "Pending payment record not found.")
+        return redirect("guest_bill", invoice_id=invoice.id)
+
+    if callback_payload:
+        if not verify_esewa_response_signature(callback_payload):
+            payment.payment_status = "FAILED"
+            payment.note = "Invalid eSewa response signature"
+            payment.save(update_fields=["payment_status", "note"])
+            messages.error(request, "Invalid eSewa response signature.")
+            return redirect("process_payment", invoice_id=invoice.id)
+
+    verify_amount = _safe_money(callback_total_amount or payment.amount)
+
+    verification = verify_esewa_payment(
+        transaction_uuid=transaction_uuid,
+        total_amount=verify_amount,
+        product_code=settings.ESEWA_PRODUCT_CODE,
+    )
+
+    if not verification.get("success"):
+        payment.payment_status = "FAILED"
+        payment.note = verification.get("message", "Payment verification failed")
+        payment.save(update_fields=["payment_status", "note"])
+        messages.error(request, payment.note)
+        return redirect("process_payment", invoice_id=invoice.id)
+
+    data = verification.get("data", {})
+    esewa_status = str(data.get("status", "")).upper()
+    verified_amount = _safe_money(data.get("total_amount", payment.amount))
+
+    ref_id = data.get("ref_id")
+    if not ref_id and callback_payload:
+        ref_id = callback_payload.get("transaction_code")
+
+    if esewa_status != "COMPLETE":
+        payment.payment_status = "FAILED"
+        payment.note = f"eSewa status: {esewa_status}"
+        payment.save(update_fields=["payment_status", "note"])
+        messages.error(request, f"Payment not completed. Status: {esewa_status}")
+        return redirect("process_payment", invoice_id=invoice.id)
+
+    if verified_amount != _safe_money(payment.amount):
+        payment.payment_status = "FAILED"
+        payment.note = "Amount mismatch detected during eSewa verification"
+        payment.save(update_fields=["payment_status", "note"])
+        messages.error(request, "Amount mismatch detected.")
+        return redirect("process_payment", invoice_id=invoice.id)
+
+    payment.payment_status = "COMPLETED"
+    payment.transaction_id = ref_id or f"ESEWA-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    payment.note = f"eSewa payment verified - Ref: {payment.transaction_id}"
+    payment.processed_at = timezone.now()
+    payment.save(update_fields=["payment_status", "transaction_id", "note", "processed_at"])
+
+    _mark_invoice_paid(invoice)
+    _award_loyalty_points(
+        invoice,
+        created_by=request.user if request.user.is_authenticated else invoice.created_by
+    )
+
+    messages.success(request, "Payment completed successfully via eSewa.")
+    return redirect("payment_success", payment_id=payment.id)
 
 
 @csrf_exempt
-def esewa_failure(request):
-    """Handle eSewa payment failure callback"""
-    print(f"DEBUG: eSewa failure callback received")
-    print(f"DEBUG: GET params: {request.GET}")
-    print(f"DEBUG: POST params: {request.POST}")
-    
-    transaction_uuid = request.GET.get('transaction_uuid')
-    
-    # Try to find and update the payment record
+def restaurant_esewa_failure(request):
+    """
+    Handle eSewa failure callback.
+    """
+    encoded_data = request.GET.get("data") or request.POST.get("data")
+    transaction_uuid = None
+
+    if encoded_data:
+        try:
+            payload = decode_esewa_callback_data(encoded_data)
+            transaction_uuid = payload.get("transaction_uuid")
+        except Exception:
+            transaction_uuid = None
+
+    transaction_uuid = (
+        transaction_uuid
+        or request.GET.get("transaction_uuid")
+        or request.GET.get("pid")
+        or request.GET.get("oid")
+    )
+
     if transaction_uuid:
         try:
             invoice = ReceptionInvoice.objects.get(transaction_uuid=transaction_uuid)
             payment = ReceptionPayment.objects.filter(
                 invoice=invoice,
                 transaction_uuid=transaction_uuid,
-                payment_status='PENDING'
-            ).first()
-            
+                payment_method="ESEWA",
+                payment_status="PENDING",
+            ).order_by("-id").first()
+
             if payment:
-                payment.payment_status = 'FAILED'
-                payment.note = 'Payment cancelled or failed by user'
-                payment.save()
-                print(f"DEBUG: Payment marked as FAILED")
-            
-            messages.error(request, 'Payment was cancelled or failed. Please try again.')
-            return redirect('process_payment', invoice_id=invoice.id)
+                payment.payment_status = "FAILED"
+                payment.note = "Payment cancelled or failed by user"
+                payment.save(update_fields=["payment_status", "note"])
+
+            messages.error(request, "Payment was cancelled or failed.")
+            return redirect("process_payment", invoice_id=invoice.id)
         except ReceptionInvoice.DoesNotExist:
             pass
-    
-    messages.error(request, 'Payment was cancelled or failed. Please try again.')
-    return redirect('reception_dashboard')
 
+    messages.error(request, "Payment was cancelled or failed.")
+    return redirect("reception_dashboard")
+
+
+# Optional aliases if your old urls still point to esewa_success/esewa_failure
+esewa_success = restaurant_esewa_success
+esewa_failure = restaurant_esewa_failure
+
+
+# ============================================================
+# Partial / split / loyalty / history
+# ============================================================
 
 def partial_payment(request, invoice_id):
-    """Handle partial payment (Aadha party)"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    
-    if request.method == 'POST':
-        amount = float(request.POST.get('amount', 0))
-        payment_method = request.POST.get('payment_method')
-        
+
+    if request.method == "POST":
+        amount = _safe_money(request.POST.get("amount", 0))
+        payment_method = request.POST.get("payment_method")
+
         if amount > 0 and amount <= invoice.total_amount:
             ReceptionPayment.objects.create(
                 business=invoice.business,
                 invoice=invoice,
                 payment_method=payment_method,
                 amount=amount,
-                payment_status='COMPLETED',
-                processed_by=invoice.created_by,
-                transaction_id=f"PARTIAL-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+                payment_status="COMPLETED",
+                processed_by=request.user if request.user.is_authenticated else invoice.created_by,
+                transaction_id=f"PARTIAL-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                processed_at=timezone.now(),
             )
-            messages.success(request, f'Partial payment of Rs. {amount} received!')
-            return redirect('guest_bill', invoice_id=invoice.id)
-    
-    context = {'invoice': invoice}
-    return render(request, 'restaurant/partial_payment.html', context)
+            messages.success(request, f"Partial payment of Rs. {amount} received!")
+            return redirect("guest_bill", invoice_id=invoice.id)
+
+    context = {"invoice": invoice}
+    return render(request, "restaurant/partial_payment.html", context)
 
 
 def split_bill(request, invoice_id):
-    """Split bill among multiple people (Ko bill aadha)"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    
-    if request.method == 'POST':
-        split_count = int(request.POST.get('split_count', 1))
+
+    if request.method == "POST":
+        split_count = int(request.POST.get("split_count", 1))
         split_amount = invoice.total_amount / split_count
-        
+
         context = {
-            'invoice': invoice,
-            'split_count': split_count,
-            'split_amount': split_amount,
+            "invoice": invoice,
+            "split_count": split_count,
+            "split_amount": split_amount,
         }
-        return render(request, 'restaurant/split_bill.html', context)
-    
-    context = {'invoice': invoice}
-    return render(request, 'restaurant/split_bill.html', context)
+        return render(request, "restaurant/split_bill.html", context)
+
+    context = {"invoice": invoice}
+    return render(request, "restaurant/split_bill.html", context)
 
 
 def loyalty_points_check(request):
-    """Check customer loyalty points"""
-    if request.method == 'POST':
-        phone = request.POST.get('phone')
-        from core.models import Business
+    if request.method == "POST":
+        phone = request.POST.get("phone")
         business = Business.objects.first()
-        
+
         if business:
             transactions = ReceptionLoyaltyTransaction.objects.filter(
                 business=business,
                 customer_phone=phone
-            ).order_by('-created_at')[:10]
-            
+            ).order_by("-created_at")[:10]
+
             total_earned = ReceptionLoyaltyTransaction.objects.filter(
                 business=business,
                 customer_phone=phone,
-                transaction_type='EARN'
-            ).aggregate(total=Sum('points'))['total'] or 0
-            
+                transaction_type="EARN"
+            ).aggregate(total=Sum("points"))["total"] or 0
+
             total_redeemed = ReceptionLoyaltyTransaction.objects.filter(
                 business=business,
                 customer_phone=phone,
-                transaction_type='REDEEM'
-            ).aggregate(total=Sum('points'))['total'] or 0
-            
+                transaction_type="REDEEM"
+            ).aggregate(total=Sum("points"))["total"] or 0
+
             current_balance = total_earned - total_redeemed
-            
+
             if transactions.exists():
                 context = {
-                    'customer_phone': phone,
-                    'customer_name': transactions.first().customer_name,
-                    'current_balance': current_balance,
-                    'transactions': transactions,
+                    "customer_phone": phone,
+                    "customer_name": transactions.first().customer_name,
+                    "current_balance": current_balance,
+                    "transactions": transactions,
                 }
-                return render(request, 'restaurant/loyalty_points_check.html', context)
+                return render(request, "restaurant/loyalty_points_check.html", context)
             else:
-                messages.error(request, 'No loyalty transactions found for this customer!')
-    
-    return render(request, 'restaurant/loyalty_points_check.html')
+                messages.error(request, "No loyalty transactions found for this customer!")
+
+    return render(request, "restaurant/loyalty_points_check.html")
 
 
 def payment_history(request):
-    """View payment history"""
-    from core.models import Business
     business = Business.objects.first()
-    
+
     if business:
-        # Only show COMPLETED payments, not pending ones
         payments = ReceptionPayment.objects.filter(
             business=business,
-            payment_status='COMPLETED'
+            payment_status="COMPLETED"
         ).select_related(
-            'invoice', 'processed_by'
-        ).order_by('-processed_at')[:50]
-        
-        date_from = request.GET.get('date_from')
-        date_to = request.GET.get('date_to')
-        
+            "invoice", "processed_by"
+        ).order_by("-processed_at")[:50]
+
+        date_from = request.GET.get("date_from")
+        date_to = request.GET.get("date_to")
+
         if date_from:
             payments = payments.filter(processed_at__date__gte=date_from)
         if date_to:
             payments = payments.filter(processed_at__date__lte=date_to)
     else:
         payments = []
-    
-    context = {'payments': payments}
-    return render(request, 'restaurant/payment_history.html', context)
 
+    context = {"payments": payments}
+    return render(request, "restaurant/payment_history.html", context)
+
+
+# ============================================================
+# Tables
+# ============================================================
 
 def update_table_status(request, table_id):
-    """Update table status (Available/Occupied/Reserved)"""
     table = get_object_or_404(DiningTable, id=table_id)
-    
-    if request.method == 'POST':
-        new_status = request.POST.get('status')
-        if new_status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
+
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        if new_status in ["AVAILABLE", "OCCUPIED", "RESERVED"]:
             table.status = new_status
-            table.save()
-            messages.success(request, f'Table {table.table_number} status updated!')
-        return redirect('table_check')
-    
-    context = {'table': table}
-    return render(request, 'restaurant/update_table_status.html', context)
+            table.save(update_fields=["status"])
+            messages.success(request, f"Table {table.table_number} status updated!")
+        return redirect("table_check")
+
+    context = {"table": table}
+    return render(request, "restaurant/update_table_status.html", context)
 
 
 def toggle_table_status(request, table_id):
-    """Toggle table status between AVAILABLE and OCCUPIED"""
     table = get_object_or_404(DiningTable, id=table_id)
-    
-    if request.method == 'POST':
-        # Toggle status
-        if table.status == 'OCCUPIED':
-            table.status = 'AVAILABLE'
-            messages.success(request, f'Table {table.table_number} is now AVAILABLE')
+
+    if request.method == "POST":
+        if table.status == "OCCUPIED":
+            table.status = "AVAILABLE"
+            messages.success(request, f"Table {table.table_number} is now AVAILABLE")
         else:
-            table.status = 'OCCUPIED'
-            messages.success(request, f'Table {table.table_number} is now OCCUPIED')
-        
-        table.save()
-    
-    return redirect('table_bill', table_id=table.id)
+            table.status = "OCCUPIED"
+            messages.success(request, f"Table {table.table_number} is now OCCUPIED")
+
+        table.save(update_fields=["status"])
+
+    return redirect("table_bill", table_id=table.id)
 
 
 def bulk_update_tables(request):
-    """Bulk update table status"""
-    if request.method == 'POST':
-        table_ids = request.POST.getlist('table_ids')
-        status = request.POST.get('status')
-        
-        if status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
+    if request.method == "POST":
+        table_ids = request.POST.getlist("table_ids")
+        status = request.POST.get("status")
+
+        if status in ["AVAILABLE", "OCCUPIED", "RESERVED"]:
             tables = DiningTable.objects.filter(id__in=table_ids)
             count = tables.update(status=status)
-            messages.success(request, f'{count} table(s) updated to {status}')
-        
-    return redirect('table_check')
+            messages.success(request, f"{count} table(s) updated to {status}")
+
+    return redirect("table_check")
 
 
 def quick_status_change(request, table_id):
-    """Quick status change from table list"""
-    if request.method == 'POST':
+    if request.method == "POST":
         table = get_object_or_404(DiningTable, id=table_id)
-        status = request.POST.get('status')
-        
-        if status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
+        status = request.POST.get("status")
+
+        if status in ["AVAILABLE", "OCCUPIED", "RESERVED"]:
             table.status = status
-            table.save()
-            
-            # Check if it's an AJAX request
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'message': f'Table {table.name} is now {status}'})
-            
-            messages.success(request, f'Table {table.name} is now {status}')
-            return redirect('table_check')
+            table.save(update_fields=["status"])
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"success": True, "message": f"Table {table.name} is now {status}"})
+
+            messages.success(request, f"Table {table.name} is now {status}")
+            return redirect("table_check")
         else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'message': 'Invalid status'}, status=400)
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
-    
-    return redirect('table_check')
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"success": False, "message": "Invalid status"}, status=400)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+    return redirect("table_check")
 
 
 def bulk_update_all_tables(request):
-    """Update all tables to same status"""
-    if request.method == 'POST':
-        status = request.POST.get('status')
-        
-        if status in ['AVAILABLE', 'OCCUPIED', 'RESERVED']:
-            from core.models import Business
+    if request.method == "POST":
+        status = request.POST.get("status")
+
+        if status in ["AVAILABLE", "OCCUPIED", "RESERVED"]:
             business = Business.objects.first()
-            
+
             if business:
                 count = DiningTable.objects.filter(business=business).update(status=status)
-                messages.success(request, f'All {count} tables updated to {status}')
+                messages.success(request, f"All {count} tables updated to {status}")
             else:
-                messages.error(request, 'No business found')
-    
-    return redirect('table_check')
+                messages.error(request, "No business found")
+
+    return redirect("table_check")
 
 
+# ============================================================
+# Invoices
+# ============================================================
 
 def create_invoice(request, table_id):
-    """Create new invoice for a table"""
     from accounts.models import User
 
     table = get_object_or_404(DiningTable, id=table_id)
 
-    if request.method == 'POST':
-        customer_name = request.POST.get('customer_name', 'Guest')
-        customer_phone = request.POST.get('customer_phone', '')
-        subtotal = float(request.POST.get('subtotal', 0))
+    if request.method == "POST":
+        customer_name = request.POST.get("customer_name", "Guest")
+        customer_phone = request.POST.get("customer_phone", "")
+        subtotal = float(request.POST.get("subtotal", 0))
 
-        # Calculate tax (13% VAT)
         tax_amount = subtotal * 0.13
-        discount = float(request.POST.get('discount', 0))
+        discount = float(request.POST.get("discount", 0))
         total = subtotal + tax_amount - discount
 
-        # Generate invoice number
         import random
         invoice_number = f"INV-{timezone.now().strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
 
-        # Get user for created_by field
         user = User.objects.filter(is_superuser=True).first() or User.objects.first()
 
         # Get the order for this table (if exists)
@@ -1311,8 +1317,8 @@ def create_invoice(request, table_id):
             tax_amount=tax_amount,
             discount_amount=discount,
             total_amount=total,
-            status='PENDING',
-            created_by=user
+            status="PENDING",
+            created_by=user,
         )
 
         # Update table status
@@ -1341,259 +1347,306 @@ def create_invoice(request, table_id):
         'calculated_subtotal': calculated_subtotal,
     }
     return render(request, 'restaurant/create_invoice.html', context)
-
-
+    
 
 
 def pending_invoices(request):
-    """View all pending invoices"""
-    from core.models import Business
     business = Business.objects.first()
-    
+
     if business:
         invoices = ReceptionInvoice.objects.filter(
             business=business,
-            status='PENDING'
-        ).select_related('table', 'created_by').order_by('-created_at')
+            status="PENDING"
+        ).select_related("table", "created_by").order_by("-created_at")
     else:
         invoices = []
-    
-    context = {'invoices': invoices}
-    return render(request, 'restaurant/pending_invoices.html', context)
 
+    context = {"invoices": invoices}
+    return render(request, "restaurant/pending_invoices.html", context)
+
+
+# ============================================================
+# Payment admin / verification
+# ============================================================
 
 def verify_payment(request, payment_id):
-    """Verify a pending payment manually"""
     payment = get_object_or_404(ReceptionPayment, id=payment_id)
-    
-    if request.method == 'POST':
-        transaction_id = request.POST.get('transaction_id', '').strip()
-        
+
+    if request.method == "POST":
+        transaction_id = request.POST.get("transaction_id", "").strip()
+
         from accounts.models import User
         user = User.objects.filter(is_superuser=True).first() or User.objects.first()
-        
+
         result = payment_service.verify_payment(payment_id, transaction_id, user)
-        
-        if result['success']:
-            msg = 'Payment verified successfully!'
-            if result['invoice_paid']:
-                msg += ' Invoice marked as PAID.'
-            if result['table_freed']:
-                msg += ' Table is now AVAILABLE.'
+
+        if result["success"]:
+            msg = "Payment verified successfully!"
+            if result["invoice_paid"]:
+                msg += " Invoice marked as PAID."
+            if result["table_freed"]:
+                msg += " Table is now AVAILABLE."
             messages.success(request, msg)
-            return redirect('guest_bill', invoice_id=payment.invoice.id)
+            return redirect("guest_bill", invoice_id=payment.invoice.id)
         else:
-            messages.error(request, result['message'])
-    
-    context = {'payment': payment}
-    return render(request, 'restaurant/verify_payment.html', context)
+            messages.error(request, result["message"])
+
+    context = {"payment": payment}
+    return render(request, "restaurant/verify_payment.html", context)
 
 
 def pending_payments_list(request):
-    """View all pending payments"""
-    from core.models import Business
     business = Business.objects.first()
-    
+
     if business:
         payments = payment_service.get_pending_payments(business)
-        
-        # Calculate elapsed time for each payment
+
         now = timezone.now()
         payments_with_time = []
         for payment in payments:
             elapsed = now - payment.processed_at
             elapsed_minutes = int(elapsed.total_seconds() / 60)
             payments_with_time.append({
-                'payment': payment,
-                'elapsed_minutes': elapsed_minutes,
-                'highlight': elapsed_minutes > 10
+                "payment": payment,
+                "elapsed_minutes": elapsed_minutes,
+                "highlight": elapsed_minutes > 10,
             })
-        
-        context = {'payments_data': payments_with_time}
-    else:
-        context = {'payments_data': []}
-    
-    return render(request, 'restaurant/pending_payments_list.html', context)
 
+        context = {"payments_data": payments_with_time}
+    else:
+        context = {"payments_data": []}
+
+    return render(request, "restaurant/pending_payments_list.html", context)
+
+
+# ============================================================
+# QR payments
+# ============================================================
 
 def qr_payment(request, invoice_id):
-    """Display QR payment page with invoice details"""
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    
-    # Safety check: don't allow QR payment for already paid invoices
-    if invoice.status == 'PAID':
-        messages.error(request, 'This invoice is already paid!')
-        return redirect('guest_bill', invoice_id=invoice_id)
-    
+
+    if invoice.status == "PAID":
+        messages.error(request, "This invoice is already paid!")
+        return redirect("guest_bill", invoice_id=invoice_id)
+
     context = {
-        'invoice': invoice,
-        'qr_code_url': '/static/images/qr-code.png',  # You can update this with your actual QR code
+        "invoice": invoice,
+        "qr_code_url": "/static/images/qr-code.png",
     }
-    return render(request, 'restaurant/qr_payment.html', context)
+    return render(request, "restaurant/qr_payment.html", context)
 
 
 def confirm_qr_payment(request, invoice_id):
-    """Confirm QR payment with reference code"""
-    if request.method != 'POST':
-        return redirect('qr_payment', invoice_id=invoice_id)
-    
+    if request.method != "POST":
+        return redirect("qr_payment", invoice_id=invoice_id)
+
     invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
-    payer_ref_code = request.POST.get('payer_ref_code', '').strip()
-    
-    # Safety validations
-    if invoice.status == 'PAID':
-        messages.error(request, 'This invoice is already paid!')
-        return redirect('guest_bill', invoice_id=invoice_id)
-    
+    payer_ref_code = request.POST.get("payer_ref_code", "").strip()
+
+    if invoice.status == "PAID":
+        messages.error(request, "This invoice is already paid!")
+        return redirect("guest_bill", invoice_id=invoice_id)
+
     if not payer_ref_code:
-        messages.error(request, 'Transaction/Reference code is required!')
-        return redirect('qr_payment', invoice_id=invoice_id)
-    
-    # Check if payment with this reference code already exists
+        messages.error(request, "Transaction/Reference code is required!")
+        return redirect("qr_payment", invoice_id=invoice_id)
+
     existing_payment = ReceptionPayment.objects.filter(
         invoice=invoice,
         payer_ref_code=payer_ref_code,
-        payment_status='COMPLETED'
+        payment_status="COMPLETED"
     ).first()
-    
+
     if existing_payment:
-        messages.error(request, 'Payment with this reference code has already been processed!')
-        return redirect('guest_bill', invoice_id=invoice_id)
-    
-    from core.models import Business
+        messages.error(request, "Payment with this reference code has already been processed!")
+        return redirect("guest_bill", invoice_id=invoice_id)
+
     business = Business.objects.first()
-    
-    # Create the payment record
+
     payment = ReceptionPayment.objects.create(
         business=business,
         invoice=invoice,
-        payment_method='QR',
+        payment_method="QR",
         amount=invoice.total_amount,
         payer_ref_code=payer_ref_code,
-        payment_status='COMPLETED',
-        note=f'QR payment confirmed with reference: {payer_ref_code}',
-        processed_by=request.user if request.user.is_authenticated else None
+        payment_status="COMPLETED",
+        note=f"QR payment confirmed with reference: {payer_ref_code}",
+        processed_by=request.user if request.user.is_authenticated else None,
+        processed_at=timezone.now(),
     )
-    
-    # Update invoice status
-    invoice.status = 'PAID'
-    invoice.save()
-    
-    messages.success(request, f'Payment of Rs. {invoice.total_amount} confirmed successfully!')
-    return redirect('guest_bill', invoice_id=invoice_id)
+
+    _mark_invoice_paid(invoice)
+
+    messages.success(request, f"Payment of Rs. {invoice.total_amount} confirmed successfully!")
+    return redirect("guest_bill", invoice_id=invoice_id)
 
 
 def payment_list(request):
-    """View all payments with filtering options"""
-    from core.models import Business
     business = Business.objects.first()
-    
-    date_filter = request.GET.get('date')
-    method_filter = request.GET.get('method')
-    
-    payments = ReceptionPayment.objects.filter(business=business).select_related('invoice', 'processed_by')
-    
+
+    date_filter = request.GET.get("date")
+    method_filter = request.GET.get("method")
+
+    payments = ReceptionPayment.objects.filter(business=business).select_related("invoice", "processed_by")
+
     if date_filter:
         payments = payments.filter(created_at__date=date_filter)
-    
+
     if method_filter:
         payments = payments.filter(payment_method=method_filter)
-    
-    payments = payments.order_by('-created_at')
-    
-    # Get payment methods for filter dropdown (only show methods that have payments)
+
+    payments = payments.order_by("-created_at")
+
     all_payment_methods = ReceptionPayment.PAYMENT_METHOD_CHOICES
-    used_payment_methods = payments.values_list('payment_method', flat=True).distinct()
+    used_payment_methods = payments.values_list("payment_method", flat=True).distinct()
     payment_methods = [choice for choice in all_payment_methods if choice[0] in used_payment_methods or not method_filter]
-    
+
     context = {
-        'payments': payments,
-        'payment_methods': payment_methods,
-        'date_filter': date_filter,
-        'method_filter': method_filter,
+        "payments": payments,
+        "payment_methods": payment_methods,
+        "date_filter": date_filter,
+        "method_filter": method_filter,
     }
-    return render(request, 'restaurant/payment_list.html', context)
+    return render(request, "restaurant/payment_list.html", context)
 
 
 def daily_payment_report(request):
-    """Payment report showing totals by payment method"""
-    from core.models import Business
-    from django.db.models import Sum
-    from datetime import date, timedelta
-    
     business = Business.objects.first()
     today = date.today()
-    
+
     if business:
-        # All-time cash payments (completed)
         all_cash_payments = ReceptionPayment.objects.filter(
             business=business,
-            payment_method='CASH',
-            payment_status='COMPLETED'
+            payment_method="CASH",
+            payment_status="COMPLETED"
         )
-        cash_total = all_cash_payments.aggregate(total=Sum('amount'))['total'] or 0
-        
-        # All-time QR payments (completed)
+        cash_total = all_cash_payments.aggregate(total=Sum("amount"))["total"] or 0
+
         all_qr_payments = ReceptionPayment.objects.filter(
             business=business,
-            payment_method='QR',
-            payment_status='COMPLETED'
+            payment_method="QR",
+            payment_status="COMPLETED"
         )
-        qr_total = all_qr_payments.aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Today's other payments (excluding CASH and QR)
+        qr_total = all_qr_payments.aggregate(total=Sum("amount"))["total"] or 0
+
         today_other_payments = ReceptionPayment.objects.filter(
             business=business,
-            payment_status='COMPLETED',
+            payment_status="COMPLETED",
             created_at__date=today
-        ).exclude(payment_method__in=['CASH', 'QR'])
-        other_total = today_other_payments.aggregate(total=Sum('amount'))['total'] or 0
-        
+        ).exclude(payment_method__in=["CASH", "QR"])
+
+        other_total = today_other_payments.aggregate(total=Sum("amount"))["total"] or 0
         grand_total = cash_total + qr_total + other_total
-        
-        # Check if QR payments exist to show QR card
         show_qr = qr_total > 0
-        
-        # Daily revenue changes (last 7 days)
+
         daily_revenues = []
         for days_ago in range(6, -1, -1):
             current_date = today - timedelta(days=days_ago)
-            
+
             cash_daily = ReceptionPayment.objects.filter(
                 business=business,
-                payment_method='CASH',
-                payment_status='COMPLETED',
+                payment_method="CASH",
+                payment_status="COMPLETED",
                 created_at__date=current_date
-            ).aggregate(total=Sum('amount'))['total'] or 0
-            
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
             khalti_daily = ReceptionPayment.objects.filter(
                 business=business,
-                payment_method='KHALTI',
-                payment_status='COMPLETED',
+                payment_method="KHALTI",
+                payment_status="COMPLETED",
                 created_at__date=current_date
-            ).aggregate(total=Sum('amount'))['total'] or 0
-            
-            daily_total = cash_daily + khalti_daily
-            
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
+            esewa_daily = ReceptionPayment.objects.filter(
+                business=business,
+                payment_method="ESEWA",
+                payment_status="COMPLETED",
+                created_at__date=current_date
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
+            qr_daily = ReceptionPayment.objects.filter(
+                business=business,
+                payment_method="QR",
+                payment_status="COMPLETED",
+                created_at__date=current_date
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
+            daily_total = cash_daily + khalti_daily + esewa_daily + qr_daily
+
             daily_revenues.append({
-                'date': current_date,
-                'cash': cash_daily,
-                'khalti': khalti_daily,
-                'total': daily_total,
-                'is_today': days_ago == 0
+                "date": current_date,
+                "cash": cash_daily,
+                "khalti": khalti_daily,
+                "esewa": esewa_daily,
+                "qr": qr_daily,
+                "total": daily_total,
+                "is_today": days_ago == 0,
             })
     else:
         cash_total = qr_total = other_total = grand_total = 0
         show_qr = False
         daily_revenues = []
-    
+
     context = {
-        'today': today,
-        'cash_total': cash_total,
-        'qr_total': qr_total,
-        'other_total': other_total,
-        'grand_total': grand_total,
-        'show_qr': show_qr,
-        'daily_revenues': daily_revenues,
+        "today": today,
+        "cash_total": cash_total,
+        "qr_total": qr_total,
+        "other_total": other_total,
+        "grand_total": grand_total,
+        "show_qr": show_qr,
+        "daily_revenues": daily_revenues,
     }
-    return render(request, 'restaurant/daily_payment_report.html', context)
+    return render(request, "restaurant/daily_payment_report.html", context)
+
+
+def process_payment(request, invoice_id):
+    invoice = get_object_or_404(ReceptionInvoice, id=invoice_id)
+
+    if request.method == "POST":
+        payment_method = request.POST.get("payment_method")
+
+        if not payment_method:
+            messages.error(request, "Please select a payment method!")
+            return redirect("process_payment", invoice_id=invoice.id)
+
+        amount = _safe_money(request.POST.get("amount", 0))
+
+        if payment_method == "CASH":
+            payment = ReceptionPayment.objects.create(
+                business=invoice.business,
+                invoice=invoice,
+                payment_method=payment_method,
+                amount=amount,
+                payment_status="COMPLETED",
+                processed_by=request.user if request.user.is_authenticated else invoice.created_by,
+                transaction_id=f"CASH-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                processed_at=timezone.now(),
+            )
+
+            total_paid = ReceptionPayment.objects.filter(
+                invoice=invoice,
+                payment_status="COMPLETED"
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
+            if total_paid >= invoice.total_amount:
+                _mark_invoice_paid(invoice)
+                _award_loyalty_points(
+                    invoice,
+                    created_by=request.user if request.user.is_authenticated else invoice.created_by
+                )
+                messages.success(request, "Cash payment completed successfully! Table is now available.")
+                return redirect("payment_success", payment_id=payment.id)
+
+            messages.info(request, f"Partial payment received. Remaining: Rs. {invoice.total_amount - total_paid}")
+            return redirect("guest_bill", invoice_id=invoice.id)
+
+        elif payment_method == "ESEWA":
+            return redirect("esewa_payment", invoice_id=invoice.id)
+
+        else:
+            messages.error(request, "Invalid payment method selected!")
+            return redirect("process_payment", invoice_id=invoice.id)
+
+    context = {"invoice": invoice}
+    return render(request, "restaurant/process_payment.html", context)
