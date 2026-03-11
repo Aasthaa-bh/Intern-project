@@ -16,8 +16,6 @@ urlpatterns = [
     path("payment/<int:subscription_id>/", views.payment_page, name="payment_page"),
     path("esewa/success/", views.esewa_success, name="esewa_success"),
     path("esewa/failure/", views.esewa_failure, name="esewa_failure"),
-    path("mock/esewa/<int:subscription_id>/", views.sub_esewa_mock_payment, name="sub_esewa_mock_payment"),
-    path("mock/esewa/<int:subscription_id>/process/", views.sub_esewa_mock_process, name="sub_esewa_mock_process"),
-    path("mock/esewa/<int:subscription_id>/cancel/", views.sub_esewa_mock_cancel, name="sub_esewa_mock_cancel"),
+    
 
 ]

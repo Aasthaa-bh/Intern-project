@@ -5,7 +5,6 @@
 {% block page_subtitle %}Complete payment to activate your plan{% endblock %}
 
 {% block content %}
-
 <div class="max-w-xl bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
   <h2 class="text-xl font-semibold text-gray-900 mb-4">
     Plan: {{ subscription.package.name }}
@@ -24,43 +23,33 @@
 
     <div class="flex justify-between text-base mt-2 pt-2 border-t border-gray-100">
       <span class="font-semibold">Amount</span>
-      <span class="font-bold text-gray-900">Rs {{ subscription.package.price }}</span>
+      <span class="font-bold text-gray-900">Rs {{ payment.amount }}</span>
     </div>
   </div>
 
   {% if debug %}
-    <p class="mt-4 text-xs text-gray-500 break-all">
-      eSewa URL: {{ form_data.esewa_url }}
-    </p>
+    <div class="mt-4 p-3 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-600 break-all">
+      <p><strong>eSewa URL:</strong> {{ form_data.action }}</p>
+      <p><strong>Transaction UUID:</strong> {{ payment.transaction_ref }}</p>
+    </div>
   {% endif %}
 
-  <form class="mt-6" action="{{ form_data.esewa_url }}" method="POST">
-    {% csrf_token %}
+  <form class="mt-6" action="{{ form_data.action }}" method="POST">
+    {% for key, value in form_data.fields.items %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
 
-    <input type="hidden" name="amount" value="{{ form_data.amount }}">
-    <input type="hidden" name="tax_amount" value="{{ form_data.tax_amount }}">
-    <input type="hidden" name="total_amount" value="{{ form_data.total_amount }}">
-    <input type="hidden" name="transaction_uuid" value="{{ form_data.transaction_uuid }}">
-    <input type="hidden" name="product_code" value="{{ form_data.product_code }}">
-    <input type="hidden" name="product_service_charge" value="{{ form_data.product_service_charge }}">
-    <input type="hidden" name="product_delivery_charge" value="{{ form_data.product_delivery_charge }}">
-    <input type="hidden" name="success_url" value="{{ form_data.success_url }}">
-    <input type="hidden" name="failure_url" value="{{ form_data.failure_url }}">
-    <input type="hidden" name="signed_field_names" value="{{ form_data.signed_field_names }}">
-    <input type="hidden" name="signature" value="{{ form_data.signature }}">
-
-    <button type="submit"
-            class="w-full mt-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-      Pay Now
+    <button
+      type="submit"
+      class="w-full mt-2 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+    >
+      Pay with eSewa
     </button>
   </form>
-
-  
 
   <a href="{% url 'business_package_list' %}"
      class="inline-block mt-4 text-sm text-gray-600 hover:underline">
     Cancel
   </a>
 </div>
-
 {% endblock %}

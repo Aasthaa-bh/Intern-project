@@ -60,10 +60,8 @@ urlpatterns = [
     
     # eSewa Payment (Mock)
     path('reception/esewa/<int:invoice_id>/', views.esewa_payment, name='esewa_payment'),
-    path('reception/esewa/<int:invoice_id>/process/', views.esewa_mock_process, name='esewa_mock_process'),
-    path('reception/esewa/<int:invoice_id>/cancel/', views.esewa_mock_cancel, name='esewa_mock_cancel'),
-    path('reception/esewa/success/', views.esewa_success, name='esewa_success'),
-    path('reception/esewa/failure/', views.esewa_failure, name='esewa_failure'),
+    path('reception/esewa/success/', views.restaurant_esewa_success, name='restaurant_esewa_success'),
+    path('reception/esewa/failure/', views.restaurant_esewa_failure, name='restaurant_esewa_failure'),
     
     # Loyalty
     path('reception/loyalty/', views.loyalty_points_check, name='loyalty_points_check'),
