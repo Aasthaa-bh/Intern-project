@@ -64,3 +64,36 @@ def table_create(request):
         "form": form,
         "mode": "create"
     })
+    
+@owner_required
+def table_edit(request, table_id):
+    table = get_object_or_404(DiningTable, id=table_id, business=request.user.business)
+
+    if request.method == "POST":
+        form = DiningTableForm(request.POST, instance=table, business=request.user.business)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Table updated successfully.")
+            return redirect("table_list")
+        else:
+            print("FORM ERRORS:", form.errors)   
+    else:
+        form = DiningTableForm(instance=table, business=request.user.business)
+
+    return render(request, "owner/tables/table_form.html", {
+        "form": form,
+        "mode": "edit"
+    })  
+    
+@owner_required
+def table_delete(request, table_id):
+    table = get_object_or_404(DiningTable, id=table_id, business=request.user.business)
+
+    if request.method == "POST":
+        table.delete()
+        messages.success(request, "Table deleted successfully.")
+        return redirect("table_list")
+
+    return render(request, "owner/tables/table_confirm_delete.html", {
+        "table": table
+    })

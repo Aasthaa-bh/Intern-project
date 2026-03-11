@@ -51,9 +51,6 @@ def get_started_view(request):
 
 
 
-
-
-
 @login_required
 def superadmin_dashboard(request):
     if request.user.role != "SUPERADMIN":
@@ -325,18 +322,25 @@ def owner_dashboard(request):
     active_subscription = get_active_subscription(business)
 
     days_remaining = None
-    max_users = get_business_user_limit(business)
-    max_tables = active_subscription.package.max_tables if active_subscription else 0
-
+    max_users = active_subscription.package.max_users if active_subscription else 3
+    max_tables = active_subscription.package.max_tables if active_subscription else 5
     # If package limit should count owner too, use count()
     # If package limit should count only staff, use exclude(role="OWNER")
     current_users = User.objects.filter(
+        business=business
+    ).count()
+    
+    current_tables = DiningTable.objects.filter(
         business=business
     ).count()
 
     remaining_users = max_users - current_users
     if remaining_users < 0:
         remaining_users = 0
+    
+    remaining_tables = max_tables - current_tables
+    if remaining_tables < 0:
+        remaining_tables = 0
 
     if active_subscription and active_subscription.end_date:
         days_remaining = (active_subscription.end_date - timezone.now()).days
