@@ -1,0 +1,273 @@
+{% extends "owner/base.html" %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Restaurant Reports{% endblock %}
+{% block page_subtitle %}Sales, items, tables and payment insights{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+  <!-- Filter -->
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-base font-semibold text-gray-900">Filter Reports</div>
+        <div class="text-sm text-gray-500">Select date range to view report data</div>
+      </div>
+    </div>
+
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+        <input type="date" name="start_date" value="{{ start_date }}"
+               class="w-full border border-gray-300 rounded-md px-3 py-2">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+        <input type="date" name="end_date" value="{{ end_date }}"
+               class="w-full border border-gray-300 rounded-md px-3 py-2">
+      </div>
+
+      <div class="flex items-end gap-2 md:col-span-2">
+        <button type="submit"
+                class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+          Apply Filter
+        </button>
+
+        <a href="{% url 'restaurant_reports' %}"
+           class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <p class="text-sm text-gray-500">Today Sales</p>
+      <h2 class="text-2xl font-bold text-gray-900 mt-2">Rs. {{ today_sales|floatformat:2 }}</h2>
+      <p class="text-sm text-gray-500 mt-2">Total sales for today</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <p class="text-sm text-gray-500">This Month Sales</p>
+      <h2 class="text-2xl font-bold text-gray-900 mt-2">Rs. {{ month_sales|floatformat:2 }}</h2>
+      <p class="text-sm text-gray-500 mt-2">Total sales for this month</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <p class="text-sm text-gray-500">Completed Orders</p>
+      <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ completed_orders }}</h2>
+      <p class="text-sm text-gray-500 mt-2">Successfully completed orders</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <p class="text-sm text-gray-500">Average Order Value</p>
+      <h2 class="text-2xl font-bold text-gray-900 mt-2">Rs. {{ avg_order_value|floatformat:2 }}</h2>
+      <p class="text-sm text-gray-500 mt-2">Average revenue per order</p>
+    </div>
+  </div>
+
+  <!-- Highest Sales Day -->
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-5">
+    <div class="mb-4">
+      <div class="text-base font-semibold text-gray-900">Highest Sales Day</div>
+      <div class="text-sm text-gray-500">Best performing day by revenue</div>
+    </div>
+
+    {% if highest_sales_day %}
+      <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3">
+        <div class="text-sm text-green-700">Top Sales Day</div>
+        <div class="text-lg font-semibold text-green-900 mt-1">
+          {{ highest_sales_day.day }} — Rs. {{ highest_sales_day.total_sales|floatformat:2 }}
+        </div>
+      </div>
+    {% else %}
+      <div class="text-sm text-gray-500">No sales data found.</div>
+    {% endif %}
+  </div>
+
+  <!-- Best Selling Items -->
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5">
+      <div class="text-base font-semibold text-gray-900">Best Selling Items</div>
+      <div class="text-sm text-gray-500">Top menu items by quantity sold</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Item</th>
+            <th class="text-right px-5 py-3 font-medium">Qty Sold</th>
+            <th class="text-right px-5 py-3 font-medium">Sales</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for row in best_selling_items %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3">{{ row.item_name_snapshot }}</td>
+            <td class="px-5 py-3 text-right">{{ row.total_qty }}</td>
+            <td class="px-5 py-3 text-right">Rs. {{ row.total_sales|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+              No item sales found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Order Type + Payment Summary -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+    <div class="bg-white rounded-lg shadow border border-gray-200">
+      <div class="p-5">
+        <div class="text-base font-semibold text-gray-900">Sales by Order Type</div>
+        <div class="text-sm text-gray-500">Dine in, takeaway, delivery and counter sales</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600">
+            <tr>
+              <th class="text-left px-5 py-3 font-medium">Order Type</th>
+              <th class="text-right px-5 py-3 font-medium">Orders</th>
+              <th class="text-right px-5 py-3 font-medium">Sales</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for row in sales_by_order_type %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3">{{ row.order_type }}</td>
+              <td class="px-5 py-3 text-right">{{ row.total_orders }}</td>
+              <td class="px-5 py-3 text-right">Rs. {{ row.total_sales|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+                No order type data found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow border border-gray-200">
+      <div class="p-5">
+        <div class="text-base font-semibold text-gray-900">Payment Summary</div>
+        <div class="text-sm text-gray-500">Payment method wise totals</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600">
+            <tr>
+              <th class="text-left px-5 py-3 font-medium">Method</th>
+              <th class="text-right px-5 py-3 font-medium">Count</th>
+              <th class="text-right px-5 py-3 font-medium">Amount</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for row in payment_summary %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-3">{{ row.payment_method }}</td>
+              <td class="px-5 py-3 text-right">{{ row.total_count }}</td>
+              <td class="px-5 py-3 text-right">Rs. {{ row.total_amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+                No payment data found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Wise Sales -->
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5">
+      <div class="text-base font-semibold text-gray-900">Table Wise Sales</div>
+      <div class="text-sm text-gray-500">Top tables by sales amount</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Table</th>
+            <th class="text-right px-5 py-3 font-medium">Orders</th>
+            <th class="text-right px-5 py-3 font-medium">Sales</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for row in table_wise_sales %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3">{{ row.table_name }}</td>
+            <td class="px-5 py-3 text-right">{{ row.total_orders }}</td>
+            <td class="px-5 py-3 text-right">Rs. {{ row.total_sales|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+              No table sales found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Daily Sales -->
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5">
+      <div class="text-base font-semibold text-gray-900">Daily Sales</div>
+      <div class="text-sm text-gray-500">Day-wise invoice and sales totals</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Date</th>
+            <th class="text-right px-5 py-3 font-medium">Invoices</th>
+            <th class="text-right px-5 py-3 font-medium">Sales</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for row in sales_by_day %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3">{{ row.day }}</td>
+            <td class="px-5 py-3 text-right">{{ row.invoice_count }}</td>
+            <td class="px-5 py-3 text-right">Rs. {{ row.total_sales|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+              No daily sales data found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

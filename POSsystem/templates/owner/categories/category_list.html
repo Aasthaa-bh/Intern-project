@@ -41,6 +41,10 @@
                  class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
                 Edit
               </a>
+              <a href="{% url 'category_delete' c.id %}"
+                 class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
+                Delete
+              </a>
             </td>
           </tr>
           {% empty %}

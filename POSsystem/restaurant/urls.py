@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_reports
 from . import views_table
 from . import views_takeaway
 from .views import create_order
@@ -24,13 +25,18 @@ urlpatterns = [
         name="restaurant_kitchen_order_status_update",
     ),
   
-   path("create-order/", create_order, name="create_order"),
+    path("create-order/", create_order, name="create_order"),
   
-  path("owner/table-categories/", views_table.table_category_list, name="table_category_list"),
+    path("owner/table-categories/", views_table.table_category_list, name="table_category_list"),
     path("owner/table-categories/create/", views_table.table_category_create, name="table_category_create"),
 
     path("owner/tables/", views_table.table_list, name="table_list"),
     path("owner/tables/create/", views_table.table_create, name="table_create"),
+    path("owner/tables/<int:table_id>/edit/", views_table.table_edit, name="table_edit"),
+    path("owner/tables/<int:table_id>/delete/", views_table.table_delete, name="table_delete"),
+    path("owner/table-categories/<int:category_id>/edit/", views_table.table_category_edit, name="table_category_edit"),
+    path("owner/table-categories/<int:category_id>/delete/", views_table.table_category_delete, name="table_category_delete"),
+    path("owner/reports/", views_reports.restaurant_reports, name="restaurant_reports"),
     # Reception Dashboard
     path('reception/', views.reception_dashboard, name='reception_dashboard'),
     
@@ -79,4 +85,6 @@ urlpatterns = [
     # Payment Verification
     path('reception/payment/verify/<int:payment_id>/', views.verify_payment, name='verify_payment'),
     path('reception/payments/pending/', views.pending_payments_list, name='pending_payments_list'),
+    
+    #reports
 ]

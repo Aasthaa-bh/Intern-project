@@ -9,7 +9,6 @@
   <div class="p-5 flex items-center justify-between">
     <div>
       <div class="text-base font-semibold text-gray-900">Categories</div>
-      <div class="text-sm text-gray-500">Example: VIP, Normal, Outdoor</div>
     </div>
     <a href="{% url 'table_category_create' %}"
        class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
@@ -23,6 +22,7 @@
         <tr>
           <th class="text-left px-5 py-3 font-medium">Name</th>
           <th class="text-left px-5 py-3 font-medium">Code Prefix</th>
+          <th class="text-right px-5 py-3 font-medium">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
@@ -30,6 +30,17 @@
         <tr class="hover:bg-gray-50">
           <td class="px-5 py-3">{{ c.name }}</td>
           <td class="px-5 py-3">{{ c.code_prefix }}</td>
+          <td class="px-5 py-3 text-right">
+            <a href="{% url 'table_category_edit' c.id %}"
+               class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+              Edit
+            </a>
+            <a href="{% url 'table_category_delete' c.id %}"
+               class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
+              Delete
+            </a>
+          </td>
+
         </tr>
         {% empty %}
         <tr>

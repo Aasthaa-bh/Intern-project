@@ -108,6 +108,24 @@ def staff_edit(request, staff_id):
 
     return render(request, "owner/staff/staff_form.html", {"form": form, "mode": "edit", "staff": staff})
 
+@owner_required
+def staff_delete(request, staff_id):
+    business = request.user.business
+
+    staff = get_object_or_404(
+        User,
+        id=staff_id,
+        business=business,
+        role__in=["CASHIER", "WAITER", "KITCHEN"],
+    )
+
+    if request.method == "POST":
+        staff.delete()
+        messages.success(request, "Staff deleted successfully.")
+        return redirect("staff_list")
+
+    return render(request, "owner/staff/staff_delete.html", {"staff": staff})
+
 
 @require_POST
 @owner_required

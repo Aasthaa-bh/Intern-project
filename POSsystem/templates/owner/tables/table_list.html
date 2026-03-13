@@ -26,6 +26,7 @@
           <th class="text-left px-5 py-3 font-medium">Category</th>
           <th class="text-left px-5 py-3 font-medium">Capacity</th>
           <th class="text-left px-5 py-3 font-medium">Status</th>
+          <th class="text-right px-5 py-3 font-medium">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
@@ -39,6 +40,19 @@
             <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
               {{ t.status }}
             </span>
+          </td>
+          <td class="px-5 py-3">
+            <div class="flex items-center justify-end gap-2">
+              <a href="{% url 'table_edit' t.id %}"
+                 class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                Edit
+              </a>
+
+              <a href="{% url 'table_delete' t.id %}"
+                 class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
+                Delete
+              </a>
+            </div>
           </td>
         </tr>
         {% empty %}

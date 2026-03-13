@@ -1,4 +1,5 @@
 from django import forms
+from subscription.utils import get_business_table_limit
 from .models import TableCategory, DiningTable
 
 
@@ -6,10 +7,9 @@ class TableCategoryForm(forms.ModelForm):
     class Meta:
         model = TableCategory
         fields = ["name", "code_prefix"]
-        
-        
-class DiningTableForm(forms.ModelForm):
 
+
+class DiningTableForm(forms.ModelForm):
     class Meta:
         model = DiningTable
         fields = ["category", "number", "capacity", "status"]
@@ -28,10 +28,20 @@ class DiningTableForm(forms.ModelForm):
         category = cleaned_data.get("category")
         number = cleaned_data.get("number")
 
+        if self.business and not self.instance.pk:
+            max_tables = int(get_business_table_limit(self.business) or 0)
+            current_tables = DiningTable.objects.filter(
+                business=self.business
+            ).count()
+
+            if current_tables >= max_tables:
+                raise forms.ValidationError(
+                    f"Table limit reached. Your current package allows only {max_tables} tables."
+                )
+
         if category and number and self.business:
             generated_name = f"{category.code_prefix}{number}"
 
-            # Exclude current instance (for edit case)
             qs = DiningTable.objects.filter(
                 business=self.business,
                 name=generated_name

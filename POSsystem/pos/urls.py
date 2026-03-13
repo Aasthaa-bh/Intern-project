@@ -68,8 +68,10 @@ urlpatterns = [
     path("owner/categories/", views_category.category_list, name="category_list"),
     path("owner/categories/create/", views_category.category_create, name="category_create"),
     path("owner/categories/<int:category_id>/edit/", views_category.category_edit, name="category_edit"),
+    path("owner/categories/<int:category_id>/delete/", views_category.category_delete, name="category_delete"),
     path("owner/items/", views_item.item_list, name="item_list"),
     path("owner/items/create/", views_item.item_create, name="item_create"),
     path("owner/items/<int:item_id>/edit/", views_item.item_edit, name="item_edit"),
+    path("owner/items/<int:item_id>/delete/", views_item.item_delete, name="item_delete"),
     path("owner/loyalty/settings/", views_loyalty.loyalty_settings, name="loyalty_settings"),
 ]

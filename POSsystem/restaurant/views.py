@@ -22,6 +22,9 @@ from core.models import Business
 from pos.models import Order, OrderItem, Item
 from restaurant.models import KitchenOrder
 
+from django.db.models import Sum, Count, Avg, F
+from django.db.models.functions import TruncDate
+
 from .models import (
     DiningTable,
     Ingredient,
@@ -38,6 +41,7 @@ from .esewa_utils import (
     verify_esewa_response_signature,
     decode_esewa_callback_data,
 )
+
 
 KITCHEN_STATUSES = ("PENDING", "COOKING", "READY")
 
@@ -615,7 +619,9 @@ def create_order(request, table_number):
 # ============================================================
 
 def reception_dashboard(request):
-    business = Business.objects.first()
+    business= _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
 
     if not business:
         context = {
@@ -710,7 +716,9 @@ def reception_dashboard(request):
 
 
 def table_check(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
 
     if business:
         tables = DiningTable.objects.filter(business=business).order_by("name")
@@ -1130,7 +1138,9 @@ def split_bill(request, invoice_id):
 def loyalty_points_check(request):
     if request.method == "POST":
         phone = request.POST.get("phone")
-        business = Business.objects.first()
+        business = _get_request_business(request)
+        if business is None:
+            business = _get_dev_business_fallback()
 
         if business:
             transactions = ReceptionLoyaltyTransaction.objects.filter(
@@ -1167,7 +1177,9 @@ def loyalty_points_check(request):
 
 
 def payment_history(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
 
     if business:
         payments = ReceptionPayment.objects.filter(
@@ -1268,7 +1280,9 @@ def bulk_update_all_tables(request):
         status = request.POST.get("status")
 
         if status in ["AVAILABLE", "OCCUPIED", "RESERVED"]:
-            business = Business.objects.first()
+            business= _get_request_business(request)    
+            if business is None:
+                business = _get_dev_business_fallback()
 
             if business:
                 count = DiningTable.objects.filter(business=business).update(status=status)
@@ -1351,7 +1365,9 @@ def create_invoice(request, table_id):
 
 
 def pending_invoices(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:    
+        business = _get_dev_business_fallback()
 
     if business:
         invoices = ReceptionInvoice.objects.filter(
@@ -1389,6 +1405,8 @@ def verify_payment(request, payment_id):
             messages.success(request, msg)
             return redirect("guest_bill", invoice_id=payment.invoice.id)
         else:
+            
+            
             messages.error(request, result["message"])
 
     context = {"payment": payment}
@@ -1396,7 +1414,9 @@ def verify_payment(request, payment_id):
 
 
 def pending_payments_list(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:    
+        business = _get_dev_business_fallback()
 
     if business:
         payments = payment_service.get_pending_payments(business)
@@ -1462,7 +1482,9 @@ def confirm_qr_payment(request, invoice_id):
         messages.error(request, "Payment with this reference code has already been processed!")
         return redirect("guest_bill", invoice_id=invoice_id)
 
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:    
+        business = _get_dev_business_fallback()
 
     payment = ReceptionPayment.objects.create(
         business=business,
@@ -1483,7 +1505,9 @@ def confirm_qr_payment(request, invoice_id):
 
 
 def payment_list(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:    
+        business = _get_dev_business_fallback()
 
     date_filter = request.GET.get("date")
     method_filter = request.GET.get("method")
@@ -1512,7 +1536,10 @@ def payment_list(request):
 
 
 def daily_payment_report(request):
-    business = Business.objects.first()
+    business = _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
+        
     today = date.today()
 
     if business:

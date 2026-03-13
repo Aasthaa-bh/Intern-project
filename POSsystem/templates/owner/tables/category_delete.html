@@ -1,0 +1,28 @@
+{% extends "owner/base.html" %}
+{% block title %}Delete Table Category{% endblock %}
+{% block page_title %}Delete Table Category{% endblock %}
+{% block page_subtitle %}Confirm table category removal{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-2">Delete Table Category</h2>
+    <p class="text-sm text-gray-600 mb-6">
+      Are you sure you want to delete the table category
+      <span class="font-semibold text-gray-900">"{{ category.name }}"</span>?
+    </p>
+
+    <form method="POST" class="flex items-center gap-3">
+      {% csrf_token %}
+      <button type="submit"
+              class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
+        Yes, Delete
+      </button>
+      <a href="{% url 'table_category_list' %}"
+         class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100">
+        Cancel
+      </a>
+    </form>
+  </div>
+</div>
+{% endblock %}

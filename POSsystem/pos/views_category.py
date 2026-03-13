@@ -57,3 +57,20 @@ def category_edit(request, category_id):
         "mode": "edit",
         
     })
+    
+@owner_required
+def category_delete(request, category_id):
+    category = get_object_or_404(
+        Category,
+        id=category_id,
+        business=request.user.business
+    )
+
+    if request.method == "POST":
+        category.delete()
+        messages.success(request, "Category deleted successfully.")
+        return redirect("category_list")
+    
+    return render(request, "owner/categories/category_delete.html", {
+        "category": category
+    })

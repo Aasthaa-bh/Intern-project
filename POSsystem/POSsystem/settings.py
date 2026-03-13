@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "cloudinary_storage",
     "cloudinary",
-]
+    "clothing",]
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"

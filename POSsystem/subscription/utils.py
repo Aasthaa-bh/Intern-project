@@ -13,3 +13,9 @@ def get_business_user_limit(business):
     if not sub:
         return 3
     return sub.package.max_users
+
+def get_business_table_limit(business):
+    sub = get_active_subscription(business)
+    if not sub:
+        return 10
+    return sub.package.max_tables

@@ -58,3 +58,20 @@ def item_edit(request, item_id):
         "form": form,
         "mode": "edit"
     })
+    
+@owner_required
+def item_delete(request, item_id):
+    item = get_object_or_404(
+        Item,
+        id=item_id,
+        business=request.user.business
+    )
+
+    if request.method == "POST":
+        item.delete()
+        messages.success(request, "Item deleted successfully.")
+        return redirect("item_list")
+
+    return render(request, "owner/items/item_delete.html", {
+        "item": item
+    })
