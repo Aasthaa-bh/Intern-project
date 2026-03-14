@@ -261,6 +261,7 @@ class PurchaseItem(models.Model):
     variant_name_snapshot = models.CharField(max_length=100, blank=True)
     sku_snapshot = models.CharField(max_length=100, blank=True)
 
+    expected_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -280,6 +281,11 @@ class StockMovement(models.Model):
         ("DAMAGE_OUT", "Damage Out"),
     )
 
+    RETURN_CONDITION = (
+        ("RESELLABLE", "Resellable"),
+        ("DAMAGED", "Damaged"),
+    )
+
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
     variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
@@ -290,6 +296,7 @@ class StockMovement(models.Model):
     reference_type = models.CharField(max_length=30, blank=True)
     reference_id = models.PositiveIntegerField(null=True, blank=True)
 
+    return_condition = models.CharField(max_length=20, choices=RETURN_CONDITION, null=True, blank=True)
     note = models.CharField(max_length=255, blank=True)
     created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
 
