@@ -1,0 +1,112 @@
+{% extends "clothing/base.html" %}
+
+{% block title %}{{ product.name }} - Details{% endblock %}
+{% block page_title %}Product Detail{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Product Summary</div>
+    <table>
+        <tbody>
+            <tr>
+                <th style="width: 180px;">Name</th>
+                <td>{{ product.name }}</td>
+            </tr>
+            <tr>
+                <th>SKU</th>
+                <td>{{ product.sku|default:"-" }}</td>
+            </tr>
+            <tr>
+                <th>Category</th>
+                <td>{{ product.category.name|default:"-" }}</td>
+            </tr>
+            <tr>
+                <th>Price</th>
+                <td>{{ product.price }}</td>
+            </tr>
+            <tr>
+                <th>Stock Qty</th>
+                <td>{{ product.stock_qty }}</td>
+            </tr>
+            <tr>
+                <th>Min Stock</th>
+                <td>{{ product.min_stock_qty }}</td>
+            </tr>
+            {% if product.clothing %}
+            <tr>
+                <th>Gender</th>
+                <td>{{ product.clothing.get_gender_display }}</td>
+            </tr>
+            <tr>
+                <th>Material</th>
+                <td>{{ product.clothing.material|default:"-" }}</td>
+            </tr>
+            <tr>
+                <th>Fit</th>
+                <td>{{ product.clothing.fit|default:"-" }}</td>
+            </tr>
+            <tr>
+                <th>Care Note</th>
+                <td>{{ product.clothing.care_note|default:"-" }}</td>
+            </tr>
+            {% endif %}
+            {% if product.description %}
+            <tr>
+                <th>Description</th>
+                <td>{{ product.description }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header">Variants & Sizes</div>
+    {% if variants %}
+    <table>
+        <thead>
+            <tr>
+                <th>Variant</th>
+                <th>SKU</th>
+                <th>Size</th>
+                <th>Color</th>
+                <th>Stock Qty</th>
+                <th>Min Stock</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for variant in variants %}
+            <tr>
+                <td>{{ variant.name }}</td>
+                <td>{{ variant.sku }}</td>
+                <td>
+                    {% if variant.clothing_detail and variant.clothing_detail.size %}
+                        {{ variant.clothing_detail.size.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if variant.clothing_detail and variant.clothing_detail.color %}
+                        {{ variant.clothing_detail.color.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ variant.stock_qty }}</td>
+                <td>{{ variant.min_stock_qty }}</td>
+                <td>{{ variant.price|default:product.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No variants defined for this product.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -87,4 +87,3 @@ class ItemAdmin(admin.ModelAdmin):
         return qs
 
 admin.site.register(Order)
-

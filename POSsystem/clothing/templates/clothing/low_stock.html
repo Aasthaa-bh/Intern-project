@@ -1,0 +1,64 @@
+{% extends "clothing/base.html" %}
+
+{% block title %}Low Stock Alerts{% endblock %}
+{% block page_title %}Low Stock Alerts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Low Stock Products</div>
+    {% if low_stock_items %}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Stock Qty</th>
+                <th>Min Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in low_stock_items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.sku|default:"-" }}</td>
+                <td>{{ item.stock_qty }}</td>
+                <td>{{ item.min_stock_qty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No low stock products.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">Low Stock Variants</div>
+    {% if low_stock_variants %}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Variant</th>
+                <th>SKU</th>
+                <th>Stock Qty</th>
+                <th>Min Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for variant in low_stock_variants %}
+            <tr>
+                <td>{{ variant.item.name }}</td>
+                <td>{{ variant.name }}</td>
+                <td>{{ variant.sku }}</td>
+                <td>{{ variant.stock_qty }}</td>
+                <td>{{ variant.min_stock_qty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No low stock variants.</p>
+    {% endif %}
+</div>
+{% endblock %}
