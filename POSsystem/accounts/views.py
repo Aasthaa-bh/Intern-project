@@ -27,18 +27,8 @@ def login_view(request):
             if user.is_first_login:
                 return redirect("change_password")
 
-            # 🔥 Redirect based on role
-            if user.role == "OWNER":
-                return redirect("owner_dashboard")
-            elif user.role == "CASHIER":
-                return redirect("reception_dashboard")
-            elif user.role == "WAITER":
-                return redirect("waiter_dashboard")
-            elif user.role == "KITCHEN":
-                return redirect("restaurant_kitchen_dashboard")
-            else:
-                # fallback
-                return redirect("login")
+            # Redirect based on business type + role
+            return redirect("business_dashboard_router")
 
         else:
             messages.error(request, "Invalid username or password.")
@@ -69,3 +59,4 @@ def change_password(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
+
