@@ -1,12 +1,38 @@
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper
+from django.db import connection
+from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
 from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+
+
+_TABLE_COLUMNS = {}
+
+
+def _get_table_columns(table_name):
+    if table_name in _TABLE_COLUMNS:
+        return _TABLE_COLUMNS[table_name]
+    try:
+        with connection.cursor() as cursor:
+            columns = {
+                column.name
+                for column in connection.introspection.get_table_description(cursor, table_name)
+            }
+    except Exception:
+        columns = set()
+    _TABLE_COLUMNS[table_name] = columns
+    return columns
+
+
+def _model_table_ok(model):
+    table_name = model._meta.db_table
+    columns = _get_table_columns(table_name)
+    required = {field.column for field in model._meta.local_fields}
+    return required.issubset(columns)
 
 
 def _get_request_business(request):
@@ -44,31 +70,45 @@ def inventory_dashboard(request):
         business,
     )
 
-    variants_qs = _filter_by_business(
-        ItemVariant.objects.filter(item__item_type="PRODUCT"),
-        business,
-    )
+    variants_enabled = _model_table_ok(ItemVariant)
+    if variants_enabled:
+        variants_qs = _filter_by_business(
+            ItemVariant.objects.filter(item__item_type="PRODUCT"),
+            business,
+        )
+    else:
+        variants_qs = ItemVariant.objects.none()
 
     total_products = products_qs.count()
     total_variants = variants_qs.count()
     total_skus = total_products + total_variants
 
     low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"))
-    low_stock_variants = variants_qs.filter(stock_qty__lte=F("min_stock_qty"))
-    low_stock_count = low_stock_items.count() + low_stock_variants.count()
+    if variants_enabled:
+        low_stock_variants = variants_qs.filter(stock_qty__lte=F("min_stock_qty"))
+        low_stock_count = low_stock_items.count() + low_stock_variants.count()
+    else:
+        low_stock_variants = ItemVariant.objects.none()
+        low_stock_count = low_stock_items.count()
 
-    recent_movements = (
-        _filter_by_business(
-            StockMovement.objects.select_related("item", "variant"),
-            business,
+    if _model_table_ok(StockMovement):
+        recent_movements = (
+            _filter_by_business(
+                StockMovement.objects.select_related("item", "variant"),
+                business,
+            )
+            .order_by("-created_at")[:10]
         )
-        .order_by("-created_at")[:10]
-    )
+    else:
+        recent_movements = []
 
-    pending_purchase_count = _filter_by_business(
-        Purchase.objects.filter(status="DRAFT"),
-        business,
-    ).count()
+    if _model_table_ok(Purchase):
+        pending_purchase_count = _filter_by_business(
+            Purchase.objects.filter(status="DRAFT"),
+            business,
+        ).count()
+    else:
+        pending_purchase_count = 0
 
     context = {
         "total_products": total_products,
@@ -77,6 +117,7 @@ def inventory_dashboard(request):
         "low_stock_count": low_stock_count,
         "pending_purchase_count": pending_purchase_count,
         "recent_movements": recent_movements,
+        "variants_enabled": variants_enabled,
     }
     return render(request, "clothing/inventory_dashboard.html", context)
 
@@ -90,15 +131,24 @@ def product_list(request):
         business,
     )
 
-    products = products.annotate(
-        variant_count=Count("variants", distinct=True),
-        variants_stock=Coalesce(Sum("variants__stock_qty"), Value(0)),
-    ).annotate(
-        total_stock=ExpressionWrapper(
-            F("stock_qty") + F("variants_stock"),
-            output_field=DecimalField(max_digits=12, decimal_places=2),
+    if _model_table_ok(ItemVariant):
+        products = products.annotate(
+            variant_count=Count("variants", distinct=True),
+            variants_stock=Coalesce(Sum("variants__stock_qty"), Value(0)),
+        ).annotate(
+            total_stock=ExpressionWrapper(
+                F("stock_qty") + F("variants_stock"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
         )
-    )
+    else:
+        products = products.annotate(
+            variant_count=Value(0, output_field=IntegerField()),
+            total_stock=ExpressionWrapper(
+                F("stock_qty"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            ),
+        )
 
     context = {
         "products": products.order_by("name"),
@@ -116,11 +166,14 @@ def product_detail(request, product_id):
 
     product = get_object_or_404(base_qs, id=product_id)
 
-    variants = (
-        ItemVariant.objects.filter(item=product)
-        .select_related("clothing_detail__size", "clothing_detail__color")
-        .order_by("name")
-    )
+    if _model_table_ok(ItemVariant):
+        variants = (
+            ItemVariant.objects.filter(item=product)
+            .select_related("clothing_detail__size", "clothing_detail__color")
+            .order_by("name")
+        )
+    else:
+        variants = []
 
     context = {
         "product": product,
@@ -133,6 +186,9 @@ def product_detail(request, product_id):
 def stock_movement_list(request):
     business = _get_request_business(request)
     movement_type = (request.GET.get("type") or "").strip().upper()
+
+    if not _model_table_ok(StockMovement):
+        return HttpResponseForbidden("Stock movement table schema is out of date. Run migrations.")
 
     movements = _filter_by_business(
         StockMovement.objects.select_related("item", "variant"),
@@ -156,6 +212,8 @@ def stock_movement_list(request):
 @inventory_access_required
 def purchase_list(request):
     business = _get_request_business(request)
+    if not _model_table_ok(Purchase):
+        return HttpResponseForbidden("Purchase table schema is out of date. Run migrations.")
     purchases = _filter_by_business(
         Purchase.objects.select_related("supplier"),
         business,
@@ -170,6 +228,9 @@ def purchase_list(request):
 @inventory_access_required
 def purchase_detail(request, purchase_id):
     business = _get_request_business(request)
+
+    if not _model_table_ok(Purchase) or not _model_table_ok(PurchaseItem):
+        return HttpResponseForbidden("Purchase tables schema is out of date. Run migrations.")
 
     base_qs = Purchase.objects.select_related("supplier")
     if business is not None:
@@ -193,6 +254,8 @@ def purchase_detail(request, purchase_id):
 @inventory_access_required
 def supplier_list(request):
     business = _get_request_business(request)
+    if not _model_table_ok(Supplier):
+        return HttpResponseForbidden("Supplier table schema is out of date. Run migrations.")
     suppliers = _filter_by_business(
         Supplier.objects.all(),
         business,
@@ -213,10 +276,13 @@ def low_stock_alert(request):
         business,
     ).order_by("name")
 
-    low_stock_variants = _filter_by_business(
-        ItemVariant.objects.filter(item__item_type="PRODUCT", stock_qty__lte=F("min_stock_qty")),
-        business,
-    ).select_related("item").order_by("item__name", "name")
+    if _model_table_ok(ItemVariant):
+        low_stock_variants = _filter_by_business(
+            ItemVariant.objects.filter(item__item_type="PRODUCT", stock_qty__lte=F("min_stock_qty")),
+            business,
+        ).select_related("item").order_by("item__name", "name")
+    else:
+        low_stock_variants = ItemVariant.objects.none()
 
     context = {
         "low_stock_items": low_stock_items,
