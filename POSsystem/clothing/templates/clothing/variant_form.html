@@ -1,7 +1,7 @@
 {% extends "clothing/cloth_base.html" %}
 
-{% block title %}Add Variant{% endblock %}
-{% block page_title %}Add Variant for {{ product.name }}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
+{% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
 
 {% block header_actions %}
 <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
@@ -36,6 +36,6 @@
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">Save Variant</button>
+    <button class="btn btn-primary" type="submit">{% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}</button>
 </form>
 {% endblock %}

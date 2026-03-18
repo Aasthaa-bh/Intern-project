@@ -296,7 +296,75 @@ def variant_create(request, product_id):
     return render(
         request,
         "clothing/variant_form.html",
-        {"form": form, "product": product},
+        {"form": form, "product": product, "mode": "create"},
+    )
+
+
+@inventory_access_required
+def variant_edit(request, product_id, variant_id):
+    business = _get_request_business(request)
+
+    product_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        product_qs = product_qs.filter(business=business)
+    product = get_object_or_404(product_qs, id=product_id)
+
+    variant_qs = ItemVariant.objects.filter(item=product)
+    if business is not None:
+        variant_qs = variant_qs.filter(business=business)
+    variant = get_object_or_404(variant_qs, id=variant_id)
+
+    if request.method == "POST":
+        form = ClothingVariantForm(request.POST, instance=variant, business=business)
+        if form.is_valid():
+            variant = form.save(commit=False)
+            variant.item = product
+            variant.business = product.business
+            variant.save()
+
+            detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
+            detail.size = form.cleaned_data.get("size")
+            detail.color = form.cleaned_data.get("color")
+            detail.save()
+
+            messages.success(request, "Variant updated successfully.")
+            return redirect("clothing_product_detail", product_id=product.id)
+    else:
+        form = ClothingVariantForm(instance=variant, business=business)
+
+    return render(
+        request,
+        "clothing/variant_form.html",
+        {"form": form, "product": product, "variant": variant, "mode": "edit"},
+    )
+
+
+@inventory_access_required
+def variant_delete(request, product_id, variant_id):
+    business = _get_request_business(request)
+
+    product_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        product_qs = product_qs.filter(business=business)
+    product = get_object_or_404(product_qs, id=product_id)
+
+    variant_qs = ItemVariant.objects.filter(item=product)
+    if business is not None:
+        variant_qs = variant_qs.filter(business=business)
+    variant = get_object_or_404(variant_qs, id=variant_id)
+
+    if request.method == "POST":
+        try:
+            variant.delete()
+            messages.success(request, "Variant deleted successfully.")
+        except ProtectedError:
+            messages.error(request, "Variant cannot be deleted because it is used in transactions.")
+        return redirect("clothing_product_detail", product_id=product.id)
+
+    return render(
+        request,
+        "clothing/variant_delete.html",
+        {"product": product, "variant": variant},
     )
 
 

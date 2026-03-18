@@ -79,6 +79,7 @@
                 <th>Stock Qty</th>
                 <th>Min Stock</th>
                 <th>Price</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -103,6 +104,10 @@
                 <td>{{ variant.stock_qty }}</td>
                 <td>{{ variant.min_stock_qty }}</td>
                 <td>{{ variant.price|default:product.price }}</td>
+                <td>
+                    <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
+                    <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
