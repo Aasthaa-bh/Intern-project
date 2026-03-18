@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Clothing Inventory - FlexiPOS{% endblock %}</title>
     <style>
+        :root {
+            --bg-soft: #f3f5f9;
+            --surface: #ffffff;
+            --surface-soft: #f7f9fc;
+            --border: #dfe3eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --brand-dark: #111827;
+            --brand-mid: #1f2937;
+            --accent: #0f4c81;
+            --accent-soft: #e8f0f7;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,9 +25,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            font-family: "Segoe UI", "Trebuchet MS", Tahoma, sans-serif;
+            background: radial-gradient(circle at top right, #eef4fb 0%, var(--bg-soft) 45%, #eef2f7 100%);
+            color: var(--text-main);
         }
 
         .sidebar {
@@ -23,17 +36,17 @@
             top: 0;
             width: 250px;
             height: 100vh;
-            background: #1a1a1a;
+            background: linear-gradient(180deg, var(--brand-dark) 0%, #0d141f 100%);
             color: #fff;
             padding: 20px 0;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 18px rgba(0, 0, 0, 0.18);
         }
 
         .sidebar-header {
             padding: 0 20px 20px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             margin-bottom: 20px;
         }
 
@@ -44,15 +57,16 @@
 
         .sidebar-header p {
             font-size: 12px;
-            color: #999;
+            color: #9ca3af;
             margin-top: 5px;
         }
 
         .user-info {
             padding: 15px 20px;
-            background: #2a2a2a;
+            background: rgba(255, 255, 255, 0.06);
             margin: 0 10px 10px;
-            border-radius: 4px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .user-info .username {
@@ -64,7 +78,7 @@
 
         .user-info .role {
             font-size: 12px;
-            color: #999;
+            color: #c4ccd8;
         }
 
         .sidebar-menu {
@@ -79,16 +93,17 @@
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: #ccc;
+            color: #d1d5db;
             text-decoration: none;
             transition: all 0.3s;
+            border-left: 3px solid transparent;
         }
 
         .sidebar-menu a:hover,
         .sidebar-menu a.active {
-            background: #333;
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            border-left: 3px solid #fff;
+            border-left: 3px solid #93c5fd;
         }
 
         .sidebar-menu a .icon {
@@ -102,9 +117,10 @@
         }
 
         .header {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
             padding: 20px 30px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -112,7 +128,7 @@
 
         .header h1 {
             font-size: 24px;
-            color: #1a1a1a;
+            color: var(--brand-dark);
         }
 
         .header-actions {
@@ -125,42 +141,46 @@
         }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
             font-size: 14px;
-            transition: all 0.3s;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .btn-primary {
-            background: #1a1a1a;
+            background: var(--brand-dark);
             color: #fff;
+            box-shadow: 0 6px 14px rgba(17, 24, 39, 0.18);
         }
 
         .btn-primary:hover {
-            background: #333;
+            background: var(--brand-mid);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #fff;
-            color: #1a1a1a;
-            border: 1px solid #1a1a1a;
+            background: var(--surface);
+            color: var(--brand-dark);
+            border: 1px solid #c7d0dc;
         }
 
         .btn-secondary:hover {
-            background: #f5f5f5;
+            background: var(--surface-soft);
+            border-color: #9fb0c5;
         }
 
         .card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
         .card-header {
@@ -168,7 +188,7 @@
             font-weight: 600;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border);
         }
 
         .stats-grid {
@@ -179,38 +199,48 @@
         }
 
         .stat-card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #dde5f0;
+            border-radius: 12px;
             padding: 20px;
             text-align: center;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
         }
 
         .stat-card .icon {
-            font-size: 32px;
+            font-size: 14px;
+            letter-spacing: 0.2px;
+            color: var(--accent);
+            background: var(--accent-soft);
+            border: 1px solid #c7d9ea;
+            border-radius: 999px;
+            padding: 6px 10px;
+            display: inline-block;
             margin-bottom: 10px;
         }
 
         .stat-card .value {
             font-size: 28px;
             font-weight: 700;
-            color: #1a1a1a;
+            color: var(--brand-dark);
             margin: 10px 0;
         }
 
         .stat-card .label {
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
+            background: var(--surface);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
         table th {
-            background: #1a1a1a;
+            background: #0f172a;
             color: #fff;
             padding: 12px;
             text-align: left;
@@ -219,11 +249,11 @@
 
         table td {
             padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e8edf5;
         }
 
         table tr:hover {
-            background: #f9f9f9;
+            background: #f8fbff;
         }
 
         .messages {
@@ -289,10 +319,19 @@
         input,
         textarea {
             padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid #cfd8e3;
+            border-radius: 8px;
             font-size: 14px;
             margin-right: 10px;
+            background: #fff;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #7aa1c4;
+            box-shadow: 0 0 0 3px rgba(122, 161, 196, 0.18);
         }
 
         @media (max-width: 768px) {

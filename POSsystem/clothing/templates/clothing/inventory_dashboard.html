@@ -7,7 +7,77 @@
 <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Products</a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .quick-action {
+        display: block;
+        text-decoration: none;
+        border: 1px solid #111827;
+        border-radius: 10px;
+        padding: 14px;
+        background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+        color: #f9fafb;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24);
+    }
+
+    .quick-action:hover {
+        background: #1f2937;
+        border-color: #1f2937;
+        transform: translateY(-1px);
+    }
+
+    .quick-action-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #ffffff;
+    }
+
+    .quick-action-subtitle {
+        font-size: 12px;
+        color: #d1d5db;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="card">
+    <div class="card-header">Quick Actions</div>
+    <div class="quick-actions-grid">
+        <a class="quick-action" href="{% url 'clothing_product_create' %}">
+            <div class="quick-action-title">Add Product</div>
+            <div class="quick-action-subtitle">Create a new clothing product.</div>
+        </a>
+        <a class="quick-action" href="{% url 'clothing_purchase_create' %}">
+            <div class="quick-action-title">Create Purchase</div>
+            <div class="quick-action-subtitle">Add inventory from supplier purchase.</div>
+        </a>
+        <a class="quick-action" href="{% url 'clothing_supplier_create' %}">
+            <div class="quick-action-title">Add Supplier</div>
+            <div class="quick-action-subtitle">Register a supplier for purchase flow.</div>
+        </a>
+        <a class="quick-action" href="{% url 'clothing_stock_adjustment_create' %}">
+            <div class="quick-action-title">Stock Adjustment</div>
+            <div class="quick-action-subtitle">Record manual stock in/out adjustments.</div>
+        </a>
+        <a class="quick-action" href="{% url 'clothing_low_stock' %}">
+            <div class="quick-action-title">Low Stock Report</div>
+            <div class="quick-action-subtitle">Review items below minimum stock level.</div>
+        </a>
+        <a class="quick-action" href="{% url 'clothing_stock_movements' %}">
+            <div class="quick-action-title">Stock Movements</div>
+            <div class="quick-action-subtitle">View all inventory transactions.</div>
+        </a>
+    </div>
+</div>
+
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon">Stock Units</div>
