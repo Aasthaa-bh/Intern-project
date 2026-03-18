@@ -99,10 +99,6 @@ def superadmin_requests(request):
     })
 
     
-
-
-
-
 @login_required
 def approve_request(request, request_id):
     if request.user.role != "SUPERADMIN":
