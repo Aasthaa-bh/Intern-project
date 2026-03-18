@@ -39,6 +39,9 @@
                     <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
                         Edit
                     </a>
+                    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
+                        Add Variant
+                    </a>
                 </td>
             </tr>
             {% endfor %}
