@@ -1,5 +1,5 @@
 from django import forms
-from .models import Category, Item, LoyaltySetting 
+from .models import Category, Item, LoyaltySetting
 
 class CategoryForm(forms.ModelForm):
     class Meta:

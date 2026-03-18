@@ -3,6 +3,10 @@
 {% block title %}Clothing Products{% endblock %}
 {% block page_title %}Product Catalog{% endblock %}
 
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
+{% endblock %}
+
 {% block content %}
 <div class="card">
     <div class="card-header">Products</div>
@@ -31,6 +35,9 @@
                 <td>
                     <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
                         View
+                    </a>
+                    <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                        Edit
                     </a>
                 </td>
             </tr>

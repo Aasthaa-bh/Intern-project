@@ -41,7 +41,7 @@ def login_view(request):
 
             # 🔥 Redirect based on role
             if user.role == "OWNER":
-                return redirect("clothing_inventory_dashboard")
+                return redirect("inventory_dashboard")
             elif user.role == "CASHIER":
                 return redirect("reception_dashboard")
             elif user.role == "WAITER":

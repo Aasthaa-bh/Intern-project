@@ -3,6 +3,10 @@
 {% block title %}Stock Movements{% endblock %}
 {% block page_title %}Stock Movements{% endblock %}
 
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
+{% endblock %}
+
 {% block content %}
 <div class="card">
     <div class="card-header">Filter Movements</div>

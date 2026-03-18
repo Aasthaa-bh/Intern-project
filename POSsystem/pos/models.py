@@ -245,12 +245,23 @@ class Purchase(models.Model):
     notes = models.CharField(max_length=255, blank=True)
 
     created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
+    received_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(
+        "accounts.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="purchases_received",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("business", "purchase_no")
+
+    def __str__(self):
+        return self.purchase_no
         
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name="items")
@@ -263,11 +274,27 @@ class PurchaseItem(models.Model):
 
     expected_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    received_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
 
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
+    received_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(
+        "accounts.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="purchase_items_received",
+    )
+
+    @property
+    def remaining_quantity(self):
+        return (self.quantity or 0) - (self.received_quantity or 0)
+
+    def __str__(self):
+        return f"{self.purchase.purchase_no} - {self.item_name_snapshot}"
     
 class StockMovement(models.Model):
 

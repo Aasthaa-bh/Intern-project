@@ -4,6 +4,10 @@
 {% block page_title %}Purchase Detail{% endblock %}
 
 {% block header_actions %}
+{% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+<a class="btn btn-primary" href="{% url 'clothing_purchase_receive' purchase.id %}">Receive Stock</a>
+<a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
+{% endif %}
 <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
 {% endblock %}
 
@@ -22,7 +26,7 @@
             </tr>
             <tr>
                 <th>Date</th>
-                <td>{{ purchase.purchase_date|date:"M d, Y" }}</td>
+                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
             </tr>
             <tr>
                 <th>Status</th>
@@ -32,6 +36,12 @@
                 <th>Total</th>
                 <td>{{ purchase.total_amount }}</td>
             </tr>
+            {% if purchase.received_at %}
+            <tr>
+                <th>Received At</th>
+                <td>{{ purchase.received_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endif %}
             {% if purchase.notes %}
             <tr>
                 <th>Notes</th>
@@ -52,6 +62,8 @@
                 <th>Variant</th>
                 <th>SKU</th>
                 <th>Qty</th>
+                <th>Received</th>
+                <th>Remaining</th>
                 <th>Unit Cost</th>
                 <th>Line Total</th>
             </tr>
@@ -63,6 +75,8 @@
                 <td>{{ line.variant_name_snapshot|default:line.variant.name|default:"-" }}</td>
                 <td>{{ line.sku_snapshot|default:line.item.sku|default:"-" }}</td>
                 <td>{{ line.quantity }}</td>
+                <td>{{ line.received_quantity }}</td>
+                <td>{{ line.remaining_quantity }}</td>
                 <td>{{ line.unit_cost }}</td>
                 <td>{{ line.line_total }}</td>
             </tr>

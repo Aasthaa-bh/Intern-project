@@ -1,13 +1,27 @@
 from functools import wraps
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db import connection
+from django.db import transaction
 from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField
 from django.db.models.functions import Coalesce
+from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
+from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
 from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from .forms import (
+    ClothingProductForm,
+    ClothingPurchaseForm,
+    ClothingPurchaseItemFormSet,
+    ClothingStockAdjustmentForm,
+    ClothingSupplierForm,
+    ClothingVariantForm,
+)
+from .models import ClothingItem, ClothingVariantDetail
 
 
 _TABLE_COLUMNS = {}
@@ -46,6 +60,15 @@ def _filter_by_business(queryset, business):
     if business is None:
         return queryset
     return queryset.filter(business=business)
+
+
+def _build_purchase_formset(data=None, instance=None, business=None):
+    kwargs = {}
+    if data is not None:
+        kwargs["data"] = data
+    if instance is not None:
+        kwargs["instance"] = instance
+    return ClothingPurchaseItemFormSet(form_kwargs={"business": business}, **kwargs)
 
 
 def inventory_access_required(view_func):
@@ -134,7 +157,10 @@ def product_list(request):
     if _model_table_ok(ItemVariant):
         products = products.annotate(
             variant_count=Count("variants", distinct=True),
-            variants_stock=Coalesce(Sum("variants__stock_qty"), Value(0)),
+            variants_stock=Coalesce(
+                Sum("variants__stock_qty"),
+                Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
+            ),
         ).annotate(
             total_stock=ExpressionWrapper(
                 F("stock_qty") + F("variants_stock"),
@@ -154,6 +180,65 @@ def product_list(request):
         "products": products.order_by("name"),
     }
     return render(request, "clothing/product_list.html", context)
+
+
+@inventory_access_required
+def product_create(request):
+    business = _get_request_business(request)
+    if business is None:
+        return HttpResponseForbidden("Business context is required for product creation.")
+
+    if request.method == "POST":
+        form = ClothingProductForm(request.POST, business=business)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.business = business
+            product.item_type = "PRODUCT"
+            product.save()
+
+            clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
+            clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
+            clothing_item.material = form.cleaned_data.get("material", "")
+            clothing_item.fit = form.cleaned_data.get("fit", "")
+            clothing_item.care_note = form.cleaned_data.get("care_note", "")
+            clothing_item.save()
+
+            messages.success(request, "Product created successfully.")
+            return redirect("clothing_product_detail", product_id=product.id)
+    else:
+        form = ClothingProductForm(business=business)
+
+    return render(request, "clothing/product_form.html", {"form": form, "mode": "create"})
+
+
+@inventory_access_required
+def product_edit(request, product_id):
+    business = _get_request_business(request)
+    base_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+    product = get_object_or_404(base_qs, id=product_id)
+
+    if request.method == "POST":
+        form = ClothingProductForm(request.POST, instance=product, business=business)
+        if form.is_valid():
+            product = form.save()
+            clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
+            clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
+            clothing_item.material = form.cleaned_data.get("material", "")
+            clothing_item.fit = form.cleaned_data.get("fit", "")
+            clothing_item.care_note = form.cleaned_data.get("care_note", "")
+            clothing_item.save()
+            messages.success(request, "Product updated successfully.")
+            return redirect("clothing_product_detail", product_id=product.id)
+    else:
+        form = ClothingProductForm(instance=product, business=business)
+
+    return render(
+        request,
+        "clothing/product_form.html",
+        {"form": form, "mode": "edit", "product": product},
+    )
 
 
 @inventory_access_required
@@ -180,6 +265,39 @@ def product_detail(request, product_id):
         "variants": variants,
     }
     return render(request, "clothing/product_detail.html", context)
+
+
+@inventory_access_required
+def variant_create(request, product_id):
+    business = _get_request_business(request)
+    base_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+    product = get_object_or_404(base_qs, id=product_id)
+
+    if request.method == "POST":
+        form = ClothingVariantForm(request.POST, business=business)
+        if form.is_valid():
+            variant = form.save(commit=False)
+            variant.item = product
+            variant.business = product.business
+            variant.save()
+
+            detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
+            detail.size = form.cleaned_data.get("size")
+            detail.color = form.cleaned_data.get("color")
+            detail.save()
+
+            messages.success(request, "Variant added successfully.")
+            return redirect("clothing_product_detail", product_id=product.id)
+    else:
+        form = ClothingVariantForm(business=business)
+
+    return render(
+        request,
+        "clothing/variant_form.html",
+        {"form": form, "product": product},
+    )
 
 
 @inventory_access_required
@@ -226,6 +344,56 @@ def purchase_list(request):
 
 
 @inventory_access_required
+def purchase_create(request):
+    business = _get_request_business(request)
+    if business is None:
+        return HttpResponseForbidden("Business context is required for purchase creation.")
+
+    if request.method == "POST":
+        form = ClothingPurchaseForm(request.POST, business=business)
+        formset = _build_purchase_formset(data=request.POST, business=business)
+
+        if form.is_valid() and formset.is_valid():
+            purchase = form.save(commit=False)
+            purchase.business = business
+            purchase.created_by = request.user
+            purchase.status = "DRAFT"
+            purchase.save()
+
+            formset.instance = purchase
+            lines = formset.save(commit=False)
+
+            for deleted_obj in formset.deleted_objects:
+                deleted_obj.delete()
+
+            for line in lines:
+                line.item_name_snapshot = line.item.name
+                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
+                line.expected_quantity = line.quantity
+                line.received_quantity = Decimal("0")
+                line.line_total = (line.quantity or Decimal("0")) * (line.unit_cost or Decimal("0"))
+                line.save()
+
+            if purchase.items.count() == 0:
+                purchase.delete()
+                messages.error(request, "Please add at least one purchase line.")
+            else:
+                recalculate_purchase_totals(purchase)
+                messages.success(request, "Purchase created successfully.")
+                return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+    else:
+        form = ClothingPurchaseForm(business=business)
+        formset = _build_purchase_formset(business=business)
+
+    return render(
+        request,
+        "clothing/purchase_form.html",
+        {"form": form, "formset": formset, "mode": "create"},
+    )
+
+
+@inventory_access_required
 def purchase_detail(request, purchase_id):
     business = _get_request_business(request)
 
@@ -244,11 +412,137 @@ def purchase_detail(request, purchase_id):
         .order_by("id")
     )
 
-    context = {
-        "purchase": purchase,
-        "items": items,
-    }
+    context = {"purchase": purchase, "items": items}
     return render(request, "clothing/purchase_detail.html", context)
+
+
+@inventory_access_required
+def purchase_edit(request, purchase_id):
+    business = _get_request_business(request)
+
+    if not _model_table_ok(Purchase) or not _model_table_ok(PurchaseItem):
+        return HttpResponseForbidden("Purchase tables schema is out of date. Run migrations.")
+
+    base_qs = Purchase.objects.select_related("supplier")
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+
+    purchase = get_object_or_404(base_qs, id=purchase_id)
+
+    if purchase.status == "RECEIVED":
+        messages.error(request, "Received purchases cannot be edited.")
+        return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+
+    if request.method == "POST":
+        form = ClothingPurchaseForm(request.POST, instance=purchase, business=business)
+        formset = _build_purchase_formset(data=request.POST, instance=purchase, business=business)
+
+        if form.is_valid() and formset.is_valid():
+            purchase = form.save(commit=False)
+            purchase.status = "DRAFT"
+            purchase.save()
+
+            formset.instance = purchase
+            lines = formset.save(commit=False)
+
+            for deleted_obj in formset.deleted_objects:
+                deleted_obj.delete()
+
+            for line in lines:
+                line.item_name_snapshot = line.item.name
+                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
+                if not line.received_quantity:
+                    line.received_quantity = Decimal("0")
+                line.expected_quantity = line.quantity
+                line.line_total = (line.quantity or Decimal("0")) * (line.unit_cost or Decimal("0"))
+                line.save()
+
+            recalculate_purchase_totals(purchase)
+            messages.success(request, "Purchase updated successfully.")
+            return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+    else:
+        form = ClothingPurchaseForm(instance=purchase, business=business)
+        formset = _build_purchase_formset(instance=purchase, business=business)
+
+    return render(
+        request,
+        "clothing/purchase_form.html",
+        {"form": form, "formset": formset, "mode": "edit", "purchase": purchase},
+    )
+
+
+@inventory_access_required
+@transaction.atomic
+def purchase_receive(request, purchase_id):
+    business = _get_request_business(request)
+
+    if not _model_table_ok(Purchase) or not _model_table_ok(PurchaseItem):
+        return HttpResponseForbidden("Purchase tables schema is out of date. Run migrations.")
+
+    base_qs = Purchase.objects.select_for_update()
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+
+    purchase = get_object_or_404(base_qs, id=purchase_id)
+
+    if purchase.status == "CANCELLED":
+        messages.error(request, "Cancelled purchase cannot be received.")
+        return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+
+    lines = list(
+        PurchaseItem.objects.filter(purchase=purchase)
+        .select_related("item", "variant")
+        .order_by("id")
+    )
+    if not lines:
+        messages.error(request, "Purchase has no items to receive.")
+        return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+
+    if request.method == "POST":
+        received_map = {}
+        try:
+            for line in lines:
+                remaining = (line.quantity or Decimal("0")) - (line.received_quantity or Decimal("0"))
+                raw = request.POST.get(f"received_{line.id}", "").strip()
+                if not raw:
+                    continue
+
+                qty = Decimal(raw)
+                if qty < 0:
+                    raise ValueError("Received quantity cannot be negative.")
+                if qty > remaining:
+                    raise ValueError(f"Received quantity exceeds remaining for {line.item_name_snapshot}.")
+
+                received_map[line.id] = qty
+        except (InvalidOperation, ValueError) as exc:
+            messages.error(request, str(exc))
+            return redirect("clothing_purchase_receive", purchase_id=purchase.id)
+
+        if not received_map:
+            messages.error(request, "Enter at least one received quantity.")
+            return redirect("clothing_purchase_receive", purchase_id=purchase.id)
+
+        try:
+            any_received, all_received = receive_purchase_lines(purchase, received_map, request.user)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect("clothing_purchase_receive", purchase_id=purchase.id)
+
+        if any_received and all_received:
+            messages.success(request, "Purchase fully received and stock updated.")
+        elif any_received:
+            messages.success(request, "Partial receive completed and stock updated.")
+        else:
+            messages.error(request, "No items were received.")
+
+        return redirect("clothing_purchase_detail", purchase_id=purchase.id)
+
+    return render(
+        request,
+        "clothing/purchase_receive.html",
+        {"purchase": purchase, "items": lines},
+    )
 
 
 @inventory_access_required
@@ -265,6 +559,107 @@ def supplier_list(request):
         "suppliers": suppliers,
     }
     return render(request, "clothing/supplier_list.html", context)
+
+
+@inventory_access_required
+def supplier_create(request):
+    business = _get_request_business(request)
+    if business is None:
+        return HttpResponseForbidden("Business context is required for supplier creation.")
+
+    if request.method == "POST":
+        form = ClothingSupplierForm(request.POST)
+        if form.is_valid():
+            supplier = form.save(commit=False)
+            supplier.business = business
+            supplier.save()
+            messages.success(request, "Supplier created successfully.")
+            return redirect("clothing_supplier_list")
+    else:
+        form = ClothingSupplierForm()
+
+    return render(
+        request,
+        "clothing/supplier_form.html",
+        {"form": form, "mode": "create"},
+    )
+
+
+@inventory_access_required
+def supplier_edit(request, supplier_id):
+    business = _get_request_business(request)
+
+    base_qs = Supplier.objects.all()
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+
+    supplier = get_object_or_404(base_qs, id=supplier_id)
+
+    if request.method == "POST":
+        form = ClothingSupplierForm(request.POST, instance=supplier)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Supplier updated successfully.")
+            return redirect("clothing_supplier_list")
+    else:
+        form = ClothingSupplierForm(instance=supplier)
+
+    return render(
+        request,
+        "clothing/supplier_form.html",
+        {"form": form, "mode": "edit", "supplier": supplier},
+    )
+
+
+@inventory_access_required
+def supplier_delete(request, supplier_id):
+    business = _get_request_business(request)
+
+    base_qs = Supplier.objects.all()
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+
+    supplier = get_object_or_404(base_qs, id=supplier_id)
+
+    if request.method == "POST":
+        try:
+            supplier.delete()
+            messages.success(request, "Supplier deleted successfully.")
+        except ProtectedError:
+            messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
+        return redirect("clothing_supplier_list")
+
+    return render(request, "clothing/supplier_delete.html", {"supplier": supplier})
+
+
+@inventory_access_required
+def stock_adjustment_create(request):
+    business = _get_request_business(request)
+    if business is None:
+        return HttpResponseForbidden("Business context is required for stock adjustment.")
+
+    if request.method == "POST":
+        form = ClothingStockAdjustmentForm(request.POST, business=business)
+        if form.is_valid():
+            try:
+                create_adjustment(
+                    business=business,
+                    item=form.cleaned_data["item"],
+                    variant=form.cleaned_data.get("variant"),
+                    movement_type=form.cleaned_data["movement_type"],
+                    quantity=form.cleaned_data["quantity"],
+                    user=request.user,
+                    note=form.cleaned_data.get("note", ""),
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, "Stock adjustment recorded successfully.")
+                return redirect("clothing_stock_movements")
+    else:
+        form = ClothingStockAdjustmentForm(business=business)
+
+    return render(request, "clothing/stock_adjustment_form.html", {"form": form})
 
 
 @inventory_access_required

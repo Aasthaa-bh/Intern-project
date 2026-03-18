@@ -3,6 +3,10 @@
 {% block title %}Purchase Orders{% endblock %}
 {% block page_title %}Purchase Orders{% endblock %}
 
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_purchase_create' %}">Create Purchase</a>
+{% endblock %}
+
 {% block content %}
 <div class="card">
     <div class="card-header">Purchases</div>
@@ -23,7 +27,7 @@
             <tr>
                 <td>{{ purchase.purchase_no }}</td>
                 <td>{{ purchase.supplier.name }}</td>
-                <td>{{ purchase.purchase_date|date:"M d, Y" }}</td>
+                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
                 <td>
                     {% if purchase.status == "RECEIVED" %}
                         <span class="badge badge-success">Received</span>
@@ -38,6 +42,11 @@
                     <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
                         View
                     </a>
+                    {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+                    <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
+                        Edit
+                    </a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

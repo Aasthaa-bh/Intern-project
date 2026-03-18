@@ -3,6 +3,10 @@
 {% block title %}Suppliers{% endblock %}
 {% block page_title %}Suppliers{% endblock %}
 
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_supplier_create' %}">Add Supplier</a>
+{% endblock %}
+
 {% block content %}
 <div class="card">
     <div class="card-header">Supplier Directory</div>
@@ -15,6 +19,7 @@
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Address</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -25,6 +30,10 @@
                 <td>{{ supplier.phone_no|default:"-" }}</td>
                 <td>{{ supplier.email|default:"-" }}</td>
                 <td>{{ supplier.address|default:"-" }}</td>
+                <td>
+                    <a class="btn btn-secondary" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
+                    <a class="btn btn-secondary" href="{% url 'clothing_supplier_delete' supplier.id %}">Delete</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

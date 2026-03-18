@@ -342,21 +342,21 @@
             </li>
             <li>
                 <a href="{% url 'clothing_stock_movements' %}"
-                   class="{% if request.resolver_match.url_name == 'clothing_stock_movements' %}active{% endif %}">
+                   class="{% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}active{% endif %}">
                     <span class="icon">[S]</span>
                     <span>Stock Movements</span>
                 </a>
             </li>
             <li>
                 <a href="{% url 'clothing_purchase_list' %}"
-                   class="{% if request.resolver_match.url_name == 'clothing_purchase_list' or request.resolver_match.url_name == 'clothing_purchase_detail' %}active{% endif %}">
+                   class="{% if request.resolver_match.url_name == 'clothing_purchase_list' or request.resolver_match.url_name == 'clothing_purchase_detail' or request.resolver_match.url_name == 'clothing_purchase_create' or request.resolver_match.url_name == 'clothing_purchase_edit' or request.resolver_match.url_name == 'clothing_purchase_receive' %}active{% endif %}">
                     <span class="icon">[O]</span>
                     <span>Purchases</span>
                 </a>
             </li>
             <li>
                 <a href="{% url 'clothing_supplier_list' %}"
-                   class="{% if request.resolver_match.url_name == 'clothing_supplier_list' %}active{% endif %}">
+                   class="{% if request.resolver_match.url_name == 'clothing_supplier_list' or request.resolver_match.url_name == 'clothing_supplier_create' or request.resolver_match.url_name == 'clothing_supplier_edit' or request.resolver_match.url_name == 'clothing_supplier_delete' %}active{% endif %}">
                     <span class="icon">[U]</span>
                     <span>Suppliers</span>
                 </a>

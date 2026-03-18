@@ -4,6 +4,8 @@
 {% block page_title %}Product Detail{% endblock %}
 
 {% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
+<a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
 <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
 {% endblock %}
 
