@@ -51,6 +51,8 @@ def login_view(request):
             else:
                 # fallback
                 return redirect("login")
+            # Redirect based on business type + role
+            return redirect("business_dashboard_router")
 
         else:
             messages.error(request, "Invalid username or password.")
@@ -81,3 +83,4 @@ def change_password(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
+

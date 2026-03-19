@@ -110,6 +110,12 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.GET.next }}">
 
+            <!--Business Code-->
+            <div class="form-group">
+                <label>Business Code</label>
+                <input type="text" name="business_code" required>
+            </div>
+
             <!-- Username -->
             <div class="form-group">
                 <label>Username</label>
