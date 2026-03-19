@@ -1,0 +1,41 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
+{% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="card" style="border-left: 4px solid #dc3545;">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">Variant Information</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Name</label>{{ form.name }}</div>
+            <div><label>SKU</label>{{ form.sku }}</div>
+            <div><label>Barcode</label>{{ form.barcode }}</div>
+            <div><label>Size</label>{{ form.size }}</div>
+            <div><label>Or New Size</label>{{ form.new_size }}</div>
+            <div><label>Color</label>{{ form.color }}</div>
+            <div><label>Or New Color</label>{{ form.new_color }}</div>
+            <div><label>Price</label>{{ form.price }}</div>
+            <div><label>Cost Price</label>{{ form.cost_price }}</div>
+            <div><label>Track Stock</label>{{ form.track_stock }}</div>
+            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
+            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
+            <div><label>Active</label>{{ form.is_active }}</div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">{% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}</button>
+</form>
+{% endblock %}

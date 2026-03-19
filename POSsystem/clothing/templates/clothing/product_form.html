@@ -1,0 +1,52 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}{% if mode == "create" %}Add Product{% else %}Edit Product{% endif %}{% endblock %}
+{% block page_title %}{% if mode == "create" %}Add Product{% else %}Edit Product{% endif %}{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="card" style="border-left: 4px solid #dc3545;">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">Product Information</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Name</label>{{ form.name }}</div>
+            <div><label>SKU</label>{{ form.sku }}</div>
+            <div><label>Barcode</label>{{ form.barcode }}</div>
+            <div><label>Category</label>{{ form.category }}</div>
+            <div><label>New Category</label>{{ form.new_category }}</div>
+            <div><label>Brand</label>{{ form.brand }}</div>
+            <div><label>New Brand</label>{{ form.new_brand }}</div>
+            <div><label>Price</label>{{ form.price }}</div>
+            <div><label>Cost Price</label>{{ form.cost_price }}</div>
+            <div><label>Track Stock</label>{{ form.track_stock }}</div>
+            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
+            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
+            <div style="grid-column: 1 / -1;"><label>Description</label>{{ form.description }}</div>
+            <div><label>Active</label>{{ form.is_active }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Clothing Details</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Gender</label>{{ form.gender }}</div>
+            <div><label>Material</label>{{ form.material }}</div>
+            <div><label>Fit</label>{{ form.fit }}</div>
+            <div style="grid-column: 1 / -1;"><label>Care Note</label>{{ form.care_note }}</div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save Product</button>
+</form>
+{% endblock %}

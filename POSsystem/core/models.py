@@ -30,6 +30,17 @@ class Business(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def type_name(self):
+        if self.business_type_id and self.business_type:
+            return (self.business_type.name or "").strip().lower()
+        return ""
+
+    @property
+    def is_clothing_business(self):
+        type_name = self.type_name
+        return any(keyword in type_name for keyword in ["cloth", "garment", "fashion", "apparel"])
+
     def __str__(self):
         return self.business_name
 

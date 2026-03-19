@@ -108,6 +108,7 @@
 
         <form method="POST">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
 
             <!--Business Code-->
             <div class="form-group">

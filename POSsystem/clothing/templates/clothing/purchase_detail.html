@@ -1,0 +1,90 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Purchase {{ purchase.purchase_no }}{% endblock %}
+{% block page_title %}Purchase Detail{% endblock %}
+
+{% block header_actions %}
+{% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+<a class="btn btn-primary" href="{% url 'clothing_purchase_receive' purchase.id %}">Receive Stock</a>
+<a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
+{% endif %}
+<a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Purchase Summary</div>
+    <table>
+        <tbody>
+            <tr>
+                <th style="width: 180px;">Purchase No</th>
+                <td>{{ purchase.purchase_no }}</td>
+            </tr>
+            <tr>
+                <th>Supplier</th>
+                <td>{{ purchase.supplier.name }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ purchase.get_status_display }}</td>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <td>{{ purchase.total_amount }}</td>
+            </tr>
+            {% if purchase.received_at %}
+            <tr>
+                <th>Received At</th>
+                <td>{{ purchase.received_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endif %}
+            {% if purchase.notes %}
+            <tr>
+                <th>Notes</th>
+                <td>{{ purchase.notes }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header">Items</div>
+    {% if items %}
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Variant</th>
+                <th>SKU</th>
+                <th>Qty</th>
+                <th>Received</th>
+                <th>Remaining</th>
+                <th>Unit Cost</th>
+                <th>Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in items %}
+            <tr>
+                <td>{{ line.item_name_snapshot|default:line.item.name }}</td>
+                <td>{{ line.variant_name_snapshot|default:line.variant.name|default:"-" }}</td>
+                <td>{{ line.sku_snapshot|default:line.item.sku|default:"-" }}</td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.received_quantity }}</td>
+                <td>{{ line.remaining_quantity }}</td>
+                <td>{{ line.unit_cost }}</td>
+                <td>{{ line.line_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No items recorded for this purchase.</p>
+    {% endif %}
+</div>
+{% endblock %}

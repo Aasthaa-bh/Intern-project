@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import Order, Customer, LoyaltySetting, LoyaltyTransaction, Category, Item
+from .models import (
+    Category,
+    Customer,
+    Item,
+    ItemVariant,
+    LoyaltySetting,
+    LoyaltyTransaction,
+    Order,
+    Purchase,
+    PurchaseItem,
+    StockMovement,
+    Supplier,
+)
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -86,5 +98,38 @@ class ItemAdmin(admin.ModelAdmin):
                 qs = qs.filter(business=request.user.business)
         return qs
 
-admin.site.register(Order)
 
+@admin.register(ItemVariant)
+class ItemVariantAdmin(admin.ModelAdmin):
+    list_display = ['item', 'name', 'sku', 'stock_qty', 'is_active', 'business']
+    list_filter = ['is_active', 'business', 'item']
+    search_fields = ['item__name', 'name', 'sku']
+
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ['name', 'contact_person', 'phone_no', 'is_active', 'business']
+    list_filter = ['is_active', 'business']
+    search_fields = ['name', 'contact_person', 'phone_no']
+
+
+class PurchaseItemInline(admin.TabularInline):
+    model = PurchaseItem
+    extra = 0
+
+
+@admin.register(Purchase)
+class PurchaseAdmin(admin.ModelAdmin):
+    list_display = ['purchase_no', 'supplier', 'purchase_date', 'status', 'total_amount', 'business']
+    list_filter = ['status', 'purchase_date', 'business']
+    search_fields = ['purchase_no', 'supplier__name']
+    inlines = [PurchaseItemInline]
+
+
+@admin.register(StockMovement)
+class StockMovementAdmin(admin.ModelAdmin):
+    list_display = ['item', 'variant', 'movement_type', 'quantity', 'business', 'created_at']
+    list_filter = ['movement_type', 'business', 'created_at']
+    search_fields = ['item__name', 'variant__name', 'note']
+
+admin.site.register(Order)

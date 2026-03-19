@@ -1,0 +1,27 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}{% if mode == "create" %}Add Supplier{% else %}Edit Supplier{% endif %}{% endblock %}
+{% block page_title %}{% if mode == "create" %}Add Supplier{% else %}Edit Supplier{% endif %}{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Back to Suppliers</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">Supplier Details</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Name</label>{{ form.name }}</div>
+            <div><label>Contact Person</label>{{ form.contact_person }}</div>
+            <div><label>Phone</label>{{ form.phone_no }}</div>
+            <div><label>Email</label>{{ form.email }}</div>
+            <div style="grid-column: 1 / -1;"><label>Address</label>{{ form.address }}</div>
+            <div><label>PAN/VAT</label>{{ form.pan_vat_no }}</div>
+            <div><label>Active</label>{{ form.is_active }}</div>
+        </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save Supplier</button>
+</form>
+{% endblock %}

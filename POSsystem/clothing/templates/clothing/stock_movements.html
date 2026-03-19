@@ -1,0 +1,77 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Stock Movements{% endblock %}
+{% block page_title %}Stock Movements{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Filter Movements</div>
+    <form method="get">
+        <label for="movement_type">Movement Type</label>
+        <select name="type" id="movement_type">
+            <option value="">All Types</option>
+            {% for code, label in movement_type_choices %}
+            <option value="{{ code }}" {% if movement_type == code %}selected{% endif %}>
+                {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit">Apply</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">Movement Log</div>
+    {% if movements %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Item</th>
+                <th>Variant</th>
+                <th>Type</th>
+                <th>Qty</th>
+                <th>Reference</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movement in movements %}
+            <tr>
+                <td>{{ movement.created_at|date:"M d, Y H:i" }}</td>
+                <td>{{ movement.item.name }}</td>
+                <td>{{ movement.variant.name|default:"-" }}</td>
+                <td>
+                    <span class="badge
+                        {% if movement.movement_type == 'PURCHASE_IN' or movement.movement_type == 'SALE_RETURN_IN' or movement.movement_type == 'ADJUSTMENT_IN' %}
+                            badge-success
+                        {% elif movement.movement_type == 'SALE_OUT' or movement.movement_type == 'PURCHASE_RETURN_OUT' or movement.movement_type == 'DAMAGE_OUT' %}
+                            badge-danger
+                        {% else %}
+                            badge-warning
+                        {% endif %}">
+                        {{ movement.get_movement_type_display }}
+                    </span>
+                </td>
+                <td>{{ movement.quantity }}</td>
+                <td>
+                    {% if movement.reference_type %}
+                        {{ movement.reference_type }} #{{ movement.reference_id }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ movement.note|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No stock movements found.</p>
+    {% endif %}
+</div>
+{% endblock %}
