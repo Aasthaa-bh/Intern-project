@@ -39,6 +39,13 @@ def apply_stock_delta(item: Item, variant: ItemVariant | None, delta: Decimal):
     target.save(update_fields=["stock_qty", "updated_at"])
 
 
+def apply_latest_cost_price(item: Item, variant: ItemVariant | None, unit_cost: Decimal):
+    target = get_stock_target(item, variant)
+    latest_cost = _to_decimal(unit_cost)
+    target.cost_price = latest_cost
+    target.save(update_fields=["cost_price", "updated_at"])
+
+
 def create_stock_movement(
     *,
     business,
@@ -94,6 +101,7 @@ def receive_purchase_lines(purchase: Purchase, received_map: dict[int, Decimal],
         if requested > remaining:
             raise ValueError(f"Received quantity exceeds remaining quantity for {line.item_name_snapshot}.")
 
+        apply_latest_cost_price(line.item, line.variant, line.unit_cost)
         apply_stock_delta(line.item, line.variant, requested)
         create_stock_movement(
             business=purchase.business,
