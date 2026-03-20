@@ -5,14 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
 from django.db import transaction
-from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When
+from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When, Q
 from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
-from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from pos.models import Category, Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -189,11 +189,22 @@ def inventory_dashboard(request):
 @inventory_access_required
 def product_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    category_id = (request.GET.get("category") or "").strip()
 
     products = _filter_by_business(
         Item.objects.filter(item_type="PRODUCT").select_related("category", "brand"),
         business,
     )
+
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+
+    if category_id:
+        products = products.filter(category_id=category_id)
 
     if _model_table_ok(ItemVariant):
         products = products.annotate(
@@ -218,8 +229,16 @@ def product_list(request):
             ),
         )
 
+    categories = _filter_by_business(
+        Category.objects.filter(item__item_type="PRODUCT", is_active=True),
+        business,
+    ).distinct().order_by("name")
+
     context = {
         "products": products.order_by("name"),
+        "categories": categories,
+        "selected_category": category_id,
+        "search_query": search_query,
     }
     return render(request, "clothing/product_list.html", context)
 
