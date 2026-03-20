@@ -13,6 +13,10 @@
 
     <div class="card">
         <div class="card-header">Receive Against {{ purchase.purchase_no }}</div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 12px;">
+            <button class="btn btn-secondary" type="button" id="fill-remaining">Receive All Remaining</button>
+            <button class="btn btn-secondary" type="button" id="clear-receive">Clear</button>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -50,4 +54,30 @@
 
     <button class="btn btn-primary" type="submit">Confirm Receive</button>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const fillButton = document.getElementById("fill-remaining");
+        const clearButton = document.getElementById("clear-receive");
+        const inputs = Array.from(document.querySelectorAll('input[name^="received_"]'));
+
+        if (fillButton) {
+            fillButton.addEventListener("click", function () {
+                inputs.forEach(function (input) {
+                    input.value = input.max || 0;
+                });
+            });
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener("click", function () {
+                inputs.forEach(function (input) {
+                    input.value = 0;
+                });
+            });
+        }
+    }());
+</script>
 {% endblock %}

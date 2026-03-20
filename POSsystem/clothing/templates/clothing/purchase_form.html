@@ -3,6 +3,14 @@
 {% block title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .purchase-form-table {
+        overflow-x: auto;
+    }
+</style>
+{% endblock %}
+
 {% block header_actions %}
 <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
 {% endblock %}
@@ -43,47 +51,49 @@
         {% if formset.non_form_errors %}
             <div class="alert alert-error">{{ formset.non_form_errors }}</div>
         {% endif %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Variant</th>
-                    <th>Quantity</th>
-                    <th>Unit Cost</th>
-                    <th>Delete</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for line_form in formset %}
-                <tr>
-                    <td>
-                        {{ line_form.id }}
-                        {{ line_form.item }}
-                        {% if line_form.item.errors %}<div class="alert alert-error">{{ line_form.item.errors }}</div>{% endif %}
-                    </td>
-                    <td>
-                        {{ line_form.variant }}
-                        {% if line_form.variant.errors %}<div class="alert alert-error">{{ line_form.variant.errors }}</div>{% endif %}
-                    </td>
-                    <td>
-                        {{ line_form.quantity }}
-                        {% if line_form.quantity.errors %}<div class="alert alert-error">{{ line_form.quantity.errors }}</div>{% endif %}
-                    </td>
-                    <td>
-                        {{ line_form.unit_cost }}
-                        {% if line_form.unit_cost.errors %}<div class="alert alert-error">{{ line_form.unit_cost.errors }}</div>{% endif %}
-                    </td>
-                    <td>
-                        {% if line_form.instance.pk %}
-                            {{ line_form.DELETE }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="purchase-form-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Variant</th>
+                        <th>Quantity</th>
+                        <th>Unit Cost</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line_form in formset %}
+                    <tr>
+                        <td>
+                            {{ line_form.id }}
+                            {{ line_form.item }}
+                            {% if line_form.item.errors %}<div class="alert alert-error">{{ line_form.item.errors }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {{ line_form.variant }}
+                            {% if line_form.variant.errors %}<div class="alert alert-error">{{ line_form.variant.errors }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {{ line_form.quantity }}
+                            {% if line_form.quantity.errors %}<div class="alert alert-error">{{ line_form.quantity.errors }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {{ line_form.unit_cost }}
+                            {% if line_form.unit_cost.errors %}<div class="alert alert-error">{{ line_form.unit_cost.errors }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {% if line_form.instance.pk %}
+                                {{ line_form.DELETE }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div style="display: flex; gap: 10px;">
@@ -91,4 +101,63 @@
         <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Cancel</a>
     </div>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ variant_item_map|json_script:"purchase-variant-item-map" }}
+<script>
+    (function () {
+        const variantItemMapElement = document.getElementById("purchase-variant-item-map");
+        const variantItemMap = variantItemMapElement ? JSON.parse(variantItemMapElement.textContent) : {};
+
+        function syncRowVariantOptions(row) {
+            const itemSelect = row.querySelector('select[name$="-item"]');
+            const variantSelect = row.querySelector('select[name$="-variant"]');
+            if (!itemSelect || !variantSelect) {
+                return;
+            }
+
+            if (!variantSelect.dataset.originalOptions) {
+                variantSelect.dataset.originalOptions = variantSelect.innerHTML;
+            }
+
+            const selectedItemId = itemSelect.value;
+            const currentVariantValue = variantSelect.value;
+            const originalOptionsContainer = document.createElement("select");
+            originalOptionsContainer.innerHTML = variantSelect.dataset.originalOptions;
+
+            const filteredOptions = Array.from(originalOptionsContainer.options).filter(function (option) {
+                if (!option.value) {
+                    return true;
+                }
+                const itemId = String(variantItemMap[option.value] || "");
+                if (!selectedItemId) {
+                    return true;
+                }
+                return itemId === String(selectedItemId);
+            });
+
+            variantSelect.innerHTML = "";
+            filteredOptions.forEach(function (option) {
+                variantSelect.appendChild(option);
+            });
+
+            if (Array.from(variantSelect.options).some(function (option) { return option.value === currentVariantValue; })) {
+                variantSelect.value = currentVariantValue;
+            } else {
+                variantSelect.value = "";
+            }
+        }
+
+        document.querySelectorAll("tbody tr").forEach(function (row) {
+            syncRowVariantOptions(row);
+            const itemSelect = row.querySelector('select[name$="-item"]');
+            if (itemSelect) {
+                itemSelect.addEventListener("change", function () {
+                    syncRowVariantOptions(row);
+                });
+            }
+        });
+    }());
+</script>
 {% endblock %}

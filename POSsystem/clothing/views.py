@@ -112,6 +112,11 @@ def _variant_snapshot_name(variant):
     return variant.name or ""
 
 
+def _purchase_variant_item_map(business):
+    variants = _filter_by_business(ItemVariant.objects.all(), business).values_list("id", "item_id")
+    return {str(variant_id): item_id for variant_id, item_id in variants}
+
+
 def inventory_access_required(view_func):
     @wraps(view_func)
     @login_required
@@ -470,15 +475,45 @@ def stock_movement_list(request):
 @inventory_access_required
 def purchase_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    date_from = (request.GET.get("date_from") or "").strip()
+    date_to = (request.GET.get("date_to") or "").strip()
+    status = (request.GET.get("status") or "").strip().upper()
     if not _model_table_ok(Purchase):
         return HttpResponseForbidden("Purchase table schema is out of date. Run migrations.")
     purchases = _filter_by_business(
         Purchase.objects.select_related("supplier"),
         business,
-    ).order_by("-created_at")
+    )
+
+    if search_query:
+        purchases = purchases.filter(
+            Q(purchase_no__icontains=search_query)
+            | Q(supplier__name__icontains=search_query)
+            | Q(items__item_name_snapshot__icontains=search_query)
+            | Q(items__variant_name_snapshot__icontains=search_query)
+        )
+
+    valid_statuses = {choice[0] for choice in Purchase.STATUS}
+    if status in valid_statuses:
+        purchases = purchases.filter(status=status)
+    else:
+        status = ""
+
+    if date_from:
+        purchases = purchases.filter(purchase_date__gte=date_from)
+    if date_to:
+        purchases = purchases.filter(purchase_date__lte=date_to)
+
+    purchases = purchases.distinct().order_by("-purchase_date", "-created_at")
 
     context = {
         "purchases": purchases,
+        "search_query": search_query,
+        "date_from": date_from,
+        "date_to": date_to,
+        "status": status,
+        "status_choices": Purchase.STATUS,
     }
     return render(request, "clothing/purchase_list.html", context)
 
@@ -529,7 +564,12 @@ def purchase_create(request):
     return render(
         request,
         "clothing/purchase_form.html",
-        {"form": form, "formset": formset, "mode": "create"},
+        {
+            "form": form,
+            "formset": formset,
+            "mode": "create",
+            "variant_item_map": _purchase_variant_item_map(business),
+        },
     )
 
 
@@ -608,7 +648,13 @@ def purchase_edit(request, purchase_id):
     return render(
         request,
         "clothing/purchase_form.html",
-        {"form": form, "formset": formset, "mode": "edit", "purchase": purchase},
+        {
+            "form": form,
+            "formset": formset,
+            "mode": "edit",
+            "purchase": purchase,
+            "variant_item_map": _purchase_variant_item_map(business),
+        },
     )
 
 
