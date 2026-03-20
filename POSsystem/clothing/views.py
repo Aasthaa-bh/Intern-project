@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
 from django.db import transaction
-from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When, Q
+from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When, Q, Max
 from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
@@ -688,15 +688,44 @@ def purchase_receive(request, purchase_id):
 @inventory_access_required
 def supplier_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "active").strip().lower()
     if not _model_table_ok(Supplier):
         return HttpResponseForbidden("Supplier table schema is out of date. Run migrations.")
     suppliers = _filter_by_business(
         Supplier.objects.all(),
         business,
+    )
+
+    if search_query:
+        suppliers = suppliers.filter(
+            Q(name__icontains=search_query)
+            | Q(contact_person__icontains=search_query)
+            | Q(phone_no__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(pan_vat_no__icontains=search_query)
+        )
+
+    if status == "active":
+        suppliers = suppliers.filter(is_active=True)
+    elif status == "inactive":
+        suppliers = suppliers.filter(is_active=False)
+    else:
+        status = "all"
+
+    suppliers = suppliers.annotate(
+        total_purchases=Count("purchase", distinct=True),
+        last_purchase_date=Max("purchase__purchase_date"),
+        total_purchased=Coalesce(
+            Sum("purchase__total_amount"),
+            Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
+        ),
     ).order_by("name")
 
     context = {
         "suppliers": suppliers,
+        "search_query": search_query,
+        "status": status,
     }
     return render(request, "clothing/supplier_list.html", context)
 
@@ -760,16 +789,29 @@ def supplier_delete(request, supplier_id):
         base_qs = base_qs.filter(business=business)
 
     supplier = get_object_or_404(base_qs, id=supplier_id)
+    purchase_count = Purchase.objects.filter(supplier=supplier).count()
 
     if request.method == "POST":
-        try:
-            supplier.delete()
-            messages.success(request, "Supplier deleted successfully.")
-        except ProtectedError:
-            messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
+        if purchase_count:
+            if supplier.is_active:
+                supplier.is_active = False
+                supplier.save(update_fields=["is_active", "updated_at"])
+                messages.success(request, "Supplier is used in purchases, so it was archived instead of deleted.")
+            else:
+                messages.info(request, "Supplier is already inactive and kept for purchase history.")
+        else:
+            try:
+                supplier.delete()
+                messages.success(request, "Supplier deleted successfully.")
+            except ProtectedError:
+                messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
         return redirect("clothing_supplier_list")
 
-    return render(request, "clothing/supplier_delete.html", {"supplier": supplier})
+    return render(
+        request,
+        "clothing/supplier_delete.html",
+        {"supplier": supplier, "purchase_count": purchase_count},
+    )
 
 
 @inventory_access_required

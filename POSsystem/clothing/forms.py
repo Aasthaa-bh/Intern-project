@@ -310,6 +310,7 @@ class ClothingSupplierForm(forms.ModelForm):
             "email",
             "address",
             "pan_vat_no",
+            "notes",
             "is_active",
         ]
 
