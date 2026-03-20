@@ -112,7 +112,7 @@ def receive_purchase_lines(purchase: Purchase, received_map: dict[int, Decimal],
             line.received_at = timezone.now()
             line.received_by = user
 
-        line.save(update_fields=["received_quantity", "received_at", "received_by", "updated_at"])
+        line.save(update_fields=["received_quantity", "received_at", "received_by"])
         any_received = True
 
     all_received = not lines.exclude(received_quantity__gte=models.F("quantity")).exists() if lines.exists() else False
