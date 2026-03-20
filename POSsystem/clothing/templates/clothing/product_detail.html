@@ -32,11 +32,23 @@
             </tr>
             <tr>
                 <th>Stock Qty</th>
-                <td>{{ product.stock_qty }}</td>
+                <td>
+                    {% if variants %}
+                        Managed by variants
+                    {% else %}
+                        {{ product.stock_qty }}
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>Min Stock</th>
-                <td>{{ product.min_stock_qty }}</td>
+                <td>
+                    {% if variants %}
+                        Managed by variants
+                    {% else %}
+                        {{ product.min_stock_qty }}
+                    {% endif %}
+                </td>
             </tr>
             {% if product.clothing %}
             <tr>

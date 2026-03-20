@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
 from django.db import transaction
-from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField
+from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When
 from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
@@ -71,6 +71,30 @@ def _build_purchase_formset(data=None, instance=None, business=None):
     return ClothingPurchaseItemFormSet(form_kwargs={"business": business}, **kwargs)
 
 
+def _product_has_variants(product):
+    return bool(product and getattr(product, "pk", None) and product.variants.exists())
+
+
+def _disable_parent_stock_tracking(product):
+    if not product:
+        return
+
+    updates = []
+    if product.track_stock:
+        product.track_stock = False
+        updates.append("track_stock")
+    if (product.stock_qty or Decimal("0")) != Decimal("0"):
+        product.stock_qty = Decimal("0")
+        updates.append("stock_qty")
+    if (product.min_stock_qty or Decimal("0")) != Decimal("0"):
+        product.min_stock_qty = Decimal("0")
+        updates.append("min_stock_qty")
+
+    if updates:
+        updates.append("updated_at")
+        product.save(update_fields=updates)
+
+
 def _variant_snapshot_name(variant):
     if not variant:
         return ""
@@ -123,7 +147,7 @@ def inventory_dashboard(request):
     total_variants = variants_qs.count()
     total_skus = total_products + total_variants
 
-    low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"))
+    low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"), variants__isnull=True)
     if variants_enabled:
         low_stock_variants = variants_qs.filter(stock_qty__lte=F("min_stock_qty"))
         low_stock_count = low_stock_items.count() + low_stock_variants.count()
@@ -179,8 +203,9 @@ def product_list(request):
                 Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
             ),
         ).annotate(
-            total_stock=ExpressionWrapper(
-                F("stock_qty") + F("variants_stock"),
+            total_stock=Case(
+                When(variant_count__gt=0, then=F("variants_stock")),
+                default=F("stock_qty"),
                 output_field=DecimalField(max_digits=12, decimal_places=2),
             )
         )
@@ -212,6 +237,8 @@ def product_create(request):
             product.business = business
             product.item_type = "PRODUCT"
             product.save()
+            if _product_has_variants(product):
+                _disable_parent_stock_tracking(product)
 
             clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
             clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
@@ -240,6 +267,8 @@ def product_edit(request, product_id):
         form = ClothingProductForm(request.POST, instance=product, business=business)
         if form.is_valid():
             product = form.save()
+            if _product_has_variants(product):
+                _disable_parent_stock_tracking(product)
             clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
             clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
             clothing_item.material = form.cleaned_data.get("material", "")
@@ -299,6 +328,7 @@ def variant_create(request, product_id):
             variant.item = product
             variant.business = product.business
             variant.save()
+            _disable_parent_stock_tracking(product)
 
             detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
             detail.size = form.cleaned_data.get("size")
@@ -338,6 +368,7 @@ def variant_edit(request, product_id, variant_id):
             variant.item = product
             variant.business = product.business
             variant.save()
+            _disable_parent_stock_tracking(product)
 
             detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
             detail.size = form.cleaned_data.get("size")
@@ -752,7 +783,7 @@ def low_stock_alert(request):
     business = _get_request_business(request)
 
     low_stock_items = _filter_by_business(
-        Item.objects.filter(item_type="PRODUCT", stock_qty__lte=F("min_stock_qty")),
+        Item.objects.filter(item_type="PRODUCT", stock_qty__lte=F("min_stock_qty"), variants__isnull=True),
         business,
     ).order_by("name")
 

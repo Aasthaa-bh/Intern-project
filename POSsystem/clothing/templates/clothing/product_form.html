@@ -29,9 +29,18 @@
             <div><label>New Brand</label>{{ form.new_brand }}</div>
             <div><label>Price</label>{{ form.price }}</div>
             <div><label>Cost Price</label>{{ form.cost_price }}</div>
-            <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
-            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
+            <div>
+                <label>Track Stock</label>{{ form.track_stock }}
+                {% if form.track_stock.help_text %}<small>{{ form.track_stock.help_text }}</small>{% endif %}
+            </div>
+            <div>
+                <label>Opening Stock</label>{{ form.stock_qty }}
+                {% if form.stock_qty.help_text %}<small>{{ form.stock_qty.help_text }}</small>{% endif %}
+            </div>
+            <div>
+                <label>Min Stock</label>{{ form.min_stock_qty }}
+                {% if form.min_stock_qty.help_text %}<small>{{ form.min_stock_qty.help_text }}</small>{% endif %}
+            </div>
             <div style="grid-column: 1 / -1;"><label>Description</label>{{ form.description }}</div>
             <div><label>Active</label>{{ form.is_active }}</div>
         </div>

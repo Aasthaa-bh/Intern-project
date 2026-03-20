@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from decimal import Decimal
 import re
 
 from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, Supplier
@@ -55,6 +56,11 @@ class ClothingProductForm(forms.ModelForm):
         business = kwargs.pop("business", None)
         super().__init__(*args, **kwargs)
         self.business = business
+        self.has_variants = bool(
+            self.instance
+            and self.instance.pk
+            and self.instance.variants.exists()
+        )
 
         if business:
             self.fields["category"].queryset = Category.objects.filter(
@@ -68,6 +74,14 @@ class ClothingProductForm(forms.ModelForm):
 
         self.fields["category"].required = False
         self.fields["brand"].required = False
+
+        if self.has_variants:
+            self.fields["track_stock"].disabled = True
+            self.fields["stock_qty"].disabled = True
+            self.fields["min_stock_qty"].disabled = True
+            self.fields["track_stock"].help_text = "Parent product stock is disabled because this product uses variants."
+            self.fields["stock_qty"].help_text = "Stock is managed on variants for this product."
+            self.fields["min_stock_qty"].help_text = "Minimum stock is managed on variants for this product."
 
         clothing = getattr(self.instance, "clothing", None) if self.instance and self.instance.pk else None
         if clothing:
@@ -117,6 +131,11 @@ class ClothingProductForm(forms.ModelForm):
         # Keep selected values when no new text is entered.
         cleaned_data["category"] = category
         cleaned_data["brand"] = brand
+
+        if self.has_variants:
+            cleaned_data["track_stock"] = False
+            cleaned_data["stock_qty"] = Decimal("0")
+            cleaned_data["min_stock_qty"] = Decimal("0")
         return cleaned_data
 
 
@@ -358,6 +377,8 @@ class ClothingPurchaseItemForm(forms.ModelForm):
 
         if variant and item and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
+        if item and item.variants.exists() and not variant:
+            raise forms.ValidationError("Select a variant for products that manage stock by variant.")
 
         return cleaned_data
 
@@ -409,4 +430,6 @@ class ClothingStockAdjustmentForm(forms.Form):
         variant = cleaned_data.get("variant")
         if variant and item and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
+        if item and item.variants.exists() and not variant:
+            raise forms.ValidationError("Select a variant for products that manage stock by variant.")
         return cleaned_data
