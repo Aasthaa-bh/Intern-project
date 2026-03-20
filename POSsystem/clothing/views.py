@@ -71,6 +71,23 @@ def _build_purchase_formset(data=None, instance=None, business=None):
     return ClothingPurchaseItemFormSet(form_kwargs={"business": business}, **kwargs)
 
 
+def _variant_snapshot_name(variant):
+    if not variant:
+        return ""
+
+    detail = getattr(variant, "clothing_detail", None)
+    parts = []
+
+    if detail and getattr(detail, "color_id", None):
+        parts.append(detail.color.name)
+    if detail and getattr(detail, "size_id", None):
+        parts.append(detail.size.name)
+
+    if parts:
+        return " / ".join(parts)
+    return variant.name or ""
+
+
 def inventory_access_required(view_func):
     @wraps(view_func)
     @login_required
@@ -276,7 +293,7 @@ def variant_create(request, product_id):
     product = get_object_or_404(base_qs, id=product_id)
 
     if request.method == "POST":
-        form = ClothingVariantForm(request.POST, business=business)
+        form = ClothingVariantForm(request.POST, business=business, product=product)
         if form.is_valid():
             variant = form.save(commit=False)
             variant.item = product
@@ -291,7 +308,7 @@ def variant_create(request, product_id):
             messages.success(request, "Variant added successfully.")
             return redirect("clothing_product_detail", product_id=product.id)
     else:
-        form = ClothingVariantForm(business=business)
+        form = ClothingVariantForm(business=business, product=product)
 
     return render(
         request,
@@ -315,7 +332,7 @@ def variant_edit(request, product_id, variant_id):
     variant = get_object_or_404(variant_qs, id=variant_id)
 
     if request.method == "POST":
-        form = ClothingVariantForm(request.POST, instance=variant, business=business)
+        form = ClothingVariantForm(request.POST, instance=variant, business=business, product=product)
         if form.is_valid():
             variant = form.save(commit=False)
             variant.item = product
@@ -330,7 +347,7 @@ def variant_edit(request, product_id, variant_id):
             messages.success(request, "Variant updated successfully.")
             return redirect("clothing_product_detail", product_id=product.id)
     else:
-        form = ClothingVariantForm(instance=variant, business=business)
+        form = ClothingVariantForm(instance=variant, business=business, product=product)
 
     return render(
         request,
@@ -436,7 +453,7 @@ def purchase_create(request):
 
             for line in lines:
                 line.item_name_snapshot = line.item.name
-                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.variant_name_snapshot = _variant_snapshot_name(line.variant)
                 line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
                 line.expected_quantity = line.quantity
                 line.received_quantity = Decimal("0")
@@ -518,7 +535,7 @@ def purchase_edit(request, purchase_id):
 
             for line in lines:
                 line.item_name_snapshot = line.item.name
-                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.variant_name_snapshot = _variant_snapshot_name(line.variant)
                 line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
                 if not line.received_quantity:
                     line.received_quantity = Decimal("0")
