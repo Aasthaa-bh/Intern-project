@@ -3,6 +3,31 @@
 {% block title %}Stock Movements{% endblock %}
 {% block page_title %}Stock Movements{% endblock %}
 
+{% block extra_css %}
+<style>
+    .movement-filters {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .movement-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    @media (max-width: 900px) {
+        .movement-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block header_actions %}
 <a class="btn btn-primary" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
 {% endblock %}
@@ -10,17 +35,24 @@
 {% block content %}
 <div class="card">
     <div class="card-header">Filter Movements</div>
-    <form method="get">
-        <label for="movement_type">Movement Type</label>
-        <select name="type" id="movement_type">
-            <option value="">All Types</option>
-            {% for code, label in movement_type_choices %}
-            <option value="{{ code }}" {% if movement_type == code %}selected{% endif %}>
-                {{ label }}
-            </option>
-            {% endfor %}
-        </select>
+    <form method="get" class="movement-filters">
+        <div>
+            <label for="movement_type">Movement Type</label>
+            <select name="type" id="movement_type">
+                <option value="">All Types</option>
+                {% for code, label in movement_type_choices %}
+                <option value="{{ code }}" {% if movement_type == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="movement_date">Date</label>
+            <input type="date" name="date" id="movement_date" value="{{ movement_date }}">
+        </div>
         <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_stock_movements' %}">Clear</a>
     </form>
 </div>
 

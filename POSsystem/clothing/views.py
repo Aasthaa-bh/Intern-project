@@ -439,6 +439,7 @@ def variant_delete(request, product_id, variant_id):
 def stock_movement_list(request):
     business = _get_request_business(request)
     movement_type = (request.GET.get("type") or "").strip().upper()
+    movement_date = (request.GET.get("date") or "").strip()
 
     if not _model_table_ok(StockMovement):
         return HttpResponseForbidden("Stock movement table schema is out of date. Run migrations.")
@@ -454,9 +455,13 @@ def stock_movement_list(request):
     else:
         movement_type = ""
 
+    if movement_date:
+        movements = movements.filter(created_at__date=movement_date)
+
     context = {
         "movements": movements.order_by("-created_at")[:200],
         "movement_type": movement_type,
+        "movement_date": movement_date,
         "movement_type_choices": StockMovement.MOVEMENT_TYPE,
     }
     return render(request, "clothing/stock_movements.html", context)
