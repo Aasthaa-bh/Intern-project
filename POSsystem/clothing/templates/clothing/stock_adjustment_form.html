@@ -1,0 +1,25 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Create Stock Adjustment{% endblock %}
+{% block page_title %}Create Stock Adjustment{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_stock_movements' %}">Back to Movements</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">Adjustment Entry</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Item</label>{{ form.item }}</div>
+            <div><label>Variant</label>{{ form.variant }}</div>
+            <div><label>Movement Type</label>{{ form.movement_type }}</div>
+            <div><label>Quantity</label>{{ form.quantity }}</div>
+            <div style="grid-column: 1 / -1;"><label>Note</label>{{ form.note }}</div>
+        </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save Adjustment</button>
+</form>
+{% endblock %}

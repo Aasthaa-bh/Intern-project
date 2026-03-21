@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
-
+from django.db import models
+from .utils_barcode import generate_barcode_image
 
 class Category(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -79,18 +80,22 @@ class Item(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        if self.sku:
+            return f"{self.name} ({self.sku})"
+        return self.name
+
 class ItemVariant(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="variants")
+    item = models.ForeignKey("pos.Item", on_delete=models.CASCADE, related_name="variants")
 
-    name = models.CharField(max_length=100)  # e.g. Black / M, 500ml, Large
+    name = models.CharField(max_length=100)
     sku = models.CharField(max_length=100)
     barcode = models.CharField(max_length=100, null=True, blank=True)
+    barcode_image = models.CharField(max_length=255, blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    
 
     track_stock = models.BooleanField(default=True)
     stock_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -107,13 +112,41 @@ class ItemVariant(models.Model):
             ("item", "name"),
         )
 
+    def generate_next_barcode(self):
+        prefix = "CLTH-"
+
+        last_variant = ItemVariant.objects.filter(
+            business=self.business,
+            barcode__startswith=prefix
+        ).order_by("-id").first()
+
+        next_number = 1
+        if last_variant and last_variant.barcode:
+            try:
+                last_number = int(last_variant.barcode.replace(prefix, ""))
+                next_number = last_number + 1
+            except ValueError:
+                next_number = 1
+
+        return f"{prefix}{next_number:06d}"
+
     def save(self, *args, **kwargs):
         if self.item_id and not self.business_id:
             self.business = self.item.business
+
+        if not self.barcode and self.business_id:
+            self.barcode = self.generate_next_barcode()
+
         super().save(*args, **kwargs)
+
+        if self.barcode and not self.barcode_image:
+            file_name = f"variant_{self.id}_{self.barcode}"
+            self.barcode_image = generate_barcode_image(self.barcode, file_name)
+            super().save(update_fields=["barcode_image"])
 
     def __str__(self):
         return f"{self.item.name} / {self.name}"
+
 
 class Customer(models.Model):
 
@@ -245,12 +278,23 @@ class Purchase(models.Model):
     notes = models.CharField(max_length=255, blank=True)
 
     created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
+    received_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(
+        "accounts.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="purchases_received",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("business", "purchase_no")
+
+    def __str__(self):
+        return self.purchase_no
         
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name="items")
@@ -261,12 +305,29 @@ class PurchaseItem(models.Model):
     variant_name_snapshot = models.CharField(max_length=100, blank=True)
     sku_snapshot = models.CharField(max_length=100, blank=True)
 
+    expected_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    received_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
 
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
+    received_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(
+        "accounts.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="purchase_items_received",
+    )
+
+    @property
+    def remaining_quantity(self):
+        return (self.quantity or 0) - (self.received_quantity or 0)
+
+    def __str__(self):
+        return f"{self.purchase.purchase_no} - {self.item_name_snapshot}"
     
 class StockMovement(models.Model):
 
@@ -280,6 +341,11 @@ class StockMovement(models.Model):
         ("DAMAGE_OUT", "Damage Out"),
     )
 
+    RETURN_CONDITION = (
+        ("RESELLABLE", "Resellable"),
+        ("DAMAGED", "Damaged"),
+    )
+
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
     variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
@@ -290,6 +356,7 @@ class StockMovement(models.Model):
     reference_type = models.CharField(max_length=30, blank=True)
     reference_id = models.PositiveIntegerField(null=True, blank=True)
 
+    return_condition = models.CharField(max_length=20, choices=RETURN_CONDITION, null=True, blank=True)
     note = models.CharField(max_length=255, blank=True)
     created_by = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
 

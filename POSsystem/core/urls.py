@@ -1,6 +1,6 @@
 from django.urls import path
 from .views_staff import staff_delete, staff_list, staff_create, staff_edit, staff_toggle_active, staff_reset_password 
-from .views import (home_view, get_started_view, superadmin_dashboard,  superadmin_requests, approve_request,reject_request, request_detail, owner_dashboard,)
+from .views import (home_view, get_started_view, superadmin_dashboard,  superadmin_requests, approve_request,reject_request, request_detail, owner_dashboard, business_dashboard_router)
 
 urlpatterns = [
     path("", home_view, name="home"),
@@ -17,4 +17,5 @@ urlpatterns = [
     path("owner/staff/<int:staff_id>/toggle-active/", staff_toggle_active, name="staff_toggle_active"),
     path("owner/staff/<int:staff_id>/reset-password/", staff_reset_password, name="staff_reset_password"),
     path("owner/staff/<int:staff_id>/delete/", staff_delete, name="staff_delete"),
+    path("dashboard/", business_dashboard_router, name="business_dashboard_router"),
 ]

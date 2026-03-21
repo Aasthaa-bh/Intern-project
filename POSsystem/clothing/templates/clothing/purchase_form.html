@@ -1,0 +1,94 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
+{% block page_title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+
+    <div class="card">
+        <div class="card-header">Purchase Details</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div>
+                <label>Supplier</label>
+                {{ form.supplier }}
+                {% if form.supplier.errors %}<div class="alert alert-error">{{ form.supplier.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label>Purchase No</label>
+                {{ form.purchase_no }}
+                {% if form.purchase_no.errors %}<div class="alert alert-error">{{ form.purchase_no.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label>Purchase Date</label>
+                {{ form.purchase_date }}
+                {% if form.purchase_date.errors %}<div class="alert alert-error">{{ form.purchase_date.errors }}</div>{% endif %}
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label>Notes</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<div class="alert alert-error">{{ form.notes.errors }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Purchase Items</div>
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+            <div class="alert alert-error">{{ formset.non_form_errors }}</div>
+        {% endif %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Unit Cost</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line_form in formset %}
+                <tr>
+                    <td>
+                        {{ line_form.id }}
+                        {{ line_form.item }}
+                        {% if line_form.item.errors %}<div class="alert alert-error">{{ line_form.item.errors }}</div>{% endif %}
+                    </td>
+                    <td>
+                        {{ line_form.variant }}
+                        {% if line_form.variant.errors %}<div class="alert alert-error">{{ line_form.variant.errors }}</div>{% endif %}
+                    </td>
+                    <td>
+                        {{ line_form.quantity }}
+                        {% if line_form.quantity.errors %}<div class="alert alert-error">{{ line_form.quantity.errors }}</div>{% endif %}
+                    </td>
+                    <td>
+                        {{ line_form.unit_cost }}
+                        {% if line_form.unit_cost.errors %}<div class="alert alert-error">{{ line_form.unit_cost.errors }}</div>{% endif %}
+                    </td>
+                    <td>
+                        {% if line_form.instance.pk %}
+                            {{ line_form.DELETE }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" type="submit">Save Purchase</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

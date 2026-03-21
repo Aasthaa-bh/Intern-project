@@ -1,0 +1,59 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Purchase Orders{% endblock %}
+{% block page_title %}Purchase Orders{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_purchase_create' %}">Create Purchase</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Purchases</div>
+    {% if purchases %}
+    <table>
+        <thead>
+            <tr>
+                <th>Purchase No</th>
+                <th>Supplier</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ purchase.purchase_no }}</td>
+                <td>{{ purchase.supplier.name }}</td>
+                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
+                <td>
+                    {% if purchase.status == "RECEIVED" %}
+                        <span class="badge badge-success">Received</span>
+                    {% elif purchase.status == "CANCELLED" %}
+                        <span class="badge badge-danger">Cancelled</span>
+                    {% else %}
+                        <span class="badge badge-warning">Draft</span>
+                    {% endif %}
+                </td>
+                <td>{{ purchase.total_amount }}</td>
+                <td>
+                    <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
+                        View
+                    </a>
+                    {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+                    <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
+                        Edit
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No purchase orders found.</p>
+    {% endif %}
+</div>
+{% endblock %}

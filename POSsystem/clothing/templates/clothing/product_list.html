@@ -1,0 +1,54 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Clothing Products{% endblock %}
+{% block page_title %}Product Catalog{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Products</div>
+    {% if products %}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Variants</th>
+                <th>Total Stock</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.sku|default:"-" }}</td>
+                <td>{{ product.category.name|default:"-" }}</td>
+                <td>{{ product.variant_count }}</td>
+                <td>{{ product.total_stock }}</td>
+                <td>{{ product.price }}</td>
+                <td>
+                    <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
+                        View
+                    </a>
+                    <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                        Edit
+                    </a>
+                    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
+                        Add Variant
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No products found.</p>
+    {% endif %}
+</div>
+{% endblock %}

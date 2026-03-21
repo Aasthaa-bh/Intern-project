@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Size, Color, ClothingItem, ClothingVariantDetail, Offer, OfferUsage
+from .models import ClothingItem, ClothingVariantDetail, Color, Size
 
 
 @admin.register(Size)
@@ -18,9 +19,9 @@ class ColorAdmin(admin.ModelAdmin):
 
 @admin.register(ClothingItem)
 class ClothingItemAdmin(admin.ModelAdmin):
-    list_display = ['item', 'gender', 'material', 'fit']
-    list_filter = ['gender']
-    search_fields = ['item__name', 'material']
+    list_display = ["item", "gender", "material", "fit", "updated_at"]
+    list_filter = ["gender"]
+    search_fields = ["item__name", "material", "fit"]
 
 
 @admin.register(ClothingVariantDetail)

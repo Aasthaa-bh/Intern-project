@@ -99,10 +99,6 @@ def superadmin_requests(request):
     })
 
     
-
-
-
-
 @login_required
 def approve_request(request, request_id):
     if request.user.role != "SUPERADMIN":
@@ -117,11 +113,22 @@ def approve_request(request, request_id):
     try:
         with transaction.atomic():
 
-            # 🔹 Generate unique business code
-            while True:
-                business_code = "BIZ" + str(random.randint(1000, 9999))
-                if not Business.objects.filter(business_code=business_code).exists():
-                    break
+            # Generate business code based on business type
+            prefix = (business_request.business_type.code or "BUS").upper()
+
+            last_business = Business.objects.filter(
+                business_code__startswith=prefix
+            ).order_by("-id").first()
+
+            next_number = 1
+            if last_business and last_business.business_code:
+                try:
+                    last_number = int(last_business.business_code.replace(prefix, ""))
+                    next_number = last_number + 1
+                except ValueError:
+                    next_number = 1
+
+            business_code = f"{prefix}{next_number:03d}"
 
             # 🔹 Create Business
             business = Business.objects.create(
@@ -209,7 +216,54 @@ FlexiPOS Team
 
     return redirect("superadmin_dashboard")
    
-           
+@login_required
+def business_dashboard_router(request):
+    user = request.user
+    business = getattr(user, "business", None)
+
+    if not business or not business.business_type:
+        messages.error(request, "No business or business type assigned.")
+        return redirect("login")
+
+    business_type_code = (business.business_type.code or "").upper()
+
+    # OWNER routing
+    if user.role == "OWNER":
+        if business_type_code == "REST":
+            return redirect("owner_dashboard")   # current restaurant owner dashboard
+        elif business_type_code == "CLTH":
+            return redirect("clothing_owner_dashboard")
+        elif business_type_code == "MART":
+            return redirect("mart_owner_dashboard")
+        else:
+            return redirect("owner_dashboard")
+
+    # CASHIER routing
+    if user.role == "CASHIER":
+        if business_type_code == "REST":
+            return redirect("reception_dashboard")
+        elif business_type_code == "CLTH":
+            return redirect("clothing_cashier_dashboard")
+        elif business_type_code == "MART":
+            return redirect("mart_cashier_dashboard")
+        else:
+            return redirect("login")
+
+    # Restaurant-only roles
+    if user.role == "WAITER":
+        if business_type_code == "REST":
+            return redirect("waiter_dashboard")
+        messages.error(request, "Waiter role is only available for restaurant business.")
+        return redirect("login")
+
+    if user.role == "KITCHEN":
+        if business_type_code == "REST":
+            return redirect("restaurant_kitchen_dashboard")
+        messages.error(request, "Kitchen role is only available for restaurant business.")
+        return redirect("login")
+
+    return redirect("login")     
+   
 @login_required
 def reject_request(request, request_id):
     if request.user.role != "SUPERADMIN":
@@ -287,79 +341,4 @@ def owner_dashboard(request):
     if request.user.role != "OWNER":
         return redirect("login")
 
-    business = request.user.business
-
-    # Staff counts
-    total_staff = User.objects.filter(
-        business=business
-    ).exclude(role="OWNER").count()
-
-    active_staff = User.objects.filter(
-        business=business,
-        is_active=True
-    ).exclude(role="OWNER").count()
-
-    # Menu counts
-    total_categories = Category.objects.filter(
-        business=business
-    ).count()
-
-    total_items = Item.objects.filter(
-        business=business
-    ).count()
-
-    active_items = Item.objects.filter(
-        business=business,
-        is_active=True
-    ).count()
-
-    # Table counts
-    total_tables = DiningTable.objects.filter(
-        business=business
-    ).count()
-
-    # Subscription/package info
-    active_subscription = get_active_subscription(business)
-
-    days_remaining = None
-    max_users = active_subscription.package.max_users if active_subscription else 3
-    max_tables = active_subscription.package.max_tables if active_subscription else 5
-    # If package limit should count owner too, use count()
-    # If package limit should count only staff, use exclude(role="OWNER")
-    current_users = User.objects.filter(
-        business=business
-    ).count()
-    
-    current_tables = DiningTable.objects.filter(
-        business=business
-    ).count()
-
-    remaining_users = max_users - current_users
-    if remaining_users < 0:
-        remaining_users = 0
-    
-    remaining_tables = max_tables - current_tables
-    if remaining_tables < 0:
-        remaining_tables = 0
-
-    if active_subscription and active_subscription.end_date:
-        days_remaining = (active_subscription.end_date - timezone.now()).days
-
-    context = {
-        "total_staff": total_staff,
-        "active_staff": active_staff,
-        "total_categories": total_categories,
-        "total_items": total_items,
-        "active_items": active_items,
-        "total_tables": total_tables,
-
-        "active_subscription": active_subscription,
-        "days_remaining": days_remaining,
-        "max_users": max_users,
-        "max_tables": max_tables,
-        "current_users": current_users,
-        "remaining_users": remaining_users,
-        "total_tables": total_tables,
-    }
-
-    return render(request, "owner/dashboard.html", context)
+    return redirect("inventory_dashboard")
