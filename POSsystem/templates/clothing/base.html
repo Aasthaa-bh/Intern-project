@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Clothing Panel{% endblock %}</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="min-h-screen flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-gray-900 text-white flex flex-col">
+      <div class="px-6 py-5 border-b border-gray-800">
+        <div class="text-xl font-bold">👔 FlexiPOS</div>
+        <div class="text-xs text-gray-400 mt-1">Clothing Panel</div>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <!-- Dashboard -->
+        <a href="{% url 'clothing_offer_dashboard' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.path == '/clothing/offers/dashboard/' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Dashboard</span>
+        </a>
+
+        <!-- Products -->
+        <a href="#"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+          <span class="text-sm font-medium">Products</span>
+        </a>
+
+        <!-- All Offers -->
+        <a href="{% url 'clothing_offer_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if '/clothing/offers/list' in request.path %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">All Offers</span>
+        </a>
+
+        <!-- Create Offer -->
+        <a href="{% url 'clothing_offer_create' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if '/clothing/offers/create' in request.path or '/clothing/offers/edit' in request.path %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">+ Create Offer</span>
+        </a>
+
+      </nav>
+
+      <div class="p-4 border-t border-gray-800 text-xs text-gray-400">
+        Logged in as <span class="text-gray-200">{{ request.user.username }}</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col">
+
+      <!-- TOPBAR -->
+      <header class="bg-white border-b border-gray-200">
+        <div class="flex items-center justify-between px-6 py-4">
+          <div>
+            <div class="text-lg font-semibold text-gray-900">{% block page_title %}{% endblock %}</div>
+            <div class="text-xs text-gray-500">{% block page_subtitle %}{% endblock %}</div>
+          </div>
+
+          <div class="flex items-center gap-4">
+
+            <div class="text-sm text-gray-700">
+              {{ request.user.full_name }}
+            </div>
+
+            <!-- Logout -->
+            <a href="{% url 'logout' %}"
+              class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
+              Logout
+            </a>
+
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="p-6">
+        {% if messages %}
+    <div class="mb-4 space-y-2">
+      {% for message in messages %}
+        <div class="px-4 py-3 rounded-md border
+                    {% if message.tags == 'error' %}
+                      bg-red-50 text-red-700 border-red-200
+                    {% elif message.tags == 'success' %}
+                      bg-green-50 text-green-700 border-green-200
+                    {% else %}
+                      bg-gray-50 text-gray-700 border-gray-200
+                    {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+{% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+</body>
+</html>

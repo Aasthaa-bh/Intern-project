@@ -27,6 +27,7 @@ urlpatterns = [
         "restaurant/", include("restaurant.urls"),
     ),
     path("pos/", include("pos.urls")),
+    path("clothing/", include("clothing.urls")),
     path("", include("core.urls")),
     path("superadmin/", include("subscription.urls")),
 ]

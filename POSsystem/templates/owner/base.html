@@ -83,6 +83,36 @@
           <span class="text-sm font-medium">Loyalty Settings</span>
         </a>
 
+        <!-- CLOTHING OFFERS -->
+        <div class="mt-2">
+          <button onclick="toggleOffers()" 
+                  class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800
+                  {% if '/clothing/offers/' in request.path %} bg-gray-800 {% endif %}">
+            <span class="text-sm font-medium">Offers</span>
+            <span id="offerArrow">▾</span>
+          </button>
+
+          <div id="offerSubmenu" class="ml-4 mt-1 space-y-1">
+            <a href="{% url 'clothing_offer_dashboard' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm
+              {% if request.path == '/clothing/offers/dashboard/' %} bg-gray-700 {% endif %}">
+              Dashboard
+            </a>
+
+            <a href="{% url 'clothing_offer_list' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm
+              {% if '/clothing/offers/list' in request.path %} bg-gray-700 {% endif %}">
+              All Offers
+            </a>
+
+            <a href="{% url 'clothing_offer_create' %}"
+              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm
+              {% if '/clothing/offers/create' in request.path %} bg-gray-700 {% endif %}">
+              Create Offer
+            </a>
+          </div>
+        </div>
+
         <!-- Reports -->
         <a href="{% url 'restaurant_reports' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
@@ -152,5 +182,28 @@
       </main>
     </div>
   </div>
+
+  <script>
+    function toggleMenu() {
+      const submenu = document.getElementById('menuSubmenu');
+      const arrow = document.getElementById('menuArrow');
+      submenu.classList.toggle('hidden');
+      arrow.textContent = submenu.classList.contains('hidden') ? '▸' : '▾';
+    }
+
+    function toggleTables() {
+      const submenu = document.getElementById('tableSubmenu');
+      const arrow = document.getElementById('tableArrow');
+      submenu.classList.toggle('hidden');
+      arrow.textContent = submenu.classList.contains('hidden') ? '▸' : '▾';
+    }
+
+    function toggleOffers() {
+      const submenu = document.getElementById('offerSubmenu');
+      const arrow = document.getElementById('offerArrow');
+      submenu.classList.toggle('hidden');
+      arrow.textContent = submenu.classList.contains('hidden') ? '▸' : '▾';
+    }
+  </script>
 </body>
 </html>

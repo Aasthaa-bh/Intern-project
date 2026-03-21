@@ -1,0 +1,148 @@
+{% extends "clothing/base.html" %}
+{% block title %}Sales Offers{% endblock %}
+{% block page_title %}Sales Offers{% endblock %}
+{% block page_subtitle %}Manage discounts and promotions{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="p-5 flex items-center justify-between border-b border-gray-200">
+      <div>
+        <div class="text-base font-semibold text-gray-900">Offers</div>
+        <div class="text-sm text-gray-500">
+          Active: {{ active_count }} | Inactive: {{ inactive_count }} | Expired: {{ expired_count }}
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'clothing_offer_dashboard' %}"
+           class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">
+          📊 Dashboard
+        </a>
+        <a href="{% url 'clothing_offer_create' %}"
+           class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+          + Add Offer
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-200 bg-gray-50">
+      <form method="get" class="flex gap-3">
+        <input type="text" 
+               name="search" 
+               value="{{ search }}"
+               placeholder="Search offers..."
+               class="px-3 py-2 border border-gray-300 rounded-md text-sm flex-1">
+        
+        <select name="offer_type" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+          <option value="">All Types</option>
+          {% for value, label in offer_types %}
+            <option value="{{ value }}" {% if offer_type_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        
+        <select name="status" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+          <option value="">All Status</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        
+        <button type="submit" class="px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-800">
+          Filter
+        </button>
+        <a href="{% url 'clothing_offer_list' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
+          Clear
+        </a>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="text-left px-5 py-3 font-medium">Offer Name</th>
+            <th class="text-left px-5 py-3 font-medium">Type</th>
+            <th class="text-left px-5 py-3 font-medium">Discount</th>
+            <th class="text-left px-5 py-3 font-medium">Valid Period</th>
+            <th class="text-left px-5 py-3 font-medium">Status</th>
+            <th class="text-right px-5 py-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for offer in offers %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3">
+              <div class="font-medium text-gray-900">{{ offer.offer_name }}</div>
+              {% if offer.description %}
+                <div class="text-xs text-gray-500">{{ offer.description|truncatewords:10 }}</div>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3">
+              <span class="text-gray-700">{{ offer.get_offer_type_display }}</span>
+              {% if offer.product %}
+                <div class="text-xs text-gray-500">Product: {{ offer.product.name }}</div>
+              {% endif %}
+              {% if offer.offer_type == 'VARIANT' and offer.variants.exists %}
+                <div class="text-xs text-blue-600">Variants: {{ offer.get_variants_display }}</div>
+              {% endif %}
+              {% if offer.category %}
+                <div class="text-xs text-gray-500">Category: {{ offer.category.name }}</div>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3">
+              <span class="font-semibold text-green-600">{{ offer.get_discount_display }}</span>
+              {% if offer.minimum_purchase > 0 %}
+                <div class="text-xs text-gray-500">Min: Rs {{ offer.minimum_purchase }}</div>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3">
+              <div class="text-gray-700">{{ offer.start_date|date:"M d, Y" }}</div>
+              <div class="text-xs text-gray-500">to {{ offer.end_date|date:"M d, Y" }}</div>
+            </td>
+            <td class="px-5 py-3">
+              {% if offer.status == 'ACTIVE' %}
+                <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Active</span>
+              {% elif offer.status == 'INACTIVE' %}
+                <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">Inactive</span>
+              {% else %}
+                <span class="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">Expired</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-right">
+              <div class="flex gap-2 justify-end">
+                <a href="{% url 'clothing_offer_detail' offer.id %}"
+                   class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs">
+                  View
+                </a>
+                <a href="{% url 'clothing_offer_edit' offer.id %}"
+                   class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs">
+                  Edit
+                </a>
+                {% if offer.status != 'EXPIRED' %}
+                  <form method="post" action="{% url 'clothing_offer_toggle_status' offer.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-3 py-1.5 rounded-md {% if offer.status == 'ACTIVE' %}bg-yellow-600 hover:bg-yellow-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white text-xs">
+                      {% if offer.status == 'ACTIVE' %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                  </form>
+                {% endif %}
+                <a href="{% url 'clothing_offer_delete' offer.id %}"
+                   class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-xs">
+                  Delete
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-gray-500">
+              No offers found. <a href="{% url 'clothing_offer_create' %}" class="text-blue-600 hover:underline">Create your first offer</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
