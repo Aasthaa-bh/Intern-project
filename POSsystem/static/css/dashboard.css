@@ -108,3 +108,628 @@ color:#374151;
 .dark .label{
 color:#d1d5db;
 }
+
+/* =========================================================
+   CLOTHING MODULE SUPPORT CSS
+   Add this at the END of static/css/dashboard.css
+   ========================================================= */
+
+:root {
+    --card-bg: #ffffff;
+    --card-border: #e5e7eb;
+    --border: #e5e7eb;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success-bg: #dcfce7;
+    --success-text: #166534;
+    --warning-bg: #fef3c7;
+    --warning-text: #92400e;
+    --danger-bg: #fee2e2;
+    --danger-text: #991b1b;
+    --gray-bg: #f9fafb;
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+}
+
+html.dark {
+    --card-bg: #111827;
+    --card-border: #374151;
+    --border: #374151;
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
+    --gray-bg: #0f172a;
+}
+
+/* Main page area */
+main {
+    background: #f3f4f6;
+    min-height: calc(100vh - 73px);
+}
+
+html.dark main {
+    background: #030712;
+}
+
+/* Basic typography help for content area */
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.25;
+}
+
+main p {
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+main small,
+main .text-muted {
+    color: var(--text-muted);
+}
+
+/* =========================
+   CARD SYSTEM
+   ========================= */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+
+.card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+}
+
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header .card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: transparent;
+}
+
+/* In case some templates directly place content inside .card */
+.card > :not(.card-header):not(.card-body):not(.card-footer) {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+/* =========================
+   STATS GRID
+   ========================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.25rem;
+}
+
+.stat-card h3,
+.stat-card .stat-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem 0;
+}
+
+.stat-card p,
+.stat-card .stat-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* =========================
+   QUICK ACTIONS
+   ========================= */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.quick-action {
+    display: block;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1rem 1.1rem;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.quick-action:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+}
+
+.quick-action h3,
+.quick-action .action-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 0.35rem 0;
+}
+
+.quick-action p,
+.quick-action .action-text {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+}
+
+/* =========================
+   FORMS
+   ========================= */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+}
+
+.form-grid .col-12 { grid-column: span 12; }
+.form-grid .col-6 { grid-column: span 6; }
+.form-grid .col-4 { grid-column: span 4; }
+.form-grid .col-3 { grid-column: span 3; }
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid .col-12,
+    .form-grid .col-6,
+    .form-grid .col-4,
+    .form-grid .col-3 {
+        grid-column: span 1;
+    }
+}
+
+label {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.45rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+select,
+textarea {
+    width: 100%;
+    display: block;
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0.72rem 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+html.dark input[type="text"],
+html.dark input[type="number"],
+html.dark input[type="email"],
+html.dark input[type="password"],
+html.dark input[type="date"],
+html.dark input[type="search"],
+html.dark input[type="url"],
+html.dark input[type="tel"],
+html.dark select,
+html.dark textarea {
+    background: #111827;
+    color: #f9fafb;
+    border-color: #374151;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #9ca3af;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.helptext,
+.form-text,
+.field-help {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+}
+
+.errorlist {
+    margin: 0.4rem 0 0 0;
+    padding-left: 1rem;
+    color: #dc2626;
+    font-size: 0.88rem;
+}
+
+/* Search / filter rows */
+.filter-form,
+.filters,
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+.btn,
+button,
+input[type="submit"],
+input[type="button"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.72rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary,
+button.btn-primary,
+a.btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover,
+button.btn-primary:hover,
+a.btn-primary:hover {
+    background: var(--primary-hover);
+    color: #ffffff;
+}
+
+.btn-secondary,
+button.btn-secondary,
+a.btn-secondary {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover,
+a.btn-secondary:hover {
+    background: #d1d5db;
+    color: #111827;
+}
+
+html.dark .btn-secondary,
+html.dark button.btn-secondary,
+html.dark a.btn-secondary {
+    background: #374151;
+    color: #f9fafb;
+}
+
+html.dark .btn-secondary:hover,
+html.dark button.btn-secondary:hover,
+html.dark a.btn-secondary:hover {
+    background: #4b5563;
+}
+
+/* Make header action buttons consistent */
+header .btn,
+header a[class*="btn"],
+header button[class*="btn"] {
+    white-space: nowrap;
+}
+
+/* =========================
+   TABLES
+   ========================= */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    margin: 0;
+}
+
+thead th {
+    text-align: left;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+    white-space: nowrap;
+}
+
+html.dark thead th {
+    background: #0f172a;
+}
+
+tbody td {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: rgba(148, 163, 184, 0.06);
+}
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.table-actions a,
+.table-actions button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+.empty-state,
+.no-data,
+.no-results {
+    padding: 1rem 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* =========================
+   BADGES
+   ========================= */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.badge-success {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+.badge-danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+.badge-neutral {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+html.dark .badge-neutral {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+/* =========================
+   ALERTS
+   ========================= */
+.alert,
+.messages .success,
+.messages .error,
+.messages .warning,
+.messages .info {
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    font-size: 0.92rem;
+}
+
+.alert-success,
+.messages .success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.alert-error,
+.alert-danger,
+.messages .error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.alert-warning,
+.messages .warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.alert-info,
+.messages .info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+/* =========================
+   UTILITY HELPERS
+   ========================= */
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================
+   CLOTHING PAGE SAFE FIXES
+   ========================= */
+
+/* Many clothing templates place content directly inside cards */
+.card > h2,
+.card > h3,
+.card > p,
+.card > form,
+.card > table,
+.card > .table-responsive,
+.card > .stats-grid,
+.card > .quick-actions-grid {
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+}
+
+.card > h2:first-child,
+.card > h3:first-child,
+.card > p:first-child,
+.card > form:first-child,
+.card > table:first-child,
+.card > .table-responsive:first-child,
+.card > .stats-grid:first-child,
+.card > .quick-actions-grid:first-child {
+    margin-top: 1.25rem;
+}
+
+.card > h2:last-child,
+.card > h3:last-child,
+.card > p:last-child,
+.card > form:last-child,
+.card > table:last-child,
+.card > .table-responsive:last-child,
+.card > .stats-grid:last-child,
+.card > .quick-actions-grid:last-child {
+    margin-bottom: 1.25rem;
+}
+
+/* Make inline filter controls nicer */
+.card form select,
+.card form input[type="text"],
+.card form input[type="search"],
+.card form input[type="number"] {
+    min-height: 44px;
+}
+
+/* Keep header action area aligned */
+header .flex.items-center.gap-3 {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Fix plain links inside action areas */
+.table-actions a,
+.card a.btn,
+.card-header a.btn,
+.quick-action {
+    text-decoration: none;
+}

@@ -16,6 +16,7 @@
     </script>
 
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -106,29 +107,24 @@
                 <!-- CLOTHING SIDEBAR -->
                 {% elif current_business_type == "clothing" %}
 
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                    <a href="{% url 'clothing_inventory_dashboard' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
+                    </a>
+
+                    <a href="{% url 'clothing_product_list' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Products" %}</span>
                     </a>
 
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Product Variants" %}</span>
+                    <a href="{% url 'clothing_variant_list' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_variant_list' or request.resolver_match.url_name == 'clothing_variant_create' or request.resolver_match.url_name == 'clothing_variant_edit' or request.resolver_match.url_name == 'clothing_variant_delete' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Variants" %}</span>
                     </a>
 
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Categories" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Inventory" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
+                    <a href="{% url 'clothing_stock_movements' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Stock Movements" %}</span>
                     </a>
 
                 <!-- MART SIDEBAR -->
@@ -174,47 +170,52 @@
                         </div>
                     </div>
 
-                    <!-- PROFILE -->
-                    <div class="relative">
-                        <button type="button" onclick="toggleProfileMenu()"
-                                class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
-                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
-                                {{ request.user.full_name|first }}
-                            </div>
-                            {{ request.user.full_name }}
-                        </button>
+                    <div class="flex items-center gap-3">
+                        {% block header_actions %}{% endblock %}
 
-                        <!-- PROFILE DROPDOWN -->
-                        <div id="profileMenu"
-                             class="hidden absolute right-0 mt-2 w-52 rounded-lg shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <!-- PROFILE -->
+                        <div class="relative">
+                            <button type="button" onclick="toggleProfileMenu()"
+                                    class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
+                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
+                                    {{ request.user.full_name|first }}
+                                </div>
+                                {{ request.user.full_name }}
+                            </button>
 
-                            <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                                <p class="text-sm font-semibold">{{ request.user.full_name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-300">
-                                    {{ request.user.email }}
-                                </p>
-                            </div>
+                            <!-- PROFILE DROPDOWN -->
+                            <div id="profileMenu"
+                                 class="hidden absolute right-0 mt-2 w-52 rounded-lg shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white z-50">
 
-                            <div class="py-1">
-                                <a href="{% url 'business_package_list' %}"
-                                   class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    {% trans "Upgrade Plan" %}
-                                </a>
+                                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <p class="text-sm font-semibold">{{ request.user.full_name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-300">
+                                        {{ request.user.email }}
+                                    </p>
+                                </div>
 
-                                <a href="{% url 'user_settings' %}"
-                                   class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    {% trans "Settings" %}
-                                </a>
+                                <div class="py-1">
+                                    <a href="{% url 'business_package_list' %}"
+                                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        {% trans "Upgrade Plan" %}
+                                    </a>
 
-                                <div class="border-t border-gray-200 dark:border-gray-700"></div>
+                                    <a href="{% url 'user_settings' %}"
+                                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        {% trans "Settings" %}
+                                    </a>
 
-                                <a href="{% url 'logout' %}"
-                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                    {% trans "Log out" %}
-                                </a>
+                                    <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+                                    <a href="{% url 'logout' %}"
+                                       class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                        {% trans "Log out" %}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </header>
 
@@ -254,10 +255,10 @@
         }
 
         window.addEventListener("click", function(e) {
-            const profileWrapper = e.target.closest(".relative");
+            const profileButton = e.target.closest("button[onclick='toggleProfileMenu()']");
             const profileMenu = document.getElementById("profileMenu");
 
-            if (!profileWrapper && profileMenu) {
+            if (!profileButton && profileMenu && !profileMenu.contains(e.target)) {
                 profileMenu.classList.add("hidden");
             }
         });

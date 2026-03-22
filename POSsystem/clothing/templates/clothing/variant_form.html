@@ -1,7 +1,8 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
+{% block page_subtitle %}Manage variant details, stock and pricing{% endblock %}
 
 {% block header_actions %}
 <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
@@ -19,7 +20,7 @@
 
     <div class="card">
         <div class="card-header">Variant Information</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+        <div class="form-grid">
             <div><label>Name</label>{{ form.name }}</div>
             <div><label>SKU</label>{{ form.sku }}</div>
             <div><label>Barcode</label>{{ form.barcode }}</div>
@@ -36,6 +37,8 @@
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">{% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}</button>
+    <button class="btn btn-primary" type="submit">
+        {% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}
+    </button>
 </form>
 {% endblock %}

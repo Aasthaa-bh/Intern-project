@@ -1,52 +1,8 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
-{% block title %}Clothing Inventory - Dashboard{% endblock %}
-{% block page_title %}Clothing Inventory Dashboard{% endblock %}
-
-{% block extra_css %}
-<style>
-    .quick-actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-    }
-
-    .quick-action {
-        display: block;
-        text-decoration: none;
-        border: 1px solid #d8d8d8;
-        border-radius: 18px;
-        padding: 16px;
-        background: linear-gradient(180deg, #ffffff 0%, #f3f3f3 100%);
-        color: #111111;
-        transition: all 0.2s ease;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
-    }
-
-    .quick-action:hover {
-        background: linear-gradient(180deg, #111111 0%, #050505 100%);
-        border-color: #111111;
-        transform: translateY(-1px);
-    }
-
-    .quick-action-title {
-        font-size: 15px;
-        font-weight: 700;
-        margin-bottom: 4px;
-        color: #111111;
-    }
-
-    .quick-action-subtitle {
-        font-size: 12px;
-        color: #5d5d5d;
-    }
-
-    .quick-action:hover .quick-action-title,
-    .quick-action:hover .quick-action-subtitle {
-        color: #ffffff;
-    }
-</style>
-{% endblock %}
+{% block title %}Inventory Dashboard{% endblock %}
+{% block page_title %}Inventory Dashboard{% endblock %}
+{% block page_subtitle %}Overview of clothing inventory and recent movements{% endblock %}
 
 {% block content %}
 <div class="card">
