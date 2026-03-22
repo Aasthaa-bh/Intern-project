@@ -20,21 +20,28 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path("kitchen/", RedirectView.as_view(pattern_name="restaurant_kitchen_dashboard", permanent=False)),
-   path("admin/", admin.site.urls),
+    path(
+        "kitchen/",
+        RedirectView.as_view(
+            pattern_name="restaurant_kitchen_dashboard", permanent=False
+        ),
+    ),
+    path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path(
-        "restaurant/", include("restaurant.urls"),
+        "restaurant/",
+        include("restaurant.urls"),
     ),
     path("pos/", include("pos.urls")),
     path("", include("core.urls")),
     path("superadmin/", include("subscription.urls")),
+    # antim added clothing app urls
+    path("clothing/", include("clothing.urls")),
 ]
-
 
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 if settings.DEBUG:
-   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
