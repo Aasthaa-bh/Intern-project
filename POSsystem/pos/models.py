@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from cloudinary.models import CloudinaryField  # antim added for image handling
 
 
 class Category(models.Model):
@@ -9,9 +10,10 @@ class Category(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return self.name
+
 
 class Brand(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -26,7 +28,8 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+
 class Supplier(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
@@ -46,6 +49,11 @@ class Supplier(models.Model):
     def __str__(self):
         return self.name
 
+
+# antim added for clothing item detailsfrom cloudinary.models import CloudinaryField
+import cloudinary.uploader
+
+
 class Item(models.Model):
 
     ITEM_TYPE = (
@@ -56,14 +64,22 @@ class Item(models.Model):
 
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    brand = models.ForeignKey("pos.Brand", null=True, blank=True, on_delete=models.SET_NULL)
+    brand = models.ForeignKey(
+        "pos.Brand", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=100, null=True, blank=True)
     barcode = models.CharField(max_length=100, null=True, blank=True)
     item_type = models.CharField(max_length=20, choices=ITEM_TYPE)
-    
     description = models.TextField(blank=True)
+
+    # folder is set dynamically in save()
+    image = CloudinaryField(
+        "image",
+        null=True,
+        blank=True,
+    )
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     cost_price = models.DecimalField(
@@ -75,9 +91,21 @@ class Item(models.Model):
     min_stock_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     is_active = models.BooleanField(default=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def get_cloudinary_folder(self):
+        #  sets folder based on item_type
+        if self.item_type == "MENU":
+            return "pos-system/restaurant"
+        elif self.item_type == "PRODUCT":
+            return "pos-system/clothing"
+        else:
+            return "pos-system/mart"
+
+    def __str__(self):
+        return self.name
+
 
 class ItemVariant(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -88,9 +116,9 @@ class ItemVariant(models.Model):
     barcode = models.CharField(max_length=100, null=True, blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    
+    cost_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
     track_stock = models.BooleanField(default=True)
     stock_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -110,10 +138,15 @@ class ItemVariant(models.Model):
     def save(self, *args, **kwargs):
         if self.item_id and not self.business_id:
             self.business = self.item.business
+        # Antim added
+        # But item_id check should b:
+        if self.item_id and not self.business_id:
+            self.business_id = self.item.business_id
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.item.name} / {self.name}"
+
 
 class Customer(models.Model):
 
@@ -167,8 +200,10 @@ class Order(models.Model):
     opened_at = models.DateTimeField()
     closed_at = models.DateTimeField(null=True, blank=True)
 
-    business_date = models.DateField(null=True, blank=True)  # to track sales by business date instead of calendar date
-    
+    business_date = models.DateField(
+        null=True, blank=True
+    )  # to track sales by business date instead of calendar date
+
     created_by = models.ForeignKey(
         "accounts.User", on_delete=models.PROTECT, related_name="orders_created"
     )
@@ -183,11 +218,17 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if not self.order_no:
+            last = Order.objects.filter(business=self.business).count()
+            self.order_no = f"ORD-{last + 1:05d}"  # ORD-00001
+        super().save(*args, **kwargs)
+
     def confirm(self):
         self.status = "COMPLETED"
         self.closed_at = timezone.now()
         self.save()
-        
+
     class Meta:
         indexes = [
             models.Index(fields=["business", "status", "opened_at"]),
@@ -199,14 +240,18 @@ class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
-    variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
+    variant = models.ForeignKey(
+        "pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT
+    )
 
     item_name_snapshot = models.CharField(max_length=255)
     variant_name_snapshot = models.CharField(max_length=100, blank=True)
     sku_snapshot = models.CharField(max_length=100, blank=True)
 
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    cost_price_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    cost_price_snapshot = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
 
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -222,7 +267,8 @@ class OrderItem(models.Model):
             models.Index(fields=["item"]),
             models.Index(fields=["variant"]),
         ]
-    
+
+
 class Purchase(models.Model):
 
     STATUS = (
@@ -251,11 +297,16 @@ class Purchase(models.Model):
 
     class Meta:
         unique_together = ("business", "purchase_no")
-        
+
+
 class PurchaseItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name="items")
+    purchase = models.ForeignKey(
+        Purchase, on_delete=models.CASCADE, related_name="items"
+    )
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
-    variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
+    variant = models.ForeignKey(
+        "pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT
+    )
 
     item_name_snapshot = models.CharField(max_length=255)
     variant_name_snapshot = models.CharField(max_length=100, blank=True)
@@ -267,7 +318,8 @@ class PurchaseItem(models.Model):
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
-    
+
+
 class StockMovement(models.Model):
 
     MOVEMENT_TYPE = (
@@ -282,7 +334,9 @@ class StockMovement(models.Model):
 
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
-    variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
+    variant = models.ForeignKey(
+        "pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT
+    )
 
     movement_type = models.CharField(max_length=30, choices=MOVEMENT_TYPE)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
@@ -295,14 +349,15 @@ class StockMovement(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         indexes = [
             models.Index(fields=["item"]),
             models.Index(fields=["variant"]),
             models.Index(fields=["business", "movement_type", "created_at"]),
         ]
-    
+
+
 class Invoice(models.Model):
 
     STATUS = (
@@ -330,8 +385,9 @@ class Invoice(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["business", "status", "issued_at"]),   
+            models.Index(fields=["business", "status", "issued_at"]),
         ]
+
 
 class Payment(models.Model):
 
@@ -373,7 +429,6 @@ class LoyaltySetting(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
 
 
 class LoyaltyTransaction(models.Model):
