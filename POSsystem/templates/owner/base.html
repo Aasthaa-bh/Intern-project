@@ -40,9 +40,9 @@
 
             <nav class="flex-1 px-3 py-4 space-y-1">
 
-                <!-- Common -->
+                <!-- COMMON -->
                 <a href="{% url 'owner_dashboard' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/dashboard/' in request.path %}bg-gray-800{% endif %}">
+                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.path == '/owner/dashboard/' %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
                 </a>
 
@@ -63,12 +63,12 @@
 
                         <div id="menuSubmenu" class="ml-4 mt-1 space-y-1">
                             <a href="{% url 'category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'category_list' %}bg-gray-800{% endif %}">
                                 {% trans "Categories" %}
                             </a>
 
                             <a href="{% url 'item_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'item_list' %}bg-gray-800{% endif %}">
                                 {% trans "Menu Items" %}
                             </a>
                         </div>
@@ -83,24 +83,24 @@
 
                         <div id="tableSubmenu" class="ml-4 mt-1 space-y-1">
                             <a href="{% url 'table_category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_category_list' %}bg-gray-800{% endif %}">
                                 {% trans "Table Categories" %}
                             </a>
 
                             <a href="{% url 'table_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_list' %}bg-gray-800{% endif %}">
                                 {% trans "Dining Tables" %}
                             </a>
                         </div>
                     </div>
 
                     <a href="{% url 'loyalty_settings' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'loyalty_settings' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Loyalty Settings" %}</span>
                     </a>
 
                     <a href="{% url 'restaurant_reports' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_reports' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Reports" %}</span>
                     </a>
 
@@ -113,7 +113,7 @@
                     </a>
 
                     <a href="{% url 'clothing_product_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' %}bg-gray-800{% endif %}">
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_edit' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Products" %}</span>
                     </a>
 
@@ -126,6 +126,31 @@
                        class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Stock Movements" %}</span>
                     </a>
+
+                    <div class="mt-2">
+                        <button type="button" onclick="toggleOffers()"
+                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800 {% if '/clothing/offers/' in request.path %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Offers" %}</span>
+                            <span id="offerArrow">{% if '/clothing/offers/' in request.path %}▾{% else %}▸{% endif %}</span>
+                        </button>
+
+                        <div id="offerSubmenu" class="ml-4 mt-1 space-y-1 {% if '/clothing/offers/' not in request.path %}hidden{% endif %}">
+                            <a href="{% url 'clothing_offer_dashboard' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'clothing_offer_dashboard' %}bg-gray-700{% endif %}">
+                                {% trans "Dashboard" %}
+                            </a>
+
+                            <a href="{% url 'clothing_offer_list' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'clothing_offer_list' %}bg-gray-700{% endif %}">
+                                {% trans "All Offers" %}
+                            </a>
+
+                            <a href="{% url 'clothing_offer_create' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'clothing_offer_create' %}bg-gray-700{% endif %}">
+                                {% trans "Create Offer" %}
+                            </a>
+                        </div>
+                    </div>
 
                 <!-- MART SIDEBAR -->
                 {% elif current_business_type == "mart" %}
@@ -173,22 +198,20 @@
                     <div class="flex items-center gap-3">
                         {% block header_actions %}{% endblock %}
 
-                        <!-- PROFILE -->
                         <div class="relative">
                             <button type="button" onclick="toggleProfileMenu()"
                                     class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
                                 <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
-                                    {{ request.user.full_name|first }}
+                                    {{ request.user.full_name|default:request.user.username|first }}
                                 </div>
-                                {{ request.user.full_name }}
+                                {{ request.user.full_name|default:request.user.username }}
                             </button>
 
-                            <!-- PROFILE DROPDOWN -->
                             <div id="profileMenu"
                                  class="hidden absolute right-0 mt-2 w-52 rounded-lg shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white z-50">
 
                                 <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                                    <p class="text-sm font-semibold">{{ request.user.full_name }}</p>
+                                    <p class="text-sm font-semibold">{{ request.user.full_name|default:request.user.username }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-300">
                                         {{ request.user.email }}
                                     </p>
@@ -219,7 +242,6 @@
                 </div>
             </header>
 
-            <!-- PAGE CONTENT -->
             <main class="p-6">
                 {% block content %}{% endblock %}
             </main>
@@ -240,6 +262,16 @@
         function toggleTables() {
             const submenu = document.getElementById("tableSubmenu");
             const arrow = document.getElementById("tableArrow");
+
+            if (submenu && arrow) {
+                submenu.classList.toggle("hidden");
+                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
+            }
+        }
+
+        function toggleOffers() {
+            const submenu = document.getElementById("offerSubmenu");
+            const arrow = document.getElementById("offerArrow");
 
             if (submenu && arrow) {
                 submenu.classList.toggle("hidden");

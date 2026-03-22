@@ -34,11 +34,18 @@
                 <td>{{ product.total_stock }}</td>
                 <td>{{ product.price }}</td>
                 <td>
-                    <div class="table-actions">
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">View</a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">Edit</a>
-                        <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
-                    </div>
+                    <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
+                        View
+                    </a>
+                    <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                        Edit
+                    </a>
+                    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
+                        Add Variant
+                    </a>
+                    <a class="btn btn-success" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
+                        Create Offer
+                    </a>
                 </td>
             </tr>
             {% endfor %}

@@ -1,0 +1,117 @@
+{% extends "owner/base.html" %}
+{% block title %}Offer Details{% endblock %}
+{% block page_title %}{{ offer.offer_name }}{% endblock %}
+{% block page_subtitle %}Offer details and usage statistics{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'clothing_offer_edit' offer.id %}"
+   class="btn btn-primary">
+    Edit Offer
+</a>
+<a href="{% url 'clothing_offer_list' %}"
+   class="btn btn-secondary">
+    Back to List
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Offer Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label>Offer Name</label>
+                    <p class="mt-1">{{ offer.offer_name }}</p>
+                </div>
+
+                <div>
+                    <label>Offer Type</label>
+                    <p class="mt-1">{{ offer.get_offer_type_display }}</p>
+                </div>
+
+                <div>
+                    <label>Discount</label>
+                    <p class="mt-1 font-semibold text-green-600">{{ offer.get_discount_display }}</p>
+                </div>
+
+                <div>
+                    <label>Status</label>
+                    <div class="mt-1">
+                        {% if offer.status == 'ACTIVE' %}
+                            <span class="badge badge-success">Active</span>
+                        {% elif offer.status == 'INACTIVE' %}
+                            <span class="badge badge-neutral">Inactive</span>
+                        {% else %}
+                            <span class="badge badge-danger">Expired</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label>Valid From</label>
+                    <p class="mt-1">{{ offer.start_date|date:"F d, Y" }}</p>
+                </div>
+
+                <div>
+                    <label>Valid Until</label>
+                    <p class="mt-1">{{ offer.end_date|date:"F d, Y" }}</p>
+                </div>
+
+                {% if offer.product %}
+                <div>
+                    <label>Product</label>
+                    <p class="mt-1">{{ offer.product.name }}</p>
+                </div>
+                {% endif %}
+
+                {% if offer.offer_type == 'VARIANT' and offer.variants.exists %}
+                <div>
+                    <label>Variants</label>
+                    <div class="mt-1">
+                        {% for variant in offer.variants.all %}
+                            <div>{{ variant }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if offer.description %}
+                <div class="md:col-span-2">
+                    <label>Description</label>
+                    <p class="mt-1">{{ offer.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Usage Statistics</h3>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Usage</h3>
+                    <p>{{ usage_stats.total_usage|default:0 }}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Total Discount Given</h3>
+                    <p>Rs {{ usage_stats.total_discount|default:0 }}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Average Discount</h3>
+                    <p>Rs {{ usage_stats.avg_discount|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

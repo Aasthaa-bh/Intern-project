@@ -98,7 +98,6 @@ class ItemAdmin(admin.ModelAdmin):
                 qs = qs.filter(business=request.user.business)
         return qs
 
-
 @admin.register(ItemVariant)
 class ItemVariantAdmin(admin.ModelAdmin):
     list_display = ['item', 'name', 'sku', 'stock_qty', 'is_active', 'business']

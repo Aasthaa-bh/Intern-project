@@ -92,6 +92,7 @@ TEMPLATES = [
                  "accounts.context_processors.user_preferences",
                  "core.context_processors.business_context",
                   
+                "clothing.context_processors.sidebar_offers",
             ],
         },
     },
