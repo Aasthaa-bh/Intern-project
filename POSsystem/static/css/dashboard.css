@@ -1,0 +1,110 @@
+/* =========================
+   GLOBAL CARD STYLE
+========================= */
+
+.card{
+background: white;
+border-radius: 12px;
+border: 1px solid #e5e7eb;
+box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.dark .card{
+background:#111827;
+border-color:#374151;
+}
+
+
+/* =========================
+   GLOBAL TABLE STYLE
+========================= */
+
+.table{
+width:100%;
+font-size:14px;
+border-collapse:collapse;
+}
+
+.table th{
+text-align:left;
+padding:12px 20px;
+font-weight:500;
+color:#4b5563;
+background:#f9fafb;
+}
+
+.dark .table th{
+background:#1f2937;
+color:#d1d5db;
+}
+
+.table td{
+padding:12px 20px;
+color:#374151;
+}
+
+.dark .table td{
+color:#d1d5db;
+}
+
+.table tbody tr:hover{
+background:#f9fafb;
+}
+
+.dark .table tbody tr:hover{
+background:#1f2937;
+}
+
+
+/* =========================
+   PRIMARY BUTTON
+========================= */
+
+.btn-primary{
+background:#2563eb;
+color:white;
+padding:8px 16px;
+border-radius:6px;
+font-size:14px;
+font-weight:500;
+transition:0.2s;
+}
+
+.btn-primary:hover{
+background:#1d4ed8;
+}
+
+
+/* =========================
+   INPUT STYLE
+========================= */
+
+.input{
+width:100%;
+padding:8px 12px;
+border-radius:6px;
+border:1px solid #d1d5db;
+background:white;
+color:#111827;
+}
+
+.dark .input{
+background:#1f2937;
+border-color:#374151;
+color:white;
+}
+
+
+/* =========================
+   FORM LABEL
+========================= */
+
+.label{
+font-size:14px;
+font-weight:500;
+color:#374151;
+}
+
+.dark .label{
+color:#d1d5db;
+}

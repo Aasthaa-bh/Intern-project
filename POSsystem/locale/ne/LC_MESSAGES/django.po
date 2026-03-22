@@ -1,0 +1,2246 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-21 18:09+0545\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ne\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\accounts\forms.py:10
+msgid "Cashier"
+msgstr "क्यासियर"
+
+#: .\accounts\forms.py:11
+msgid "Waiter"
+msgstr "वेटर"
+
+#: .\accounts\forms.py:12
+msgid "Kitchen"
+msgstr "किचन"
+
+#: .\templates\accounts\settings.html:5 .\templates\accounts\settings.html:6
+#: .\templates\accounts\settings.html:19 .\templates\owner\base.html:170
+msgid "Settings"
+msgstr "सेटिङ्स"
+
+#: .\templates\accounts\settings.html:7
+msgid "Manage your appearance, notifications, and work preferences"
+msgstr "आफ्नो रूपरङ, सूचनाहरू र कार्य प्राथमिकताहरू व्यवस्थापन गर्नुहोस्"
+
+#: .\templates\accounts\settings.html:24
+msgid "Save Changes"
+msgstr "परिवर्तन सुरक्षित गर्नुहोस्"
+
+#: .\templates\accounts\settings.html:35
+msgid "Appearance"
+msgstr "रूपरङ"
+
+#: .\templates\accounts\settings.html:42
+msgid "Theme"
+msgstr "थिम"
+
+#: .\templates\accounts\settings.html:55
+msgid "Light"
+msgstr "उज्यालो"
+
+#: .\templates\accounts\settings.html:60
+msgid "Dark"
+msgstr "गाढा"
+
+#: .\templates\accounts\settings.html:68
+msgid "Language"
+msgstr "भाषा"
+
+#: .\templates\accounts\settings.html:80
+msgid "English"
+msgstr "अंग्रेजी"
+
+#: .\templates\accounts\settings.html:85
+msgid "Nepali"
+msgstr "नेपाली"
+
+#: .\templates\accounts\settings.html:93
+msgid "Timezone"
+msgstr "समय क्षेत्र"
+
+#: .\templates\accounts\settings.html:115
+msgid "Notifications"
+msgstr "सूचनाहरू"
+
+#: .\templates\accounts\settings.html:121
+msgid "Email Notifications"
+msgstr "इमेल सूचनाहरू"
+
+#: .\templates\accounts\settings.html:127
+msgid "In-App Notifications"
+msgstr "एपभित्रका सूचनाहरू"
+
+#: .\templates\accounts\settings.html:133
+msgid "Sound Alerts"
+msgstr "ध्वनि सचेतना"
+
+#: .\templates\accounts\settings.html:139
+msgid "New Order Alert"
+msgstr "नयाँ अर्डर सचेतना"
+
+#: .\templates\accounts\settings.html:145
+msgid "Low Stock Alert"
+msgstr "कम स्टक सचेतना"
+
+#: .\templates\accounts\settings.html:151
+msgid "Payment Alert"
+msgstr "भुक्तानी सचेतना"
+
+#: .\templates\accounts\settings.html:164
+msgid "Work Preferences"
+msgstr "कार्य प्राथमिकताहरू"
+
+#: .\templates\accounts\settings.html:171
+msgid "Rows Per Page"
+msgstr "प्रति पृष्ठ पङ्क्तिहरू"
+
+#: .\templates\accounts\settings.html:187
+msgid "Auto Print Receipt"
+msgstr "रसीद स्वतः प्रिन्ट गर्नुहोस्"
+
+#: .\templates\accounts\settings.html:193
+msgid "Compact Mode"
+msgstr "संक्षिप्त मोड"
+
+#: .\templates\accounts\settings.html:199
+msgid "Sidebar Collapsed"
+msgstr "साइडबार खुम्चिएको"
+
+#: .\templates\owner\base.html:41
+msgid "Owner Panel"
+msgstr "मालिक प्यानल"
+
+#: .\templates\owner\base.html:48 .\templates\owner\dashboard.html:7
+#: .\templates\owner\dashboard.html:8 .\templates\owner\dashboard.html:17
+msgid "Dashboard"
+msgstr "ड्यासबोर्ड"
+
+#: .\templates\owner\base.html:52 .\templates\owner\staff\staff_list.html:5
+#: .\templates\owner\staff\staff_list.html:6
+msgid "Staff Management"
+msgstr "कर्मचारी व्यवस्थापन"
+
+#: .\templates\owner\base.html:61
+msgid "Menu"
+msgstr "मेनु"
+
+#: .\templates\owner\base.html:69
+#: .\templates\owner\categories\category_list.html:16
+#: .\templates\owner\tables\category_list.html:17
+msgid "Categories"
+msgstr "श्रेणीहरू"
+
+#: .\templates\owner\base.html:73 .\templates\owner\dashboard.html:147
+#: .\templates\owner\items\item_list.html:4
+#: .\templates\owner\items\item_list.html:5
+msgid "Menu Items"
+msgstr "मेनु आइटमहरू"
+
+#: .\templates\owner\base.html:85 .\templates\owner\tables\table_list.html:13
+msgid "Tables"
+msgstr "टेबलहरू"
+
+#: .\templates\owner\base.html:93 .\templates\owner\tables\category_list.html:5
+#: .\templates\owner\tables\category_list.html:6
+msgid "Table Categories"
+msgstr "टेबल श्रेणीहरू"
+
+#: .\templates\owner\base.html:97 .\templates\owner\tables\table_list.html:4
+#: .\templates\owner\tables\table_list.html:5
+msgid "Dining Tables"
+msgstr "भोजन टेबलहरू"
+
+#: .\templates\owner\base.html:103 .\templates\owner\loyalty\settings.html:4
+#: .\templates\owner\loyalty\settings.html:5
+msgid "Loyalty Settings"
+msgstr "वफादारी सेटिङ्स"
+
+#: .\templates\owner\base.html:106 .\templates\restaurant\reports.html:5
+msgid "Reports"
+msgstr "रिपोर्टहरू"
+
+#: .\templates\owner\base.html:166
+#: .\templates\subscription\business_package_list.html:5
+msgid "Upgrade Plan"
+msgstr "योजना अपग्रेड गर्नुहोस्"
+
+#: .\templates\owner\base.html:176
+msgid "Log out"
+msgstr "लग आउट"
+
+#: .\templates\owner\categories\category_delete.html:4
+#: .\templates\owner\categories\category_delete.html:5
+#: .\templates\owner\categories\category_delete.html:14
+msgid "Delete Category"
+msgstr "श्रेणी हटाउनुहोस्"
+
+#: .\templates\owner\categories\category_delete.html:6
+msgid "Confirm category removal"
+msgstr "श्रेणी हटाउन पुष्टि गर्नुहोस्"
+
+#: .\templates\owner\categories\category_delete.html:18
+#, python-format
+msgid ""
+"\n"
+"      Are you sure you want to delete the category \"%(category_name)s\"?\n"
+"      "
+msgstr ""
+"\n"
+"      के तपाईं \"%(category_name)s\" श्रेणी हटाउन निश्चित हुनुहुन्छ?\n"
+"      "
+
+#: .\templates\owner\categories\category_delete.html:28
+#: .\templates\owner\items\item_delete.html:29
+#: .\templates\owner\staff\staff_delete.html:78
+#: .\templates\owner\tables\category_delete.html:29
+#: .\templates\owner\tables\table_delete.html:76
+msgid "Yes, Delete"
+msgstr "हो, हटाउनुहोस्"
+
+#: .\templates\owner\categories\category_delete.html:35
+#: .\templates\owner\categories\category_form.html:58
+#: .\templates\owner\items\item_delete.html:36
+#: .\templates\owner\items\item_form.html:88
+#: .\templates\owner\loyalty\settings.html:83
+#: .\templates\owner\staff\staff_delete.html:73
+#: .\templates\owner\staff\staff_form.html:114
+#: .\templates\owner\tables\category_delete.html:34
+#: .\templates\owner\tables\table_delete.html:71
+msgid "Cancel"
+msgstr "रद्द गर्नुहोस्"
+
+#: .\templates\owner\categories\category_form.html:4
+msgid "Category Form"
+msgstr "श्रेणी फारम"
+
+#: .\templates\owner\categories\category_form.html:8
+#: .\templates\owner\categories\category_list.html:26
+#: .\templates\owner\tables\category_list.html:23
+msgid "Add Category"
+msgstr "श्रेणी थप्नुहोस्"
+
+#: .\templates\owner\categories\category_form.html:10
+msgid "Edit Category"
+msgstr "श्रेणी सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\categories\category_form.html:14
+msgid "Keep your menu organized"
+msgstr "आफ्नो मेनु व्यवस्थित राख्नुहोस्"
+
+#: .\templates\owner\categories\category_form.html:27
+#: .\templates\owner\tables\category_form.html:29
+msgid "Category Name"
+msgstr "श्रेणी नाम"
+
+#: .\templates\owner\categories\category_form.html:44
+#: .\templates\owner\categories\category_list.html:60
+#: .\templates\owner\items\item_form.html:73
+#: .\templates\owner\items\item_list.html:70
+#: .\templates\owner\staff\staff_delete.html:59
+#: .\templates\owner\staff\staff_form.html:91
+#: .\templates\owner\staff\staff_list.html:73
+#: .\templates\owner\tables\category_form.html:60
+#: .\templates\subscription\business_package_list.html:24
+msgid "Active"
+msgstr "सक्रिय"
+
+#: .\templates\owner\categories\category_form.html:53
+#: .\templates\owner\items\item_form.html:83
+#: .\templates\owner\staff\staff_form.html:109
+#: .\templates\owner\tables\category_form.html:69
+#: .\templates\owner\tables\table_form.html:60
+msgid "Save"
+msgstr "सेभ गर्नुहोस्"
+
+#: .\templates\owner\categories\category_list.html:4
+#: .\templates\owner\categories\category_list.html:5
+#: .\templates\owner\dashboard.html:135
+msgid "Menu Categories"
+msgstr "मेनु श्रेणीहरू"
+
+#: .\templates\owner\categories\category_list.html:6
+msgid "Organize your menu into categories"
+msgstr "आफ्नो मेनुलाई श्रेणीहरूमा व्यवस्थित गर्नुहोस्"
+
+#: .\templates\owner\categories\category_list.html:20
+msgid "Active categories are shown to staff"
+msgstr "सक्रिय श्रेणीहरू कर्मचारीलाई देखाइन्छन्"
+
+#: .\templates\owner\categories\category_list.html:38
+#: .\templates\owner\items\item_list.html:38
+#: .\templates\owner\tables\category_list.html:35
+msgid "Name"
+msgstr "नाम"
+
+#: .\templates\owner\categories\category_list.html:39
+#: .\templates\owner\items\item_list.html:41
+#: .\templates\owner\staff\staff_delete.html:57
+#: .\templates\owner\staff\staff_list.html:44
+#: .\templates\owner\tables\table_delete.html:56
+#: .\templates\owner\tables\table_form.html:52
+#: .\templates\owner\tables\table_list.html:30
+msgid "Status"
+msgstr "स्थिति"
+
+#: .\templates\owner\categories\category_list.html:40
+#: .\templates\owner\items\item_list.html:42
+#: .\templates\owner\staff\staff_list.html:45
+#: .\templates\owner\tables\category_list.html:37
+#: .\templates\owner\tables\table_list.html:31
+msgid "Actions"
+msgstr "कार्यहरू"
+
+#: .\templates\owner\categories\category_list.html:66
+#: .\templates\owner\items\item_list.html:76
+#: .\templates\owner\staff\staff_delete.html:59
+#: .\templates\owner\staff\staff_list.html:77
+msgid "Inactive"
+msgstr "निष्क्रिय"
+
+#: .\templates\owner\categories\category_list.html:77
+#: .\templates\owner\items\item_list.html:87
+#: .\templates\owner\staff\staff_list.html:89
+#: .\templates\owner\tables\category_list.html:60
+#: .\templates\owner\tables\table_list.html:50
+msgid "Edit"
+msgstr "सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\categories\category_list.html:82
+#: .\templates\owner\staff\staff_list.html:114
+#: .\templates\owner\tables\category_list.html:65
+#: .\templates\owner\tables\table_list.html:55
+#: .\venv\Lib\site-packages\django\forms\formsets.py:499
+msgid "Delete"
+msgstr "हटाउनुहोस्"
+
+#: .\templates\owner\categories\category_list.html:94
+msgid "No categories found."
+msgstr "कुनै श्रेणी फेला परेन।"
+
+#: .\templates\owner\dashboard.html:10
+msgid "Overview of your business"
+msgstr "तपाईंको व्यवसायको समग्र विवरण"
+
+#: .\templates\owner\dashboard.html:31
+msgid "Active Package"
+msgstr "सक्रिय प्याकेज"
+
+#: .\templates\owner\dashboard.html:38
+msgid "Free / No Package"
+msgstr "निःशुल्क / कुनै प्याकेज छैन"
+
+#: .\templates\owner\dashboard.html:44
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "Valid until %(date)s\n"
+msgid ""
+"\n"
+"Valid until %(date|nepali_number)s\n"
+msgstr ""
+"\n"
+"%(date)s सम्म मान्य\n"
+
+#: .\templates\owner\dashboard.html:48
+msgid "Upgrade to unlock more users"
+msgstr "थप प्रयोगकर्ता खोल्न योजना अपग्रेड गर्नुहोस्"
+
+#: .\templates\owner\dashboard.html:57
+msgid "User Limit"
+msgstr "प्रयोगकर्ता सीमा"
+
+#: .\templates\owner\dashboard.html:65
+msgid "Users currently used"
+msgstr "हाल प्रयोग भएका प्रयोगकर्ता"
+
+#: .\templates\owner\dashboard.html:73
+msgid "Table Limit"
+msgstr "टेबल सीमा"
+
+#: .\templates\owner\dashboard.html:81
+msgid "Tables currently used"
+msgstr "हाल प्रयोग भएका टेबलहरू"
+
+#: .\templates\owner\dashboard.html:89
+msgid "Remaining Users"
+msgstr "बाँकी प्रयोगकर्ता"
+
+#: .\templates\owner\dashboard.html:98
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "%(days)s day(s) left\n"
+msgid ""
+"\n"
+"%(days|nepali_number)s day(s) left\n"
+msgstr ""
+"\n"
+"%(days)s दिन बाँकी\n"
+
+#: .\templates\owner\dashboard.html:102
+msgid "No active subscription"
+msgstr "कुनै सक्रिय सदस्यता छैन"
+
+#: .\templates\owner\dashboard.html:123
+msgid "Total Staff"
+msgstr "कुल कर्मचारी"
+
+#: .\templates\owner\dashboard.html:159
+msgid "Total Tables"
+msgstr "कुल टेबलहरू"
+
+#: .\templates\owner\items\item_delete.html:4
+#: .\templates\owner\items\item_delete.html:5
+#: .\templates\owner\items\item_delete.html:15
+msgid "Delete Item"
+msgstr "आइटम हटाउनुहोस्"
+
+#: .\templates\owner\items\item_delete.html:6
+msgid "Confirm item removal"
+msgstr "आइटम हटाउन पुष्टि गर्नुहोस्"
+
+#: .\templates\owner\items\item_delete.html:19
+#, python-format
+msgid ""
+"\n"
+"      Are you sure you want to delete the item \"%(item_name)s\"?\n"
+"      "
+msgstr ""
+"\n"
+"      के तपाईं \"%(item_name)s\" आइटम हटाउन निश्चित हुनुहुन्छ?\n"
+"      "
+
+#: .\templates\owner\items\item_form.html:4
+msgid "Item Form"
+msgstr "आइटम फारम"
+
+#: .\templates\owner\items\item_form.html:8
+msgid "Add Menu Item"
+msgstr "मेनु आइटम थप्नुहोस्"
+
+#: .\templates\owner\items\item_form.html:10
+msgid "Edit Menu Item"
+msgstr "मेनु आइटम सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\items\item_form.html:14
+msgid "Add dishes to your restaurant menu"
+msgstr "आफ्नो रेस्टुरेन्टको मेनुमा परिकारहरू थप्नुहोस्"
+
+#: .\templates\owner\items\item_form.html:29
+msgid "Item Name"
+msgstr "आइटम नाम"
+
+#: .\templates\owner\items\item_form.html:43
+#: .\templates\owner\items\item_list.html:39
+#: .\templates\owner\tables\table_delete.html:49
+#: .\templates\owner\tables\table_form.html:34
+#: .\templates\owner\tables\table_list.html:28
+msgid "Category"
+msgstr "श्रेणी"
+
+#: .\templates\owner\items\item_form.html:57
+msgid "Price (Rs)"
+msgstr "मूल्य (रु)"
+
+#: .\templates\owner\items\item_list.html:6
+msgid "Create and manage your restaurant menu"
+msgstr "आफ्नो रेस्टुरेन्टको मेनु सिर्जना र व्यवस्थापन गर्नुहोस्"
+
+#: .\templates\owner\items\item_list.html:16
+msgid "Items"
+msgstr "मेनु आइटमहरू"
+
+#: .\templates\owner\items\item_list.html:20
+msgid "Items are shown to cashier/waiter"
+msgstr "आइटमहरू क्यासियर/वेटरलाई देखाइन्छन्"
+
+#: .\templates\owner\items\item_list.html:26
+msgid "Add Item"
+msgstr "आइटम थप्नुहोस्"
+
+#: .\templates\owner\items\item_list.html:40
+msgid "Price"
+msgstr "मूल्य"
+
+#: .\templates\owner\items\item_list.html:62
+#: .\templates\subscription\business_package_list.html:48
+msgid "Rs"
+msgstr "रु"
+
+#: .\templates\owner\items\item_list.html:99
+msgid "No items found."
+msgstr "कुनै आइटम फेला परेन।"
+
+#: .\templates\owner\loyalty\settings.html:6
+msgid "Configure customer reward system"
+msgstr "ग्राहक पुरस्कार प्रणाली कन्फिगर गर्नुहोस्"
+
+#: .\templates\owner\loyalty\settings.html:27
+msgid "Amount Required (Rs)"
+msgstr "आवश्यक रकम (रु)"
+
+#: .\templates\owner\loyalty\settings.html:34
+msgid "Points are earned per this amount spent."
+msgstr "यो रकम खर्च गर्दा अंक प्राप्त हुन्छ।"
+
+#: .\templates\owner\loyalty\settings.html:40
+msgid "Points Per Amount"
+msgstr "प्रति रकम अंक"
+
+#: .\templates\owner\loyalty\settings.html:50
+msgid "Minimum Redeem Points"
+msgstr "न्यूनतम रिडिम अंक"
+
+#: .\templates\owner\loyalty\settings.html:60
+#, python-format
+msgid "Max Redeem Percent (%%)"
+msgstr "अधिकतम रिडिम प्रतिशत (%%)"
+
+#: .\templates\owner\loyalty\settings.html:72
+msgid "Enable Loyalty System"
+msgstr "लोयल्टी प्रणाली सक्षम गर्नुहोस्"
+
+#: .\templates\owner\loyalty\settings.html:78
+msgid "Save Settings"
+msgstr "सेटिङ्स सेभ गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_delete.html:5
+#: .\templates\owner\staff\staff_delete.html:6
+msgid "Delete Staff"
+msgstr "कर्मचारी हटाउनुहोस्"
+
+#: .\templates\owner\staff\staff_delete.html:7
+msgid "Remove staff user from your business"
+msgstr "तपाईंको व्यवसायबाट कर्मचारी प्रयोगकर्ता हटाउनुहोस् "
+
+#: .\templates\owner\staff\staff_delete.html:17
+msgid "Delete Staff Member"
+msgstr "कर्मचारी सदस्य मेटाउनुहोस्"
+
+#: .\templates\owner\staff\staff_delete.html:21
+msgid "Please confirm before deleting this staff account."
+msgstr "यो कर्मचारी खाता मेटाउनु अघि कृपया पुष्टि गर्नुहोस्।"
+
+#: .\templates\owner\staff\staff_delete.html:29
+#: .\templates\owner\tables\table_delete.html:28
+msgid "Warning: This action cannot be undone."
+msgstr "चेतावनी: यो कार्य फिर्ता लिन सकिँदैन।"
+
+#: .\templates\owner\staff\staff_delete.html:36
+#: .\templates\owner\staff\staff_form.html:49
+#: .\templates\owner\staff\staff_list.html:41
+msgid "Username"
+msgstr "प्रयोगकर्ता नाम"
+
+#: .\templates\owner\staff\staff_delete.html:43
+#: .\templates\owner\staff\staff_form.html:39
+#: .\templates\owner\staff\staff_list.html:42
+msgid "Full Name"
+msgstr "पूरा नाम"
+
+#: .\templates\owner\staff\staff_delete.html:50
+#: .\templates\owner\staff\staff_form.html:73
+#: .\templates\owner\staff\staff_list.html:43
+msgid "Role"
+msgstr "भूमिका"
+
+#: .\templates\owner\staff\staff_form.html:8
+#: .\templates\owner\staff\staff_form.html:16
+#: .\templates\owner\staff\staff_list.html:28
+msgid "Create Staff"
+msgstr "कर्मचारी सिर्जना गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_form.html:10
+#: .\templates\owner\staff\staff_form.html:18
+msgid "Edit Staff"
+msgstr "कर्मचारी सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_form.html:23
+msgid "Fill the details below"
+msgstr "तलका विवरणहरू भर्नुहोस्"
+
+#: .\templates\owner\staff\staff_form.html:59
+msgid "Email"
+msgstr "इमेल"
+
+#: .\templates\owner\staff\staff_form.html:66
+msgid "Phone"
+msgstr "फोन"
+
+#: .\templates\owner\staff\staff_form.html:81
+msgid "Password (optional)"
+msgstr "पासवर्ड (वैकल्पिक)"
+
+#: .\templates\owner\staff\staff_form.html:85
+msgid "Leave blank to auto-generate a temporary password."
+msgstr "अस्थायी पासवर्ड स्वतः बनाउन खाली छोड्नुहोस्।"
+
+#: .\templates\owner\staff\staff_form.html:101
+msgid "Address"
+msgstr "ठेगाना"
+
+#: .\templates\owner\staff\staff_list.html:8
+msgid "Create and manage cashier, waiter and kitchen users"
+msgstr "क्यासियर, वेटर र किचन प्रयोगकर्ताहरू सिर्जना तथा व्यवस्थापन गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_list.html:19
+msgid "Staff List"
+msgstr "कर्मचारी सूची"
+
+#: .\templates\owner\staff\staff_list.html:23
+msgid "Only staff under your business are shown"
+msgstr "तपाईंको व्यवसाय अन्तर्गतका कर्मचारीहरू मात्र देखाइन्छन्"
+
+#: .\templates\owner\staff\staff_list.html:97
+msgid "Deactivate"
+msgstr "निष्क्रिय गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_list.html:99
+msgid "Activate"
+msgstr "सक्रिय गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_list.html:108
+msgid "Reset Password"
+msgstr "पासवर्ड रिसेट गर्नुहोस्"
+
+#: .\templates\owner\staff\staff_list.html:127
+msgid "No staff found. Create your first cashier/waiter/kitchen user."
+msgstr "कुनै कर्मचारी भेटिएन। आफ्नो पहिलो क्यासियर/वेटर/किचन प्रयोगकर्ता सिर्जना गर्नुहोस्।"
+
+#: .\templates\owner\tables\category_delete.html:4
+#: .\templates\owner\tables\category_delete.html:5
+#: .\templates\owner\tables\category_delete.html:15
+msgid "Delete Table Category"
+msgstr "टेबल श्रेणी हटाउनुहोस्"
+
+#: .\templates\owner\tables\category_delete.html:6
+msgid "Confirm table category removal"
+msgstr "टेबल श्रेणी हटाउन पुष्टि गर्नुहोस्"
+
+#: .\templates\owner\tables\category_delete.html:19
+#, python-format
+msgid ""
+"\n"
+"      Are you sure you want to delete the table category "
+"\"%(category_name)s\"?\n"
+"      "
+msgstr ""
+"\n"
+"      के तपाईं \"%(category_name)s\" टेबल श्रेणी हटाउन निश्चित हुनुहुन्छ?\n"
+"      "
+
+#: .\templates\owner\tables\category_form.html:4
+msgid "Table Category Form"
+msgstr "टेबल श्रेणी फारम"
+
+#: .\templates\owner\tables\category_form.html:8
+msgid "Create Table Category"
+msgstr "टेबल श्रेणी सिर्जना गर्नुहोस्"
+
+#: .\templates\owner\tables\category_form.html:10
+msgid "Edit Table Category"
+msgstr "टेबल श्रेणी सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\tables\category_form.html:15
+msgid "Organize your restaurant tables"
+msgstr "आफ्नो रेस्टुरेन्टका टेबलहरू व्यवस्थित गर्नुहोस्"
+
+#: .\templates\owner\tables\category_form.html:43
+#: .\templates\owner\tables\category_list.html:36
+msgid "Code Prefix"
+msgstr "कोड उपसर्ग"
+
+#: .\templates\owner\tables\category_form.html:74
+msgid "Back"
+msgstr "फिर्ता"
+
+#: .\templates\owner\tables\category_list.html:7
+msgid "Organize your restaurant seating"
+msgstr "आफ्नो रेस्टुरेन्टको बस्ने व्यवस्था व्यवस्थित गर्नुहोस्"
+
+#: .\templates\owner\tables\category_list.html:78
+msgid "No table categories created yet."
+msgstr "अहिलेसम्म कुनै टेबल श्रेणी सिर्जना गरिएको छैन।"
+
+#: .\templates\owner\tables\table_delete.html:4
+#: .\templates\owner\tables\table_delete.html:5
+#: .\templates\owner\tables\table_delete.html:16
+msgid "Delete Table"
+msgstr "टेबल हटाउनुहोस्"
+
+#: .\templates\owner\tables\table_delete.html:6
+msgid "Remove dining table from your business"
+msgstr "आफ्नो व्यवसायबाट भोजन टेबल हटाउनुहोस्"
+
+#: .\templates\owner\tables\table_delete.html:20
+msgid "Please confirm before deleting this table."
+msgstr "यो टेबल मेटाउनु अघि कृपया पुष्टि गर्नुहोस्।"
+
+#: .\templates\owner\tables\table_delete.html:35
+#: .\templates\owner\tables\table_list.html:26
+msgid "Table Name"
+msgstr "टेबल नाम"
+
+#: .\templates\owner\tables\table_delete.html:42
+#: .\templates\owner\tables\table_form.html:46
+#: .\templates\owner\tables\table_list.html:29
+msgid "Capacity"
+msgstr "क्षमता"
+
+#: .\templates\owner\tables\table_form.html:4
+msgid "Table Form"
+msgstr "टेबल फारम"
+
+#: .\templates\owner\tables\table_form.html:5
+msgid "Create Table"
+msgstr "टेबल सिर्जना गर्नुहोस्"
+
+#: .\templates\owner\tables\table_form.html:5
+msgid "Edit Table"
+msgstr "टेबल सम्पादन गर्नुहोस्"
+
+#: .\templates\owner\tables\table_form.html:6
+msgid "Manage your restaurant tables"
+msgstr "आफ्नो रेस्टुरेन्टका टेबलहरू व्यवस्थापन गर्नुहोस्"
+
+#: .\templates\owner\tables\table_form.html:40
+#: .\templates\owner\tables\table_list.html:27
+msgid "Table Number"
+msgstr "टेबल नम्बर"
+
+#: .\templates\owner\tables\table_form.html:65
+msgid "Back to Table List"
+msgstr "टेबल सूचीमा फर्कनुहोस्"
+
+#: .\templates\owner\tables\table_list.html:6
+msgid "Manage your restaurant seating layout"
+msgstr "आफ्नो रेस्टुरेन्टको बस्ने व्यवस्था व्यवस्थापन गर्नुहोस्"
+
+#: .\templates\owner\tables\table_list.html:14
+msgid "Capacity and status management"
+msgstr "क्षमता र स्थिति व्यवस्थापन"
+
+#: .\templates\owner\tables\table_list.html:18
+msgid "Add Table"
+msgstr "टेबल थप्नुहोस्"
+
+#: .\templates\owner\tables\table_list.html:63
+msgid "No tables created yet."
+msgstr "अहिलेसम्म कुनै टेबल सिर्जना गरिएको छैन।"
+
+#: .\templates\restaurant\reports.html:6
+msgid "Restaurant Reports"
+msgstr "रेस्टुरेन्ट रिपोर्टहरू"
+
+#: .\templates\restaurant\reports.html:7
+msgid "Sales, items, tables and payment insights"
+msgstr "बिक्री, आइटम, टेबल र भुक्तानी सम्बन्धी जानकारी"
+
+#: .\templates\restaurant\reports.html:16
+msgid "Filter Reports"
+msgstr "रिपोर्ट फिल्टर गर्नुहोस्"
+
+#: .\templates\restaurant\reports.html:17
+msgid "Select date range to view report data"
+msgstr "रिपोर्ट डेटा हेर्न मिति दायरा चयन गर्नुहोस्"
+
+#: .\templates\restaurant\reports.html:23
+msgid "Start Date"
+msgstr "सुरु मिति"
+
+#: .\templates\restaurant\reports.html:29
+msgid "End Date"
+msgstr "अन्त्य मिति"
+
+#: .\templates\restaurant\reports.html:37
+msgid "Apply Filter"
+msgstr "फिल्टर लागू गर्नुहोस्"
+
+#: .\templates\restaurant\reports.html:42
+msgid "Reset"
+msgstr "रिसेट गर्नुहोस्"
+
+#: .\templates\restaurant\reports.html:50
+msgid "Today Sales"
+msgstr "आजको बिक्री"
+
+#: .\templates\restaurant\reports.html:51
+#: .\templates\restaurant\reports.html:57
+#: .\templates\restaurant\reports.html:69
+#: .\templates\restaurant\reports.html:84
+#: .\templates\restaurant\reports.html:112
+#: .\templates\restaurant\reports.html:148
+#: .\templates\restaurant\reports.html:182
+#: .\templates\restaurant\reports.html:218
+#: .\templates\restaurant\reports.html:252
+msgid "Rs."
+msgstr "रु."
+
+#: .\templates\restaurant\reports.html:52
+msgid "Total sales for today"
+msgstr "आजको कुल बिक्री"
+
+#: .\templates\restaurant\reports.html:56
+msgid "This Month Sales"
+msgstr "यस महिनाको बिक्री"
+
+#: .\templates\restaurant\reports.html:58
+msgid "Total sales for this month"
+msgstr "यस महिनाको कुल बिक्री"
+
+#: .\templates\restaurant\reports.html:62
+msgid "Completed Orders"
+msgstr "सम्पन्न अर्डरहरू"
+
+#: .\templates\restaurant\reports.html:64
+msgid "Successfully completed orders"
+msgstr "सफलतापूर्वक सम्पन्न भएका अर्डरहरू"
+
+#: .\templates\restaurant\reports.html:68
+msgid "Average Order Value"
+msgstr "औसत अर्डर मूल्य"
+
+#: .\templates\restaurant\reports.html:70
+msgid "Average revenue per order"
+msgstr "प्रति अर्डर औसत आम्दानी"
+
+#: .\templates\restaurant\reports.html:76
+msgid "Highest Sales Day"
+msgstr "उच्चतम बिक्री भएको दिन"
+
+#: .\templates\restaurant\reports.html:77
+msgid "Best performing day by revenue"
+msgstr "आम्दानीका आधारमा सबैभन्दा राम्रो दिन"
+
+#: .\templates\restaurant\reports.html:82
+msgid "Top Sales Day"
+msgstr "सर्वाधिक बिक्री भएको दिन"
+
+#: .\templates\restaurant\reports.html:88
+msgid "No sales data found."
+msgstr "कुनै बिक्री डेटा फेला परेन।"
+
+#: .\templates\restaurant\reports.html:94
+msgid "Best Selling Items"
+msgstr "सबैभन्दा बढी बिक्री भएका आइटमहरू"
+
+#: .\templates\restaurant\reports.html:95
+msgid "Top menu items by quantity sold"
+msgstr "बिक्री परिमाणका आधारमा शीर्ष मेनु आइटमहरू"
+
+#: .\templates\restaurant\reports.html:102
+msgid "Item"
+msgstr "आइटम"
+
+#: .\templates\restaurant\reports.html:103
+msgid "Qty Sold"
+msgstr "बिक्री संख्या"
+
+#: .\templates\restaurant\reports.html:104
+#: .\templates\restaurant\reports.html:140
+#: .\templates\restaurant\reports.html:210
+#: .\templates\restaurant\reports.html:244
+msgid "Sales"
+msgstr "बिक्री"
+
+#: .\templates\restaurant\reports.html:117
+msgid "No item sales found."
+msgstr "कुनै आइटम बिक्री फेला परेन।"
+
+#: .\templates\restaurant\reports.html:130
+msgid "Sales by Order Type"
+msgstr "अर्डर प्रकार अनुसार बिक्री"
+
+#: .\templates\restaurant\reports.html:131
+msgid "Dine in, takeaway, delivery and counter sales"
+msgstr "डाइन-इन, टेकअवे, डेलिभरी र काउन्टर बिक्री"
+
+#: .\templates\restaurant\reports.html:138
+msgid "Order Type"
+msgstr "अर्डर प्रकार"
+
+#: .\templates\restaurant\reports.html:139
+#: .\templates\restaurant\reports.html:209
+msgid "Orders"
+msgstr "अर्डरहरू"
+
+#: .\templates\restaurant\reports.html:153
+msgid "No order type data found."
+msgstr "कुनै अर्डर प्रकारको डेटा फेला परेन।"
+
+#: .\templates\restaurant\reports.html:164
+msgid "Payment Summary"
+msgstr "भुक्तानी सारांश"
+
+#: .\templates\restaurant\reports.html:165
+msgid "Payment method wise totals"
+msgstr "भुक्तानी विधिअनुसार कुल रकम"
+
+#: .\templates\restaurant\reports.html:172
+msgid "Method"
+msgstr "विधि"
+
+#: .\templates\restaurant\reports.html:173
+msgid "Count"
+msgstr "संख्या"
+
+#: .\templates\restaurant\reports.html:174
+msgid "Amount"
+msgstr "रकम"
+
+#: .\templates\restaurant\reports.html:187
+msgid "No payment data found."
+msgstr "कुनै भुक्तानी डेटा फेला परेन।"
+
+#: .\templates\restaurant\reports.html:200
+msgid "Table Wise Sales"
+msgstr "टेबल अनुसार बिक्री"
+
+#: .\templates\restaurant\reports.html:201
+msgid "Top tables by sales amount"
+msgstr "बिक्री रकमका आधारमा शीर्ष टेबलहरू"
+
+#: .\templates\restaurant\reports.html:208
+msgid "Table"
+msgstr "टेबल"
+
+#: .\templates\restaurant\reports.html:223
+msgid "No table sales found."
+msgstr "कुनै टेबल बिक्री फेला परेन।"
+
+#: .\templates\restaurant\reports.html:234
+msgid "Daily Sales"
+msgstr "दैनिक बिक्री"
+
+#: .\templates\restaurant\reports.html:235
+msgid "Day-wise invoice and sales totals"
+msgstr "दिन अनुसार इनभ्वाइस र बिक्रीको कुल"
+
+#: .\templates\restaurant\reports.html:242
+msgid "Date"
+msgstr "मिति"
+
+#: .\templates\restaurant\reports.html:243
+msgid "Invoices"
+msgstr "इनभ्वाइसहरू"
+
+#: .\templates\restaurant\reports.html:257
+msgid "No daily sales data found."
+msgstr "कुनै दैनिक बिक्री डेटा फेला परेन।"
+
+#: .\templates\subscription\business_package_list.html:6
+msgid "Upgrade your plan"
+msgstr "योजना अपग्रेड गर्नुहोस्"
+
+#: .\templates\subscription\business_package_list.html:7
+msgid "Choose the plan that fits your restaurant"
+msgstr "आफ्नो रेस्टुरेन्टका लागि उपयुक्त योजना छनोट गर्नुहोस्"
+
+#: .\templates\subscription\business_package_list.html:16
+msgid "Current plan"
+msgstr "हालको योजना"
+
+#: .\templates\subscription\business_package_list.html:20
+#, python-format
+msgid ""
+"\n"
+"              Valid until %(formatted_date)s\n"
+"            "
+msgstr ""
+
+#: .\templates\subscription\business_package_list.html:29
+msgid "ACTIVE"
+msgstr "सक्रिय"
+
+#: .\templates\subscription\business_package_list.html:51
+#, python-format
+msgid ""
+"\n"
+"            / %(months)s month\n"
+"          "
+msgid_plural ""
+"\n"
+"            / %(months)s months\n"
+"          "
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\templates\subscription\business_package_list.html:61
+msgid "Perfect for small restaurants."
+msgstr "सानो रेस्टुरेन्टका लागि उपयुक्त।"
+
+#: .\templates\subscription\business_package_list.html:63
+msgid "Great for growing restaurants."
+msgstr "विस्तार हुँदै गरेका रेस्टुरेन्टका लागि उत्कृष्ट।"
+
+#: .\templates\subscription\business_package_list.html:65
+msgid "Best for large restaurants."
+msgstr "ठूला रेस्टुरेन्टका लागि उत्तम।"
+
+#: .\templates\subscription\business_package_list.html:73
+msgid "Upgrade"
+msgstr "अपग्रेड"
+
+#: .\templates\subscription\business_package_list.html:80
+msgid "Max users"
+msgstr "अधिकतम प्रयोगकर्ता"
+
+#: .\templates\subscription\business_package_list.html:85
+msgid "Max tables"
+msgstr "अधिकतम टेबल"
+
+#: .\templates\subscription\business_package_list.html:90
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1868
+msgid "Duration"
+msgstr "अवधि"
+
+#: .\templates\subscription\business_package_list.html:92
+#, python-format
+msgid ""
+"\n"
+"              %(months)s month\n"
+"            "
+msgid_plural ""
+"\n"
+"              %(months)s months\n"
+"            "
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\cloudinary\forms.py:55
+#: .\venv\Lib\site-packages\cloudinary\forms.py:124
+msgid "No file selected!"
+msgstr "कुनै फाइल चयन गरिएको छैन!"
+
+#: .\venv\Lib\site-packages\django\contrib\messages\apps.py:16
+msgid "Messages"
+msgstr "सन्देशहरू"
+
+#: .\venv\Lib\site-packages\django\contrib\sitemaps\apps.py:8
+msgid "Site Maps"
+msgstr "साइट नक्साहरू"
+
+#: .\venv\Lib\site-packages\django\contrib\staticfiles\apps.py:9
+msgid "Static Files"
+msgstr "स्थिर फाइलहरू"
+
+#: .\venv\Lib\site-packages\django\contrib\syndication\apps.py:7
+msgid "Syndication"
+msgstr "सिन्डिकेशन"
+
+#. Translators: String used to replace omitted page numbers in elided page
+#. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
+#: .\venv\Lib\site-packages\django\core\paginator.py:30
+msgid "…"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\paginator.py:32
+msgid "That page number is not an integer"
+msgstr "त्यो पृष्ठ नम्बर पूर्णांक होइन"
+
+#: .\venv\Lib\site-packages\django\core\paginator.py:33
+msgid "That page number is less than 1"
+msgstr "त्यो पृष्ठ नम्बर १ भन्दा कम छ"
+
+#: .\venv\Lib\site-packages\django\core\paginator.py:34
+msgid "That page contains no results"
+msgstr "त्यो पृष्ठमा कुनै परिणाम छैन"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:22
+msgid "Enter a valid value."
+msgstr "मान्य मान प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:70
+msgid "Enter a valid domain name."
+msgstr "मान्य डोमेन नाम प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:153
+#: .\venv\Lib\site-packages\django\forms\fields.py:775
+msgid "Enter a valid URL."
+msgstr "मान्य URL प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:200
+msgid "Enter a valid integer."
+msgstr "मान्य पूर्णांक प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:211
+msgid "Enter a valid email address."
+msgstr "मान्य इमेल ठेगाना प्रविष्ट गर्नुहोस्।"
+
+#. Translators: "letters" means latin letters: a-z and A-Z.
+#: .\venv\Lib\site-packages\django\core\validators.py:289
+msgid ""
+"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
+msgstr "अक्षर, संख्या, अन्डरस्कोर वा हाइफन समावेश भएको मान्य “slug” प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:297
+msgid ""
+"Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
+"hyphens."
+msgstr ""
+"Unicode अक्षर, संख्या, अन्डरस्कोर वा हाइफन समावेश भएको मान्य “slug” प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:309
+#: .\venv\Lib\site-packages\django\core\validators.py:318
+#: .\venv\Lib\site-packages\django\core\validators.py:332
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2220
+#, python-format
+msgid "Enter a valid %(protocol)s address."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:311
+msgid "IPv4"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:320
+#: .\venv\Lib\site-packages\django\utils\ipv6.py:43
+msgid "IPv6"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:334
+msgid "IPv4 or IPv6"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:375
+msgid "Enter only digits separated by commas."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:381
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:416
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:425
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:434
+#, python-format
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:441
+#, python-format
+msgid ""
+"Ensure this value is a multiple of step size %(limit_value)s, starting from "
+"%(offset)s, e.g. %(offset)s, %(valid_value1)s, %(valid_value2)s, and so on."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:473
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] "यो मान कम्तीमा %(limit_value)d अक्षरको हुनुपर्छ (हाल %(show_value)d छ)।"
+msgstr[1] ""
+"यो मान कम्तीमा %(limit_value)d अक्षरहरूको हुनुपर्छ (हाल %(show_value)d छन्)।"
+
+#: .\venv\Lib\site-packages\django\core\validators.py:491
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:514
+#: .\venv\Lib\site-packages\django\forms\fields.py:366
+#: .\venv\Lib\site-packages\django\forms\fields.py:405
+msgid "Enter a number."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:516
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:521
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:526
+#, python-format
+msgid ""
+"Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural ""
+"Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:597
+#, python-format
+msgid ""
+"File extension “%(extension)s” is not allowed. Allowed extensions are: "
+"%(allowed_extensions)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\core\validators.py:659
+msgid "Null characters are not allowed."
+msgstr "Null अक्षरहरू अनुमति छैनन्।"
+
+#: .\venv\Lib\site-packages\django\db\models\base.py:1600
+#: .\venv\Lib\site-packages\django\forms\models.py:908
+msgid "and"
+msgstr "र"
+
+#: .\venv\Lib\site-packages\django\db\models\base.py:1602
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\constraints.py:22
+#, python-format
+msgid "Constraint “%(name)s” is violated."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:134
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:135
+msgid "This field cannot be null."
+msgstr "यो फिल्ड null हुन सक्दैन।"
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:136
+msgid "This field cannot be blank."
+msgstr "यो फिल्ड खाली हुन सक्दैन।"
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:137
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr ""
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or
+#. 'month'. Eg: "Title must be unique for pub_date year"
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:141
+#, python-format
+msgid ""
+"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:180
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1162
+#, python-format
+msgid "“%(value)s” value must be either True or False."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1163
+#, python-format
+msgid "“%(value)s” value must be either True, False, or None."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1165
+msgid "Boolean (Either True or False)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1215
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1217
+msgid "String (unlimited)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1326
+msgid "Comma-separated integers"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1427
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
+"format."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1431
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1566
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
+"date."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1435
+msgid "Date (without time)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1562
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in YYYY-MM-DD "
+"HH:MM[:ss[.uuuuuu]][TZ] format."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1570
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
+"[TZ]) but it is an invalid date/time."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1575
+msgid "Date (with time)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1702
+#, python-format
+msgid "“%(value)s” value must be a decimal number."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1704
+msgid "Decimal number"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1864
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in [DD] "
+"[[HH:]MM:]ss[.uuuuuu] format."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1920
+msgid "Email address"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:1945
+msgid "File path"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2023
+#, python-format
+msgid "“%(value)s” value must be a float."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2025
+msgid "Floating point number"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2065
+#, python-format
+msgid "“%(value)s” value must be an integer."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2067
+msgid "Integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2163
+msgid "Big (8 byte) integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2180
+msgid "Small integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2188
+msgid "IPv4 address"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2219
+msgid "IP address"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2310
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2311
+#, python-format
+msgid "“%(value)s” value must be either None, True or False."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2313
+msgid "Boolean (Either True, False or None)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2364
+msgid "Positive big integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2379
+msgid "Positive integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2394
+msgid "Positive small integer"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2410
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2446
+msgid "Text"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2526
+#, python-format
+msgid ""
+"“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
+"format."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2530
+#, python-format
+msgid ""
+"“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
+"invalid time."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2534
+msgid "Time"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2642
+msgid "URL"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2666
+msgid "Raw binary data"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2731
+#, python-format
+msgid "“%(value)s” is not a valid UUID."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\__init__.py:2733
+msgid "Universally unique identifier"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\files.py:244
+msgid "File"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\files.py:420
+msgid "Image"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\json.py:24
+msgid "A JSON object"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\json.py:26
+msgid "Value must be valid JSON."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:979
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r is not a valid choice."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:982
+msgid "Foreign Key (type determined by related field)"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:1276
+msgid "One-to-one relationship"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:1333
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:1335
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\db\models\fields\related.py:1383
+msgid "Many-to-many relationship"
+msgstr ""
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the label
+#: .\venv\Lib\site-packages\django\forms\boundfield.py:185
+msgid ":?.!"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:95
+msgid "This field is required."
+msgstr "यो फिल्ड आवश्यक छ।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:315
+msgid "Enter a whole number."
+msgstr "पूर्ण संख्या प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:486
+#: .\venv\Lib\site-packages\django\forms\fields.py:1267
+msgid "Enter a valid date."
+msgstr "मान्य मिति प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:509
+#: .\venv\Lib\site-packages\django\forms\fields.py:1268
+msgid "Enter a valid time."
+msgstr "मान्य समय प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:536
+msgid "Enter a valid date/time."
+msgstr "मान्य मिति/समय प्रविष्ट गर्नुहोस्।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:570
+msgid "Enter a valid duration."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:571
+#, python-brace-format
+msgid "The number of days must be between {min_days} and {max_days}."
+msgstr "दिनहरूको संख्या {min_days} र {max_days} बीचमा हुनुपर्छ।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:640
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:641
+msgid "No file was submitted."
+msgstr "कुनै फाइल पेश गरिएको छैन।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:642
+msgid "The submitted file is empty."
+msgstr "पेश गरिएको फाइल खाली छ।"
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:644
+#, python-format
+msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:649
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:717
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:889
+#: .\venv\Lib\site-packages\django\forms\fields.py:975
+#: .\venv\Lib\site-packages\django\forms\models.py:1592
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:977
+#: .\venv\Lib\site-packages\django\forms\fields.py:1096
+#: .\venv\Lib\site-packages\django\forms\models.py:1590
+msgid "Enter a list of values."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:1097
+msgid "Enter a complete value."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:1339
+msgid "Enter a valid UUID."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\fields.py:1369
+msgid "Enter a valid JSON."
+msgstr ""
+
+#. Translators: This is the default suffix added to form field labels
+#: .\venv\Lib\site-packages\django\forms\forms.py:97
+msgid ":"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\forms.py:239
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\formsets.py:61
+#, python-format
+msgid ""
+"ManagementForm data is missing or has been tampered with. Missing fields: "
+"%(field_names)s. You may need to file a bug report if the issue persists."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\formsets.py:65
+#, python-format
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\forms\formsets.py:70
+#, python-format
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\forms\formsets.py:484
+#: .\venv\Lib\site-packages\django\forms\formsets.py:491
+msgid "Order"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:901
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:906
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:913
+#, python-format
+msgid ""
+"Please correct the duplicate data for %(field_name)s which must be unique "
+"for the %(lookup)s in %(date_field)s."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:922
+msgid "Please correct the duplicate values below."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:1359
+msgid "The inline value did not match the parent instance."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:1450
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\models.py:1594
+#, python-format
+msgid "“%(pk)s” is not a valid value."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\utils.py:229
+#, python-format
+msgid ""
+"%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
+"may be ambiguous or it may not exist."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:527
+msgid "Clear"
+msgstr "खाली गर्नुहोस्"
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:528
+msgid "Currently"
+msgstr "हाल"
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:529
+msgid "Change"
+msgstr "परिवर्तन गर्नुहोस्"
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:866
+msgid "Unknown"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:867
+msgid "Yes"
+msgstr "हो"
+
+#: .\venv\Lib\site-packages\django\forms\widgets.py:868
+msgid "No"
+msgstr "होइन"
+
+#. Translators: Please do not add spaces around commas.
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:873
+msgid "yes,no,maybe"
+msgstr "हो,होइन,सायद"
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:903
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:920
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:922
+#, python-format
+msgid "%s KB"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:924
+#, python-format
+msgid "%s MB"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:926
+#, python-format
+msgid "%s GB"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:928
+#, python-format
+msgid "%s TB"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\template\defaultfilters.py:930
+#, python-format
+msgid "%s PB"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:74
+msgid "p.m."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:75
+msgid "a.m."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:80
+msgid "PM"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:81
+msgid "AM"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:153
+msgid "midnight"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dateformat.py:155
+msgid "noon"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:7
+msgid "Monday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:8
+msgid "Tuesday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:9
+msgid "Wednesday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:10
+msgid "Thursday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:11
+msgid "Friday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:12
+msgid "Saturday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:13
+msgid "Sunday"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:16
+msgid "Mon"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:17
+msgid "Tue"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:18
+msgid "Wed"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:19
+msgid "Thu"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:20
+msgid "Fri"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:21
+msgid "Sat"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:22
+msgid "Sun"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:25
+msgid "January"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:26
+msgid "February"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:27
+msgid "March"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:28
+msgid "April"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:29
+msgid "May"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:30
+msgid "June"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:31
+msgid "July"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:32
+msgid "August"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:33
+msgid "September"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:34
+msgid "October"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:35
+msgid "November"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:36
+msgid "December"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:39
+msgid "jan"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:40
+msgid "feb"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:41
+msgid "mar"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:42
+msgid "apr"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:43
+msgid "may"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:44
+msgid "jun"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:45
+msgid "jul"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:46
+msgid "aug"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:47
+msgid "sep"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:48
+msgid "oct"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:49
+msgid "nov"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:50
+msgid "dec"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:53
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:54
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:55
+msgctxt "abbrev. month"
+msgid "March"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:56
+msgctxt "abbrev. month"
+msgid "April"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:57
+msgctxt "abbrev. month"
+msgid "May"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:58
+msgctxt "abbrev. month"
+msgid "June"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:59
+msgctxt "abbrev. month"
+msgid "July"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:60
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:61
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:62
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:63
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:64
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:67
+msgctxt "alt. month"
+msgid "January"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:68
+msgctxt "alt. month"
+msgid "February"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:69
+msgctxt "alt. month"
+msgid "March"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:70
+msgctxt "alt. month"
+msgid "April"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:71
+msgctxt "alt. month"
+msgid "May"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:72
+msgctxt "alt. month"
+msgid "June"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:73
+msgctxt "alt. month"
+msgid "July"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:74
+msgctxt "alt. month"
+msgid "August"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:75
+msgctxt "alt. month"
+msgid "September"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:76
+msgctxt "alt. month"
+msgid "October"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:77
+msgctxt "alt. month"
+msgid "November"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\dates.py:78
+msgctxt "alt. month"
+msgid "December"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\ipv6.py:20
+msgid "This is not a valid IPv6 address."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\text.py:76
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s…"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\text.py:288
+msgid "or"
+msgstr ""
+
+#. Translators: This string is used as a separator between list elements
+#: .\venv\Lib\site-packages\django\utils\text.py:307
+#: .\venv\Lib\site-packages\django\utils\timesince.py:135
+msgid ", "
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:8
+#, python-format
+msgid "%(num)d year"
+msgid_plural "%(num)d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:9
+#, python-format
+msgid "%(num)d month"
+msgid_plural "%(num)d months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:10
+#, python-format
+msgid "%(num)d week"
+msgid_plural "%(num)d weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:11
+#, python-format
+msgid "%(num)d day"
+msgid_plural "%(num)d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:12
+#, python-format
+msgid "%(num)d hour"
+msgid_plural "%(num)d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\utils\timesince.py:13
+#, python-format
+msgid "%(num)d minute"
+msgid_plural "%(num)d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:29
+msgid "Forbidden"
+msgstr "निषेध गरिएको"
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:30
+msgid "CSRF verification failed. Request aborted."
+msgstr "CSRF प्रमाणीकरण असफल भयो। अनुरोध रद्द गरियो।"
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:34
+msgid ""
+"You are seeing this message because this HTTPS site requires a “Referer "
+"header” to be sent by your web browser, but none was sent. This header is "
+"required for security reasons, to ensure that your browser is not being "
+"hijacked by third parties."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:40
+msgid ""
+"If you have configured your browser to disable “Referer” headers, please re-"
+"enable them, at least for this site, or for HTTPS connections, or for “same-"
+"origin” requests."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:45
+msgid ""
+"If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or "
+"including the “Referrer-Policy: no-referrer” header, please remove them. The "
+"CSRF protection requires the “Referer” header to do strict referer checking. "
+"If you’re concerned about privacy, use alternatives like <a "
+"rel=\"noreferrer\" …> for links to third-party sites."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:54
+msgid ""
+"You are seeing this message because this site requires a CSRF cookie when "
+"submitting forms. This cookie is required for security reasons, to ensure "
+"that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:60
+msgid ""
+"If you have configured your browser to disable cookies, please re-enable "
+"them, at least for this site, or for “same-origin” requests."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\csrf.py:66
+msgid "More information is available with DEBUG=True."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:44
+msgid "No year specified"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:64
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:115
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:214
+msgid "Date out of range"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:94
+msgid "No month specified"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:147
+msgid "No day specified"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:194
+msgid "No week specified"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:353
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:384
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:680
+#, python-format
+msgid ""
+"Future %(verbose_name_plural)s not available because "
+"%(class_name)s.allow_future is False."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\dates.py:720
+#, python-format
+msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\detail.py:56
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\list.py:70
+msgid "Page is not “last”, nor can it be converted to an int."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\list.py:77
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\generic\list.py:173
+#, python-format
+msgid "Empty list and “%(class_name)s.allow_empty” is False."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\static.py:49
+msgid "Directory indexes are not allowed here."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\static.py:51
+#, python-format
+msgid "“%(path)s” does not exist"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\static.py:68
+#: .\venv\Lib\site-packages\django\views\templates\directory_index.html:8
+#: .\venv\Lib\site-packages\django\views\templates\directory_index.html:11
+#, python-format
+msgid "Index of %(directory)s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:7
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:204
+msgid "The install worked successfully! Congratulations!"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:206
+#, python-format
+msgid ""
+"View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
+"target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:208
+#, python-format
+msgid ""
+"You are seeing this page because <a href=\"https://docs.djangoproject.com/en/"
+"%(version)s/ref/settings/#debug\" target=\"_blank\" "
+"rel=\"noopener\">DEBUG=True</a> is in your settings file and you have not "
+"configured any URLs."
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:217
+msgid "Django Documentation"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:218
+msgid "Topics, references, &amp; how-to’s"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:226
+msgid "Tutorial: A Polling App"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:227
+msgid "Get started with Django"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:235
+msgid "Django Community"
+msgstr ""
+
+#: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:236
+msgid "Connect, get help, or contribute"
+msgstr ""

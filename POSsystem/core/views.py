@@ -20,7 +20,7 @@ from django.conf import settings
 from core.models import Business
 from subscription.models import Package, BusinessSubscription
 from subscription.utils import get_active_subscription, get_business_user_limit
-
+from .utils import get_business_type_code
 
 
 
@@ -282,65 +282,49 @@ def request_detail(request, request_id):
 
 
 
+
 @login_required
-def owner_dashboard(request):
+def owner_dashboard_redirect(request):
+    if request.user.role != "OWNER":
+        return redirect("login")
+
+    business_type = get_business_type_code(request.user)
+
+    if business_type == "restaurant":
+        return redirect("restaurant_owner_dashboard")
+    elif business_type == "clothing":
+        return redirect("clothing_owner_dashboard")
+    elif business_type == "mart":
+        return redirect("mart_owner_dashboard")
+
+    return redirect("login")
+
+
+@login_required
+def restaurant_owner_dashboard(request):
     if request.user.role != "OWNER":
         return redirect("login")
 
     business = request.user.business
+    if get_business_type_code(request.user) != "restaurant":
+        return redirect("login")
 
-    # Staff counts
-    total_staff = User.objects.filter(
-        business=business
-    ).exclude(role="OWNER").count()
+    total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
+    active_staff = User.objects.filter(business=business, is_active=True).exclude(role="OWNER").count()
+    total_categories = Category.objects.filter(business=business).count()
+    total_items = Item.objects.filter(business=business).count()
+    active_items = Item.objects.filter(business=business, is_active=True).count()
+    total_tables = DiningTable.objects.filter(business=business).count()
 
-    active_staff = User.objects.filter(
-        business=business,
-        is_active=True
-    ).exclude(role="OWNER").count()
-
-    # Menu counts
-    total_categories = Category.objects.filter(
-        business=business
-    ).count()
-
-    total_items = Item.objects.filter(
-        business=business
-    ).count()
-
-    active_items = Item.objects.filter(
-        business=business,
-        is_active=True
-    ).count()
-
-    # Table counts
-    total_tables = DiningTable.objects.filter(
-        business=business
-    ).count()
-
-    # Subscription/package info
     active_subscription = get_active_subscription(business)
-
     days_remaining = None
     max_users = active_subscription.package.max_users if active_subscription else 3
     max_tables = active_subscription.package.max_tables if active_subscription else 5
-    # If package limit should count owner too, use count()
-    # If package limit should count only staff, use exclude(role="OWNER")
-    current_users = User.objects.filter(
-        business=business
-    ).count()
-    
-    current_tables = DiningTable.objects.filter(
-        business=business
-    ).count()
+    current_users = User.objects.filter(business=business).count()
+    current_tables = DiningTable.objects.filter(business=business).count()
 
-    remaining_users = max_users - current_users
-    if remaining_users < 0:
-        remaining_users = 0
-    
-    remaining_tables = max_tables - current_tables
-    if remaining_tables < 0:
-        remaining_tables = 0
+    remaining_users = max(max_users - current_users, 0)
+    remaining_tables = max(max_tables - current_tables, 0)
 
     if active_subscription and active_subscription.end_date:
         days_remaining = (active_subscription.end_date - timezone.now()).days
@@ -352,14 +336,48 @@ def owner_dashboard(request):
         "total_items": total_items,
         "active_items": active_items,
         "total_tables": total_tables,
-
         "active_subscription": active_subscription,
         "days_remaining": days_remaining,
         "max_users": max_users,
         "max_tables": max_tables,
         "current_users": current_users,
         "remaining_users": remaining_users,
-        "total_tables": total_tables,
+        "remaining_tables": remaining_tables,
     }
+    return render(request, "owner/dashboard_restaurant.html", context)
 
-    return render(request, "owner/dashboard.html", context)
+
+@login_required
+def clothing_owner_dashboard(request):
+    if request.user.role != "OWNER":
+        return redirect("login")
+
+    if get_business_type_code(request.user) != "clothing":
+        return redirect("login")
+
+    business = request.user.business
+
+    total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
+
+    context = {
+        "total_staff": total_staff,
+    }
+    return render(request, "owner/dashboard_clothing.html", context)
+
+
+@login_required
+def mart_owner_dashboard(request):
+    if request.user.role != "OWNER":
+        return redirect("login")
+
+    if get_business_type_code(request.user) != "mart":
+        return redirect("login")
+
+    business = request.user.business
+
+    total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
+
+    context = {
+        "total_staff": total_staff,
+    }
+    return render(request, "owner/dashboard_mart.html", context)

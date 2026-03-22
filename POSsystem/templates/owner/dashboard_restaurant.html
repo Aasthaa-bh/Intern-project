@@ -1,0 +1,165 @@
+
+{% extends "owner/base.html" %}
+{% load static i18n %}
+{% load nepali_number %}
+
+
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_subtitle %}
+{% trans "Overview of your business" %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Title -->
+<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+{% trans "Dashboard" %}
+</h1>
+
+
+
+<!-- ========================= -->
+<!-- Package / Subscription -->
+<!-- ========================= -->
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+
+<!-- Active Package -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<p class="text-sm text-gray-500 dark:text-gray-300">
+{% trans "Active Package" %}
+</p>
+
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+{% if active_subscription %}
+{{ active_subscription.package.name }}
+{% else %}
+{% trans "Free / No Package" %}
+{% endif %}
+</h2>
+
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+{% if active_subscription and active_subscription.end_date %}
+{% blocktrans with date=active_subscription.end_date|date:"M d, Y" %}
+Valid until {{ date|nepali_number }}
+{% endblocktrans %}
+{% else %}
+{% trans "Upgrade to unlock more users" %}
+{% endif %}
+</p>
+</div>
+
+
+<!-- User Limit -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<p class="text-sm text-gray-500 dark:text-gray-300">
+{% trans "User Limit" %}
+</p>
+
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+{{ current_users|nepali_number }} / {{ max_users|nepali_number }}
+</h2>
+
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+{% trans "Users currently used" %}
+</p>
+</div>
+
+
+<!-- Table Limit -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<p class="text-sm text-gray-500 dark:text-gray-300">
+{% trans "Table Limit" %}
+</p>
+
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+{{ total_tables|nepali_number }} / {{ max_tables|nepali_number }}
+</h2>
+
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+{% trans "Tables currently used" %}
+</p>
+</div>
+
+
+<!-- Remaining Users -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<p class="text-sm text-gray-500 dark:text-gray-300">
+{% trans "Remaining Users" %}
+</p>
+
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+{{ remaining_users|nepali_number }}
+</h2>
+
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+{% if days_remaining %}
+{% blocktrans with days=days_remaining %}
+{{ days|nepali_number }} day(s) left
+{% endblocktrans %}
+{% else %}
+{% trans "No active subscription" %}
+{% endif %}
+</p>
+</div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Business Statistics -->
+<!-- ========================= -->
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+<!-- Staff -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+{{ total_staff|nepali_number }}
+</h2>
+
+<p class="text-gray-500 dark:text-gray-300 mt-2">
+{% trans "Total Staff" %}
+</p>
+</div>
+
+
+<!-- Categories -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+{{ total_categories|nepali_number  }}
+</h2>
+
+<p class="text-gray-500 dark:text-gray-300 mt-2">
+{% trans "Menu Categories" %}
+</p>
+</div>
+
+
+<!-- Items -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+{{ total_items|nepali_number }}
+</h2>
+
+<p class="text-gray-500 dark:text-gray-300 mt-2">
+{% trans "Menu Items" %}
+</p>
+</div>
+
+
+<!-- Tables -->
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+{{ total_tables|nepali_number}}
+</h2>
+
+<p class="text-gray-500 dark:text-gray-300 mt-2">
+{% trans "Total Tables" %}
+</p>
+</div>
+
+</div>
+
+{% endblock %}

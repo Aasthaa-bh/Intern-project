@@ -1,156 +1,266 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}Owner Panel{% endblock %}</title>
+{% load static i18n %}
+{% load nepali_number %}
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE }}" class="{% if preferences.theme == 'dark' %}dark{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Owner Panel{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 </head>
 
-<body class="bg-gray-100">
-  <div class="min-h-screen flex">
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-white">
+    <div class="min-h-screen flex">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col">
-      <div class="px-6 py-5 border-b border-gray-800">
-        <div class="text-xl font-bold">🍽 FlexiPOS</div>
-        <div class="text-xs text-gray-400 mt-1">Owner Panel</div>
-      </div>
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-gray-900 text-white dark:bg-black flex flex-col">
+            <div class="px-6 py-5 border-b border-gray-800 dark:border-gray-700">
+                <div class="text-xl font-bold">FlexiPOS</div>
+                <div class="text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Owner Panel" %}</div>
 
-      <nav class="flex-1 px-3 py-4 space-y-1">
-        <!-- Dashboard -->
-        <a href="{% url 'owner_dashboard' %}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if request.path == '/owner/dashboard/' %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">Dashboard</span>
-        </a>
-
-        <!-- Staff -->
-        <a href="{% url 'staff_list' %}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if '/owner/staff/' in request.path %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">Staff Management</span>
-        </a>
-
-        <!-- MENU MANAGEMENT -->
-        <div class="mt-2">
-          <button onclick="toggleMenu()" 
-                  class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
-            <span class="text-sm font-medium">Menu</span>
-            <span id="menuArrow">▾</span>
-          </button>
-
-          <div id="menuSubmenu" class="ml-4 mt-1 space-y-1">
-            <a href="{% url 'category_list' %}"
-              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
-              Categories
-            </a>
-
-            <a href="{% url 'item_list' %}"
-              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
-              Menu Items
-            </a>
-          </div>
-        </div>
-
-        <!-- TABLE MANAGEMENT -->
-        <div class="mt-2">
-          <button onclick="toggleTables()" 
-                  class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
-            <span class="text-sm font-medium">Tables</span>
-            <span id="tableArrow">▾</span>
-          </button>
-
-          <div id="tableSubmenu" class="ml-4 mt-1 space-y-1">
-            <a href="{% url 'table_category_list' %}"
-              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
-              Table Categories
-            </a>
-
-            <a href="{% url 'table_list' %}"
-              class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
-              Dining Tables
-            </a>
-          </div>
-        </div>
-
-        <!-- Loyalty -->
-        <a href="{% url 'loyalty_settings' %}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if '/owner/loyalty' in request.path %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">Loyalty Settings</span>
-        </a>
-
-        <!-- Reports -->
-        <a href="{% url 'restaurant_reports' %}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if '/owner/reports' in request.path %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">Reports</span>
-        </a>
-
-      </nav>
-
-      <div class="p-4 border-t border-gray-800 text-xs text-gray-400">
-        Logged in as <span class="text-gray-200">{{ request.user.username }}</span>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <div class="flex-1 flex flex-col">
-
-      <!-- TOPBAR -->
-      <header class="bg-white border-b border-gray-200">
-        <div class="flex items-center justify-between px-6 py-4">
-          <div>
-            <div class="text-lg font-semibold text-gray-900">{% block page_title %}{% endblock %}</div>
-            <div class="text-xs text-gray-500">{% block page_subtitle %}{% endblock %}</div>
-          </div>
-
-          <div class="flex items-center gap-4">
-
-            <!-- Upgrade Button -->
-            <a href="{% url 'business_package_list' %}"
-              class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-              Upgrade
-            </a>
-
-            <div class="text-sm text-gray-700">
-              {{ request.user.full_name }}
+                {% if current_business %}
+                    <div class="mt-3 text-xs text-gray-300">
+                        <div class="font-semibold">{{ current_business.business_name }}</div>
+                        <div class="text-gray-400">
+                            {{ current_business.business_type.name }} | {{ current_business.business_code }}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
 
-            <!-- Logout -->
-            <a href="{% url 'logout' %}"
-              class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
-              Logout
-            </a>
+            <nav class="flex-1 px-3 py-4 space-y-1">
 
-          </div>
-        </div>
-      </header>
+                <!-- Common -->
+                <a href="{% url 'owner_dashboard' %}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/dashboard/' in request.path %}bg-gray-800{% endif %}">
+                    <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
+                </a>
 
-      <!-- CONTENT -->
-      <main class="p-6">
-        {% if messages %}
-    <div class="mb-4 space-y-2">
-      {% for message in messages %}
-        <div class="px-4 py-3 rounded-md border
-                    {% if message.tags == 'error' %}
-                      bg-red-50 text-red-700 border-red-200
-                    {% elif message.tags == 'success' %}
-                      bg-green-50 text-green-700 border-green-200
-                    {% else %}
-                      bg-gray-50 text-gray-700 border-gray-200
-                    {% endif %}">
-          {{ message }}
+                <a href="{% url 'staff_list' %}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/staff/' in request.path %}bg-gray-800{% endif %}">
+                    <span class="text-sm font-medium">{% trans "Staff Management" %}</span>
+                </a>
+
+                <!-- RESTAURANT SIDEBAR -->
+                {% if current_business_type == "restaurant" %}
+
+                    <div class="mt-2">
+                        <button type="button" onclick="toggleMenu()"
+                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+                            <span class="text-sm font-medium">{% trans "Menu" %}</span>
+                            <span id="menuArrow">▾</span>
+                        </button>
+
+                        <div id="menuSubmenu" class="ml-4 mt-1 space-y-1">
+                            <a href="{% url 'category_list' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                                {% trans "Categories" %}
+                            </a>
+
+                            <a href="{% url 'item_list' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                                {% trans "Menu Items" %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <button type="button" onclick="toggleTables()"
+                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+                            <span class="text-sm font-medium">{% trans "Tables" %}</span>
+                            <span id="tableArrow">▾</span>
+                        </button>
+
+                        <div id="tableSubmenu" class="ml-4 mt-1 space-y-1">
+                            <a href="{% url 'table_category_list' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                                {% trans "Table Categories" %}
+                            </a>
+
+                            <a href="{% url 'table_list' %}"
+                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm">
+                                {% trans "Dining Tables" %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'loyalty_settings' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Loyalty Settings" %}</span>
+                    </a>
+
+                    <a href="{% url 'restaurant_reports' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
+                    </a>
+
+                <!-- CLOTHING SIDEBAR -->
+                {% elif current_business_type == "clothing" %}
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Products" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Product Variants" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Categories" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Inventory" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
+                    </a>
+
+                <!-- MART SIDEBAR -->
+                {% elif current_business_type == "mart" %}
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Products" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Categories" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Inventory" %}</span>
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
+                    </a>
+
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 flex flex-col">
+
+            <header class="bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+                <div class="flex items-center justify-between px-6 py-4">
+
+                    <div>
+                        <div class="text-lg font-semibold text-gray-900 dark:text-white">
+                            {% block page_title %}{% endblock %}
+                        </div>
+
+                        <div class="text-xs text-gray-500 dark:text-gray-300">
+                            {% block page_subtitle %}{% endblock %}
+                        </div>
+                    </div>
+
+                    <!-- PROFILE -->
+                    <div class="relative">
+                        <button type="button" onclick="toggleProfileMenu()"
+                                class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
+                                {{ request.user.full_name|first }}
+                            </div>
+                            {{ request.user.full_name }}
+                        </button>
+
+                        <!-- PROFILE DROPDOWN -->
+                        <div id="profileMenu"
+                             class="hidden absolute right-0 mt-2 w-52 rounded-lg shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+
+                            <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                                <p class="text-sm font-semibold">{{ request.user.full_name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-300">
+                                    {{ request.user.email }}
+                                </p>
+                            </div>
+
+                            <div class="py-1">
+                                <a href="{% url 'business_package_list' %}"
+                                   class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    {% trans "Upgrade Plan" %}
+                                </a>
+
+                                <a href="{% url 'user_settings' %}"
+                                   class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    {% trans "Settings" %}
+                                </a>
+
+                                <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+                                <a href="{% url 'logout' %}"
+                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    {% trans "Log out" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <main class="p-6">
+                {% block content %}{% endblock %}
+            </main>
         </div>
-      {% endfor %}
     </div>
-{% endif %}
-        {% block content %}{% endblock %}
-      </main>
-    </div>
-  </div>
+
+    <script>
+        function toggleMenu() {
+            const submenu = document.getElementById("menuSubmenu");
+            const arrow = document.getElementById("menuArrow");
+
+            if (submenu && arrow) {
+                submenu.classList.toggle("hidden");
+                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
+            }
+        }
+
+        function toggleTables() {
+            const submenu = document.getElementById("tableSubmenu");
+            const arrow = document.getElementById("tableArrow");
+
+            if (submenu && arrow) {
+                submenu.classList.toggle("hidden");
+                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
+            }
+        }
+
+        function toggleProfileMenu() {
+            const menu = document.getElementById("profileMenu");
+            if (menu) {
+                menu.classList.toggle("hidden");
+            }
+        }
+
+        window.addEventListener("click", function(e) {
+            const profileWrapper = e.target.closest(".relative");
+            const profileMenu = document.getElementById("profileMenu");
+
+            if (!profileWrapper && profileMenu) {
+                profileMenu.classList.add("hidden");
+            }
+        });
+    </script>
 </body>
 </html>
