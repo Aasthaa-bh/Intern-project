@@ -5,14 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
 from django.db import transaction
-from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField
+from django.db.models import Count, F, Sum, Value, DecimalField, ExpressionWrapper, IntegerField, Case, When, Q, Max
 from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
-from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -71,6 +71,52 @@ def _build_purchase_formset(data=None, instance=None, business=None):
     return ClothingPurchaseItemFormSet(form_kwargs={"business": business}, **kwargs)
 
 
+def _product_has_variants(product):
+    return bool(product and getattr(product, "pk", None) and product.variants.exists())
+
+
+def _disable_parent_stock_tracking(product):
+    if not product:
+        return
+
+    updates = []
+    if product.track_stock:
+        product.track_stock = False
+        updates.append("track_stock")
+    if (product.stock_qty or Decimal("0")) != Decimal("0"):
+        product.stock_qty = Decimal("0")
+        updates.append("stock_qty")
+    if (product.min_stock_qty or Decimal("0")) != Decimal("0"):
+        product.min_stock_qty = Decimal("0")
+        updates.append("min_stock_qty")
+
+    if updates:
+        updates.append("updated_at")
+        product.save(update_fields=updates)
+
+
+def _variant_snapshot_name(variant):
+    if not variant:
+        return ""
+
+    detail = getattr(variant, "clothing_detail", None)
+    parts = []
+
+    if detail and getattr(detail, "color_id", None):
+        parts.append(detail.color.name)
+    if detail and getattr(detail, "size_id", None):
+        parts.append(detail.size.name)
+
+    if parts:
+        return " / ".join(parts)
+    return variant.name or ""
+
+
+def _purchase_variant_item_map(business):
+    variants = _filter_by_business(ItemVariant.objects.all(), business).values_list("id", "item_id")
+    return {str(variant_id): item_id for variant_id, item_id in variants}
+
+
 def inventory_access_required(view_func):
     @wraps(view_func)
     @login_required
@@ -106,7 +152,7 @@ def inventory_dashboard(request):
     total_variants = variants_qs.count()
     total_skus = total_products + total_variants
 
-    low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"))
+    low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"), variants__isnull=True)
     if variants_enabled:
         low_stock_variants = variants_qs.filter(stock_qty__lte=F("min_stock_qty"))
         low_stock_count = low_stock_items.count() + low_stock_variants.count()
@@ -148,11 +194,34 @@ def inventory_dashboard(request):
 @inventory_access_required
 def product_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    category_id = (request.GET.get("category") or "").strip()
+    brand_id = (request.GET.get("brand") or "").strip()
+    gender = (request.GET.get("gender") or "").strip().upper()
 
     products = _filter_by_business(
         Item.objects.filter(item_type="PRODUCT").select_related("category", "brand"),
         business,
     )
+
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
+        )
+
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+
+    valid_genders = {choice[0] for choice in ClothingItem.GENDER}
+    if gender in valid_genders:
+        products = products.filter(clothing__gender=gender)
+    else:
+        gender = ""
 
     if _model_table_ok(ItemVariant):
         products = products.annotate(
@@ -162,8 +231,9 @@ def product_list(request):
                 Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
             ),
         ).annotate(
-            total_stock=ExpressionWrapper(
-                F("stock_qty") + F("variants_stock"),
+            total_stock=Case(
+                When(variant_count__gt=0, then=F("variants_stock")),
+                default=F("stock_qty"),
                 output_field=DecimalField(max_digits=12, decimal_places=2),
             )
         )
@@ -176,8 +246,25 @@ def product_list(request):
             ),
         )
 
+    categories = _filter_by_business(
+        Category.objects.filter(item__item_type="PRODUCT", is_active=True),
+        business,
+    ).distinct().order_by("name")
+
+    brands = _filter_by_business(
+        Brand.objects.filter(item__item_type="PRODUCT", is_active=True),
+        business,
+    ).distinct().order_by("name")
+
     context = {
         "products": products.order_by("name"),
+        "categories": categories,
+        "brands": brands,
+        "genders": ClothingItem.GENDER,
+        "selected_category": category_id,
+        "selected_brand": brand_id,
+        "selected_gender": gender,
+        "search_query": search_query,
     }
     return render(request, "clothing/product_list.html", context)
 
@@ -195,6 +282,8 @@ def product_create(request):
             product.business = business
             product.item_type = "PRODUCT"
             product.save()
+            if _product_has_variants(product):
+                _disable_parent_stock_tracking(product)
 
             clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
             clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
@@ -223,6 +312,8 @@ def product_edit(request, product_id):
         form = ClothingProductForm(request.POST, instance=product, business=business)
         if form.is_valid():
             product = form.save()
+            if _product_has_variants(product):
+                _disable_parent_stock_tracking(product)
             clothing_item, _ = ClothingItem.objects.get_or_create(item=product)
             clothing_item.gender = form.cleaned_data.get("gender") or clothing_item.gender
             clothing_item.material = form.cleaned_data.get("material", "")
@@ -268,6 +359,50 @@ def product_detail(request, product_id):
 
 
 @inventory_access_required
+def variant_list(request):
+    business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    product_id = (request.GET.get("product") or "").strip()
+
+    if _model_table_ok(ItemVariant):
+        variants = _filter_by_business(
+            ItemVariant.objects.filter(item__item_type="PRODUCT").select_related(
+                "item",
+                "clothing_detail__size",
+                "clothing_detail__color",
+            ),
+            business,
+        )
+    else:
+        variants = ItemVariant.objects.none()
+
+    if search_query:
+        variants = variants.filter(
+            Q(name__icontains=search_query)
+            | Q(sku__icontains=search_query)
+            | Q(item__name__icontains=search_query)
+            | Q(clothing_detail__size__name__icontains=search_query)
+            | Q(clothing_detail__color__name__icontains=search_query)
+        )
+
+    if product_id:
+        variants = variants.filter(item_id=product_id)
+
+    products = _filter_by_business(
+        Item.objects.filter(item_type="PRODUCT"),
+        business,
+    ).order_by("name")
+
+    context = {
+        "variants": variants.order_by("item__name", "name"),
+        "products": products,
+        "selected_product": product_id,
+        "search_query": search_query,
+    }
+    return render(request, "clothing/variant_list.html", context)
+
+
+@inventory_access_required
 def variant_create(request, product_id):
     business = _get_request_business(request)
     base_qs = Item.objects.filter(item_type="PRODUCT")
@@ -276,12 +411,13 @@ def variant_create(request, product_id):
     product = get_object_or_404(base_qs, id=product_id)
 
     if request.method == "POST":
-        form = ClothingVariantForm(request.POST, business=business)
+        form = ClothingVariantForm(request.POST, business=business, product=product)
         if form.is_valid():
             variant = form.save(commit=False)
             variant.item = product
             variant.business = product.business
             variant.save()
+            _disable_parent_stock_tracking(product)
 
             detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
             detail.size = form.cleaned_data.get("size")
@@ -291,7 +427,7 @@ def variant_create(request, product_id):
             messages.success(request, "Variant added successfully.")
             return redirect("clothing_product_detail", product_id=product.id)
     else:
-        form = ClothingVariantForm(business=business)
+        form = ClothingVariantForm(business=business, product=product)
 
     return render(
         request,
@@ -315,12 +451,13 @@ def variant_edit(request, product_id, variant_id):
     variant = get_object_or_404(variant_qs, id=variant_id)
 
     if request.method == "POST":
-        form = ClothingVariantForm(request.POST, instance=variant, business=business)
+        form = ClothingVariantForm(request.POST, instance=variant, business=business, product=product)
         if form.is_valid():
             variant = form.save(commit=False)
             variant.item = product
             variant.business = product.business
             variant.save()
+            _disable_parent_stock_tracking(product)
 
             detail, _ = ClothingVariantDetail.objects.get_or_create(variant=variant)
             detail.size = form.cleaned_data.get("size")
@@ -330,7 +467,7 @@ def variant_edit(request, product_id, variant_id):
             messages.success(request, "Variant updated successfully.")
             return redirect("clothing_product_detail", product_id=product.id)
     else:
-        form = ClothingVariantForm(instance=variant, business=business)
+        form = ClothingVariantForm(instance=variant, business=business, product=product)
 
     return render(
         request,
@@ -372,6 +509,7 @@ def variant_delete(request, product_id, variant_id):
 def stock_movement_list(request):
     business = _get_request_business(request)
     movement_type = (request.GET.get("type") or "").strip().upper()
+    movement_date = (request.GET.get("date") or "").strip()
 
     if not _model_table_ok(StockMovement):
         return HttpResponseForbidden("Stock movement table schema is out of date. Run migrations.")
@@ -387,9 +525,13 @@ def stock_movement_list(request):
     else:
         movement_type = ""
 
+    if movement_date:
+        movements = movements.filter(created_at__date=movement_date)
+
     context = {
         "movements": movements.order_by("-created_at")[:200],
         "movement_type": movement_type,
+        "movement_date": movement_date,
         "movement_type_choices": StockMovement.MOVEMENT_TYPE,
     }
     return render(request, "clothing/stock_movements.html", context)
@@ -398,15 +540,45 @@ def stock_movement_list(request):
 @inventory_access_required
 def purchase_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    date_from = (request.GET.get("date_from") or "").strip()
+    date_to = (request.GET.get("date_to") or "").strip()
+    status = (request.GET.get("status") or "").strip().upper()
     if not _model_table_ok(Purchase):
         return HttpResponseForbidden("Purchase table schema is out of date. Run migrations.")
     purchases = _filter_by_business(
         Purchase.objects.select_related("supplier"),
         business,
-    ).order_by("-created_at")
+    )
+
+    if search_query:
+        purchases = purchases.filter(
+            Q(purchase_no__icontains=search_query)
+            | Q(supplier__name__icontains=search_query)
+            | Q(items__item_name_snapshot__icontains=search_query)
+            | Q(items__variant_name_snapshot__icontains=search_query)
+        )
+
+    valid_statuses = {choice[0] for choice in Purchase.STATUS}
+    if status in valid_statuses:
+        purchases = purchases.filter(status=status)
+    else:
+        status = ""
+
+    if date_from:
+        purchases = purchases.filter(purchase_date__gte=date_from)
+    if date_to:
+        purchases = purchases.filter(purchase_date__lte=date_to)
+
+    purchases = purchases.distinct().order_by("-purchase_date", "-created_at")
 
     context = {
         "purchases": purchases,
+        "search_query": search_query,
+        "date_from": date_from,
+        "date_to": date_to,
+        "status": status,
+        "status_choices": Purchase.STATUS,
     }
     return render(request, "clothing/purchase_list.html", context)
 
@@ -436,7 +608,7 @@ def purchase_create(request):
 
             for line in lines:
                 line.item_name_snapshot = line.item.name
-                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.variant_name_snapshot = _variant_snapshot_name(line.variant)
                 line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
                 line.expected_quantity = line.quantity
                 line.received_quantity = Decimal("0")
@@ -457,7 +629,12 @@ def purchase_create(request):
     return render(
         request,
         "clothing/purchase_form.html",
-        {"form": form, "formset": formset, "mode": "create"},
+        {
+            "form": form,
+            "formset": formset,
+            "mode": "create",
+            "variant_item_map": _purchase_variant_item_map(business),
+        },
     )
 
 
@@ -518,7 +695,7 @@ def purchase_edit(request, purchase_id):
 
             for line in lines:
                 line.item_name_snapshot = line.item.name
-                line.variant_name_snapshot = line.variant.name if line.variant else ""
+                line.variant_name_snapshot = _variant_snapshot_name(line.variant)
                 line.sku_snapshot = line.variant.sku if line.variant else (line.item.sku or "")
                 if not line.received_quantity:
                     line.received_quantity = Decimal("0")
@@ -536,7 +713,13 @@ def purchase_edit(request, purchase_id):
     return render(
         request,
         "clothing/purchase_form.html",
-        {"form": form, "formset": formset, "mode": "edit", "purchase": purchase},
+        {
+            "form": form,
+            "formset": formset,
+            "mode": "edit",
+            "purchase": purchase,
+            "variant_item_map": _purchase_variant_item_map(business),
+        },
     )
 
 
@@ -616,15 +799,44 @@ def purchase_receive(request, purchase_id):
 @inventory_access_required
 def supplier_list(request):
     business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "active").strip().lower()
     if not _model_table_ok(Supplier):
         return HttpResponseForbidden("Supplier table schema is out of date. Run migrations.")
     suppliers = _filter_by_business(
         Supplier.objects.all(),
         business,
+    )
+
+    if search_query:
+        suppliers = suppliers.filter(
+            Q(name__icontains=search_query)
+            | Q(contact_person__icontains=search_query)
+            | Q(phone_no__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(pan_vat_no__icontains=search_query)
+        )
+
+    if status == "active":
+        suppliers = suppliers.filter(is_active=True)
+    elif status == "inactive":
+        suppliers = suppliers.filter(is_active=False)
+    else:
+        status = "all"
+
+    suppliers = suppliers.annotate(
+        total_purchases=Count("purchase", distinct=True),
+        last_purchase_date=Max("purchase__purchase_date"),
+        total_purchased=Coalesce(
+            Sum("purchase__total_amount"),
+            Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
+        ),
     ).order_by("name")
 
     context = {
         "suppliers": suppliers,
+        "search_query": search_query,
+        "status": status,
     }
     return render(request, "clothing/supplier_list.html", context)
 
@@ -688,16 +900,29 @@ def supplier_delete(request, supplier_id):
         base_qs = base_qs.filter(business=business)
 
     supplier = get_object_or_404(base_qs, id=supplier_id)
+    purchase_count = Purchase.objects.filter(supplier=supplier).count()
 
     if request.method == "POST":
-        try:
-            supplier.delete()
-            messages.success(request, "Supplier deleted successfully.")
-        except ProtectedError:
-            messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
+        if purchase_count:
+            if supplier.is_active:
+                supplier.is_active = False
+                supplier.save(update_fields=["is_active", "updated_at"])
+                messages.success(request, "Supplier is used in purchases, so it was archived instead of deleted.")
+            else:
+                messages.info(request, "Supplier is already inactive and kept for purchase history.")
+        else:
+            try:
+                supplier.delete()
+                messages.success(request, "Supplier deleted successfully.")
+            except ProtectedError:
+                messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
         return redirect("clothing_supplier_list")
 
-    return render(request, "clothing/supplier_delete.html", {"supplier": supplier})
+    return render(
+        request,
+        "clothing/supplier_delete.html",
+        {"supplier": supplier, "purchase_count": purchase_count},
+    )
 
 
 @inventory_access_required
@@ -735,7 +960,7 @@ def low_stock_alert(request):
     business = _get_request_business(request)
 
     low_stock_items = _filter_by_business(
-        Item.objects.filter(item_type="PRODUCT", stock_qty__lte=F("min_stock_qty")),
+        Item.objects.filter(item_type="PRODUCT", stock_qty__lte=F("min_stock_qty"), variants__isnull=True),
         business,
     ).order_by("name")
 

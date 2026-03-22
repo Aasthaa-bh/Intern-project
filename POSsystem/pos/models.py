@@ -36,6 +36,7 @@ class Supplier(models.Model):
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
     pan_vat_no = models.CharField(max_length=50, blank=True)
+    notes = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

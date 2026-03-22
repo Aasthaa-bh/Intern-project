@@ -3,6 +3,67 @@
 {% block title %}Suppliers{% endblock %}
 {% block page_title %}Suppliers{% endblock %}
 
+{% block extra_css %}
+<style>
+    .supplier-filters {
+        display: grid;
+        grid-template-columns: minmax(260px, 2fr) minmax(180px, 1fr) auto auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 16px;
+    }
+
+    .supplier-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .scroll-table {
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .scroll-table table {
+        margin: 0;
+    }
+
+    .scroll-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .status-pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-pill.active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pill.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    @media (max-width: 900px) {
+        .supplier-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block header_actions %}
 <a class="btn btn-primary" href="{% url 'clothing_supplier_create' %}">Add Supplier</a>
 {% endblock %}
@@ -10,34 +71,70 @@
 {% block content %}
 <div class="card">
     <div class="card-header">Supplier Directory</div>
+    <form method="get" class="supplier-filters">
+        <div>
+            <label for="supplier-search">Search suppliers</label>
+            <input id="supplier-search" type="text" name="q" value="{{ search_query }}" placeholder="Name, contact, phone, email, PAN/VAT">
+        </div>
+        <div>
+            <label for="supplier-status">Status</label>
+            <select id="supplier-status" name="status">
+                <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option>
+                <option value="all" {% if status == "all" %}selected{% endif %}>All</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Clear</a>
+    </form>
     {% if suppliers %}
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Contact</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Address</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for supplier in suppliers %}
-            <tr>
-                <td>{{ supplier.name }}</td>
-                <td>{{ supplier.contact_person|default:"-" }}</td>
-                <td>{{ supplier.phone_no|default:"-" }}</td>
-                <td>{{ supplier.email|default:"-" }}</td>
-                <td>{{ supplier.address|default:"-" }}</td>
-                <td>
-                    <a class="btn btn-secondary" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
-                    <a class="btn btn-secondary" href="{% url 'clothing_supplier_delete' supplier.id %}">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Contact</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>PAN/VAT</th>
+                    <th>Total Purchases</th>
+                    <th>Last Purchase</th>
+                    <th>Total Amount</th>
+                    <th>Address</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for supplier in suppliers %}
+                <tr>
+                    <td>{{ supplier.name }}</td>
+                    <td>
+                        <span class="status-pill {% if supplier.is_active %}active{% else %}inactive{% endif %}">
+                            {% if supplier.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ supplier.contact_person|default:"-" }}</td>
+                    <td>{{ supplier.phone_no|default:"-" }}</td>
+                    <td>{{ supplier.email|default:"-" }}</td>
+                    <td>{{ supplier.pan_vat_no|default:"-" }}</td>
+                    <td>{{ supplier.total_purchases }}</td>
+                    <td>{{ supplier.last_purchase_date|date:"M d, Y"|default:"-" }}</td>
+                    <td>{{ supplier.total_purchased }}</td>
+                    <td>{{ supplier.address|default:"-" }}</td>
+                    <td>{{ supplier.notes|default:"-" }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
+                        <a class="btn btn-secondary" href="{% url 'clothing_supplier_delete' supplier.id %}">
+                            {% if supplier.total_purchases %}Archive{% else %}Delete{% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p>No suppliers found.</p>
     {% endif %}

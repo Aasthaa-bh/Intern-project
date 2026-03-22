@@ -3,6 +3,49 @@
 {% block title %}Purchase Orders{% endblock %}
 {% block page_title %}Purchase Orders{% endblock %}
 
+{% block extra_css %}
+<style>
+    .purchase-filters {
+        display: grid;
+        grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) auto auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 16px;
+    }
+
+    .purchase-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .scroll-table {
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .scroll-table table {
+        margin: 0;
+    }
+
+    .scroll-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    @media (max-width: 1100px) {
+        .purchase-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block header_actions %}
 <a class="btn btn-primary" href="{% url 'clothing_purchase_create' %}">Create Purchase</a>
 {% endblock %}
@@ -10,48 +53,75 @@
 {% block content %}
 <div class="card">
     <div class="card-header">Purchases</div>
+    <form method="get" class="purchase-filters">
+        <div>
+            <label for="purchase-search">Search</label>
+            <input id="purchase-search" type="text" name="q" value="{{ search_query }}" placeholder="Purchase no, supplier, item, variant">
+        </div>
+        <div>
+            <label for="purchase-date-from">From Date</label>
+            <input id="purchase-date-from" type="date" name="date_from" value="{{ date_from }}">
+        </div>
+        <div>
+            <label for="purchase-date-to">To Date</label>
+            <input id="purchase-date-to" type="date" name="date_to" value="{{ date_to }}">
+        </div>
+        <div>
+            <label for="purchase-status">Status</label>
+            <select id="purchase-status" name="status">
+                <option value="">All statuses</option>
+                {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Clear</a>
+    </form>
     {% if purchases %}
-    <table>
-        <thead>
-            <tr>
-                <th>Purchase No</th>
-                <th>Supplier</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for purchase in purchases %}
-            <tr>
-                <td>{{ purchase.purchase_no }}</td>
-                <td>{{ purchase.supplier.name }}</td>
-                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
-                <td>
-                    {% if purchase.status == "RECEIVED" %}
-                        <span class="badge badge-success">Received</span>
-                    {% elif purchase.status == "CANCELLED" %}
-                        <span class="badge badge-danger">Cancelled</span>
-                    {% else %}
-                        <span class="badge badge-warning">Draft</span>
-                    {% endif %}
-                </td>
-                <td>{{ purchase.total_amount }}</td>
-                <td>
-                    <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
-                        View
-                    </a>
-                    {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
-                    <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
-                        Edit
-                    </a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Purchase No</th>
+                    <th>Supplier</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.purchase_no }}</td>
+                    <td>{{ purchase.supplier.name }}</td>
+                    <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if purchase.status == "RECEIVED" %}
+                            <span class="badge badge-success">Received</span>
+                        {% elif purchase.status == "CANCELLED" %}
+                            <span class="badge badge-danger">Cancelled</span>
+                        {% else %}
+                            <span class="badge badge-warning">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ purchase.total_amount }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
+                            View
+                        </a>
+                        {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
+                            Edit
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p>No purchase orders found.</p>
     {% endif %}

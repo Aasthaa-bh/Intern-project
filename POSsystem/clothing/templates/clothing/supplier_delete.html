@@ -10,10 +10,18 @@
 {% block content %}
 <div class="card">
     <div class="card-header">Confirm Delete</div>
-    <p>Are you sure you want to delete supplier <strong>{{ supplier.name }}</strong>?</p>
+    <p>Supplier: <strong>{{ supplier.name }}</strong></p>
+    {% if purchase_count %}
+    <p>This supplier is linked to {{ purchase_count }} purchase{{ purchase_count|pluralize }}.</p>
+    <p>Deleting it would break purchase history, so this action will archive the supplier instead.</p>
+    {% else %}
+    <p>Are you sure you want to delete this supplier permanently?</p>
+    {% endif %}
     <form method="post" style="margin-top: 12px;">
         {% csrf_token %}
-        <button class="btn btn-primary" type="submit">Confirm Delete</button>
+        <button class="btn btn-primary" type="submit">
+            {% if purchase_count %}Archive Supplier{% else %}Confirm Delete{% endif %}
+        </button>
     </form>
 </div>
 {% endblock %}

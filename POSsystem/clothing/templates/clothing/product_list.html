@@ -3,6 +3,87 @@
 {% block title %}Clothing Products{% endblock %}
 {% block page_title %}Product Catalog{% endblock %}
 
+{% block extra_css %}
+<style>
+    .catalog-filters {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 16px;
+    }
+
+    .catalog-filters > div {
+        min-width: 0;
+    }
+
+    .catalog-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .catalog-filters input,
+    .catalog-filters select {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .catalog-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        align-self: end;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 1280px) {
+        .catalog-filters {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .catalog-filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    .scroll-table {
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .scroll-table table {
+        margin: 0;
+    }
+
+    .scroll-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    @media (max-width: 900px) {
+        .catalog-filters {
+            grid-template-columns: 1fr;
+        }
+
+        .catalog-filter-actions {
+            width: 100%;
+        }
+
+        .catalog-filter-actions .btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block header_actions %}
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
 {% endblock %}
@@ -10,43 +91,88 @@
 {% block content %}
 <div class="card">
     <div class="card-header">Products</div>
+    <form method="get" class="catalog-filters">
+        <div>
+            <label for="catalog-search">Search by name, category, or brand</label>
+            <input id="catalog-search" type="text" name="q" value="{{ search_query }}" placeholder="Search products">
+        </div>
+        <div>
+            <label for="catalog-category">Category</label>
+            <select id="catalog-category" name="category">
+                <option value="">All categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="catalog-brand">Brand</label>
+            <select id="catalog-brand" name="brand">
+                <option value="">All brands</option>
+                {% for brand in brands %}
+                <option value="{{ brand.id }}" {% if selected_brand == brand.id|stringformat:"s" %}selected{% endif %}>
+                    {{ brand.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="catalog-gender">Gender</label>
+            <select id="catalog-gender" name="gender">
+                <option value="">All genders</option>
+                {% for value, label in genders %}
+                <option value="{{ value }}" {% if selected_gender == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="catalog-filter-actions">
+            <button class="btn btn-primary" type="submit">Search</button>
+            <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Clear</a>
+        </div>
+    </form>
     {% if products %}
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Variants</th>
-                <th>Total Stock</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.sku|default:"-" }}</td>
-                <td>{{ product.category.name|default:"-" }}</td>
-                <td>{{ product.variant_count }}</td>
-                <td>{{ product.total_stock }}</td>
-                <td>{{ product.price }}</td>
-                <td>
-                    <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
-                        View
-                    </a>
-                    <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
-                        Edit
-                    </a>
-                    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
-                        Add Variant
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Category</th>
+                    <th>Variants</th>
+                    <th>Total Stock</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.sku|default:"-" }}</td>
+                    <td>{{ product.category.name|default:"-" }}</td>
+                    <td>{{ product.variant_count }}</td>
+                    <td>{{ product.total_stock }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
+                            View
+                        </a>
+                        <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                            Edit
+                        </a>
+                        <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
+                            Add Variant
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p>No products found.</p>
     {% endif %}
