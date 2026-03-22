@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Menu Item</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <div class="card" style="max-width:500px;">
+        <div class="card-body">
+
+            <h5>🍽️ {% if item %}Edit{% else %}Add{% endif %} Menu Item</h5>
+            <hr>
+
+            <!-- antim added - enctype needed for image upload -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Item Name</label>
+                    <input type="text"
+                           name="name"
+                           class="form-control"
+                           value="{{ item.name|default:'' }}"
+                           placeholder="e.g. Momo, Pizza, Dal Bhat"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Price (Rs.)</label>
+                    <input type="number"
+                           name="price"
+                           class="form-control"
+                           step="0.01"
+                           value="{{ item.price|default:'' }}"
+                           placeholder="e.g. 250"
+                           required>
+                </div>
+
+                <!-- antim added - image upload field -->
+                <div class="mb-3">
+                    <label class="form-label">Image</label>
+                    {% if item.image %}
+                        <div class="mb-2">
+                            <img src="{{ item.image.url }}"
+                                 width="100"
+                                 class="rounded">
+                            <small class="text-muted d-block">Current image</small>
+                        </div>
+                    {% endif %}
+                    <input type="file"
+                           name="image"
+                           class="form-control"
+                           accept="image/*">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        {% if item %}Update{% else %}Add Item{% endif %}
+                    </button>
+                    <a href="{% url 'menu_list' %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
