@@ -87,4 +87,11 @@ urlpatterns = [
     path('reception/payments/pending/', views.pending_payments_list, name='pending_payments_list'),
     
     #reports
+
+    
+    # antim added
+    path("menu/",              views.menu_list,   name="menu_list"),
+    path("menu/add/",          views.menu_add,    name="menu_add"),
+    path("menu/edit/<int:pk>/",   views.menu_edit,   name="menu_edit"),
+    path("menu/delete/<int:pk>/", views.menu_delete, name="menu_delete"),
 ]
