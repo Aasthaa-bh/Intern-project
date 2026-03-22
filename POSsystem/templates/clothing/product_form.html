@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:500px;">
+    <div class="card-body">
+        <h5>{% if product %}Edit{% else %}Add{% endif %} Product</h5>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" name="name" class="form-control"
+                       value="{{ product.name|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Price</label>
+                <input type="number" name="price" step="0.01"
+                       class="form-control"
+                       value="{{ product.price|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Image</label>
+                {% if product.image %}
+                    <div class="mb-2">
+                        <img src="{{ product.image.url }}" width="100" class="rounded">
+                    </div>
+                {% endif %}
+                <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                {% if product %}Update{% else %}Add{% endif %}
+            </button>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

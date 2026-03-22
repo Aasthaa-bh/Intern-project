@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h4>👗 Clothing Products</h4>
+    <a href="{% url 'clothing_add' %}" class="btn btn-primary">+ Add Product</a>
+</div>
+<div class="row">
+{% for product in products %}
+<div class="col-md-3 mb-4">
+    <div class="card">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top"
+                 style="height:200px; object-fit:cover;">
+        {% else %}
+            <div class="bg-secondary text-white text-center py-5">No Image</div>
+        {% endif %}
+        <div class="card-body">
+            <h6>{{ product.name }}</h6>
+            <p class="text-success">Rs. {{ product.price }}</p>
+            <a href="{% url 'clothing_edit' product.pk %}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="{% url 'clothing_delete' product.pk %}" class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete?')">Delete</a>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p class="text-muted">No products yet!</p>
+{% endfor %}
+</div>
+{% endblock %}
