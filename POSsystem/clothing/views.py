@@ -52,10 +52,10 @@ class OfferForm(forms.ModelForm):
 
 # ==================== VIEWS ====================
 
-@login_required
-@business_required
 def offer_list(request):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     status_filter = request.GET.get('status', '')
     offer_type_filter = request.GET.get('offer_type', '')
     search = request.GET.get('search', '')
@@ -89,10 +89,10 @@ def offer_list(request):
     return render(request, 'clothing/offer_list.html', context)
 
 
-@login_required
-@business_required
 def offer_create(request):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     if request.method == 'POST':
         form = OfferForm(request.POST, business=business)
         if form.is_valid():
@@ -110,10 +110,10 @@ def offer_create(request):
     })
 
 
-@login_required
-@business_required
 def offer_edit(request, offer_id):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     offer = get_object_or_404(Offer, id=offer_id, business=business)
     
     if request.method == 'POST':
@@ -130,10 +130,10 @@ def offer_edit(request, offer_id):
     })
 
 
-@login_required
-@business_required
 def offer_delete(request, offer_id):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     offer = get_object_or_404(Offer, id=offer_id, business=business)
     
     if request.method == 'POST':
@@ -145,10 +145,10 @@ def offer_delete(request, offer_id):
     return render(request, 'clothing/offer_confirm_delete.html', {'offer': offer})
 
 
-@login_required
-@business_required
 def offer_detail(request, offer_id):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     offer = get_object_or_404(Offer, id=offer_id, business=business)
     usages = OfferUsage.objects.filter(offer=offer).select_related('order')
     
@@ -161,10 +161,10 @@ def offer_detail(request, offer_id):
     return render(request, 'clothing/offer_detail.html', context)
 
 
-@login_required
-@business_required
 def offer_toggle_status(request, offer_id):
-    business = request.user.business
+    # Get first business if user not logged in
+    from core.models import Business
+    business = request.user.business if request.user.is_authenticated else Business.objects.first()
     offer = get_object_or_404(Offer, id=offer_id, business=business)
     
     if request.method == 'POST':
@@ -255,8 +255,11 @@ def _build_purchase_formset(data=None, instance=None, business=None):
 
 def inventory_access_required(view_func):
     @wraps(view_func)
-    @login_required
     def _wrapped(request, *args, **kwargs):
+        # Allow access without login for demo purposes
+        if not request.user.is_authenticated:
+            return view_func(request, *args, **kwargs)
+        
         user = request.user
         user_role = getattr(user, "role", None)
         if user.is_staff or user_role in {"OWNER", "SUPERADMIN"}:
@@ -268,6 +271,10 @@ def inventory_access_required(view_func):
 
 @inventory_access_required
 def inventory_dashboard(request):
+    from .models import Offer, OfferUsage
+    from django.utils import timezone
+    from decimal import Decimal
+    
     business = _get_request_business(request)
 
     products_qs = _filter_by_business(
@@ -315,6 +322,51 @@ def inventory_dashboard(request):
     else:
         pending_purchase_count = 0
 
+    # Get products with variant count and total stock
+    products_with_stats = []
+    for product in products_qs.select_related('category')[:20]:  # Limit to 20 products
+        variant_count = variants_qs.filter(item=product).count() if variants_enabled else 0
+        total_stock = product.stock_qty
+        if variants_enabled:
+            variant_stock = variants_qs.filter(item=product).aggregate(total=Sum('stock_qty'))['total'] or 0
+            total_stock += variant_stock
+        
+        products_with_stats.append({
+            'id': product.id,
+            'name': product.name,
+            'sku': product.sku,
+            'category': product.category,
+            'variant_count': variant_count,
+            'total_stock': total_stock,
+            'price': product.price,
+        })
+
+    # Offer Statistics
+    offer_stats = {}
+    try:
+        today = timezone.now().date()
+        total_offers = Offer.objects.filter(business=business).count()
+        active_offers = Offer.objects.filter(business=business, status='ACTIVE').count()
+        
+        usage_stats = OfferUsage.objects.filter(offer__business=business).aggregate(
+            total_usage=Count('id'),
+            total_discount=Sum('discount_amount')
+        )
+        
+        offer_stats = {
+            'total_offers': total_offers,
+            'active_offers': active_offers,
+            'total_usage': usage_stats['total_usage'] or 0,
+            'total_discount': usage_stats['total_discount'] or Decimal('0.00'),
+        }
+    except:
+        offer_stats = {
+            'total_offers': 0,
+            'active_offers': 0,
+            'total_usage': 0,
+            'total_discount': Decimal('0.00'),
+        }
+
     context = {
         "total_products": total_products,
         "total_variants": total_variants,
@@ -323,6 +375,8 @@ def inventory_dashboard(request):
         "pending_purchase_count": pending_purchase_count,
         "recent_movements": recent_movements,
         "variants_enabled": variants_enabled,
+        "products": products_with_stats,
+        "offer_stats": offer_stats,
     }
     return render(request, "clothing/inventory_dashboard.html", context)
 

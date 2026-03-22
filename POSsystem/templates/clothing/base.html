@@ -15,36 +15,69 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-gray-900 text-white flex flex-col">
       <div class="px-6 py-5 border-b border-gray-800">
-        <div class="text-xl font-bold">👔 FlexiPOS</div>
+        <div class="text-xl font-bold">FlexiPOS</div>
         <div class="text-xs text-gray-400 mt-1">Clothing Panel</div>
       </div>
 
       <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <!-- Dashboard -->
-        <a href="{% url 'clothing_offer_dashboard' %}"
+        <a href="{% url 'clothing_inventory_dashboard' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if request.path == '/clothing/offers/dashboard/' %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">Dashboard</span>
+           {% if request.path == '/clothing/' or request.path == '/clothing/inventory/' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Inventory Dashboard</span>
         </a>
 
         <!-- Products -->
-        <a href="#"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-          <span class="text-sm font-medium">Products</span>
+        <a href="{% url 'clothing_product_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if '/clothing/products' in request.path %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">All Products</span>
         </a>
+
+        <!-- Divider -->
+        <div class="border-t border-gray-700 my-3"></div>
+        
+        <!-- Sales & Offers Section Header -->
+        <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Sales & Offers
+        </div>
 
         <!-- All Offers -->
         <a href="{% url 'clothing_offer_list' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if '/clothing/offers/list' in request.path %} bg-gray-800 {% endif %}">
+           {% if '/clothing/offers/' in request.path and 'create' not in request.path %} bg-gray-800 {% endif %}">
           <span class="text-sm font-medium">All Offers</span>
+        </a>
+
+        <!-- Discount Offers -->
+        <a href="{% url 'clothing_offer_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+          <span class="text-sm font-medium">Discount Offers</span>
+        </a>
+
+        <!-- Seasonal Offers -->
+        <a href="{% url 'clothing_offer_list' %}?offer_type=SEASONAL"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+          <span class="text-sm font-medium">Seasonal Offers</span>
+        </a>
+
+        <!-- Offer Validity -->
+        <a href="{% url 'clothing_offer_list' %}?status=ACTIVE"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+          <span class="text-sm font-medium">Offer Validity</span>
+        </a>
+
+        <!-- Offer Target -->
+        <a href="{% url 'clothing_offer_list' %}?offer_type=PRODUCT"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+          <span class="text-sm font-medium">Offer Target</span>
         </a>
 
         <!-- Create Offer -->
         <a href="{% url 'clothing_offer_create' %}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
-           {% if '/clothing/offers/create' in request.path or '/clothing/offers/edit' in request.path %} bg-gray-800 {% endif %}">
-          <span class="text-sm font-medium">+ Create Offer</span>
+           class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-700 mt-3
+           {% if '/clothing/offers/create' in request.path or '/clothing/offers/edit' in request.path %} bg-blue-700 {% endif %}">
+          <span class="text-sm font-medium">Create New Offer</span>
         </a>
 
       </nav>

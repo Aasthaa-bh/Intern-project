@@ -98,9 +98,6 @@ class ItemAdmin(admin.ModelAdmin):
                 qs = qs.filter(business=request.user.business)
         return qs
 
-<<<<<<< HEAD
-=======
-
 @admin.register(ItemVariant)
 class ItemVariantAdmin(admin.ModelAdmin):
     list_display = ['item', 'name', 'sku', 'stock_qty', 'is_active', 'business']
@@ -134,5 +131,4 @@ class StockMovementAdmin(admin.ModelAdmin):
     list_filter = ['movement_type', 'business', 'created_at']
     search_fields = ['item__name', 'variant__name', 'note']
 
->>>>>>> origin/test
 admin.site.register(Order)

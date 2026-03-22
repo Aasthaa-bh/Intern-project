@@ -144,6 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryField = document.getElementById('category-field');
     const discountHint = document.getElementById('discount-hint');
     
+    // Check if product is preselected from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedProduct = urlParams.get('product');
+    
     function updateFields() {
         const offerType = offerTypeSelect.value;
         
@@ -180,6 +184,11 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = url.toString();
         }
     });
+    
+    // If product is preselected, show product field
+    if (preselectedProduct && productSelect.value) {
+        productField.style.display = 'block';
+    }
     
     updateFields();
     offerTypeSelect.addEventListener('change', updateFields);

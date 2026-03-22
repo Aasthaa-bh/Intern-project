@@ -13,6 +13,7 @@ from core.decorators import owner_required
 def offer_dashboard(request):
     """Dashboard with offer statistics and insights"""
     from core.models import Business
+    
     business = request.user.business if request.user.is_authenticated else Business.objects.first()
     
     # Auto-update expired offers
@@ -119,7 +120,20 @@ def offer_list(request):
 def offer_create(request):
     """Create new clothing offer"""
     from core.models import Business
+    from pos.models import Item
     business = request.user.business if request.user.is_authenticated else Business.objects.first()
+    
+    # Get product from query parameter
+    product_id = request.GET.get('product')
+    initial_data = {}
+    
+    if product_id:
+        try:
+            product = Item.objects.get(id=product_id, business=business)
+            initial_data['product'] = product
+            initial_data['offer_type'] = 'PRODUCT'  # Default to product offer
+        except Item.DoesNotExist:
+            messages.warning(request, 'Product not found.')
     
     if request.method == 'POST':
         form = OfferForm(request.POST, business=business)
@@ -140,12 +154,13 @@ def offer_create(request):
             messages.success(request, f'Offer "{offer.offer_name}" created successfully!')
             return redirect('clothing_offer_list')
     else:
-        form = OfferForm(business=business)
+        form = OfferForm(business=business, initial=initial_data)
     
     return render(request, 'clothing/offer_form.html', {
         'form': form,
         'title': 'Create New Offer',
-        'button_text': 'Create Offer'
+        'button_text': 'Create Offer',
+        'preselected_product': product_id
     })
 
 

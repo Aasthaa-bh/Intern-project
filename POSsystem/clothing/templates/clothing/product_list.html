@@ -42,6 +42,9 @@
                     <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
                         Add Variant
                     </a>
+                    <a class="btn btn-success" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
+                        Create Offer
+                    </a>
                 </td>
             </tr>
             {% endfor %}

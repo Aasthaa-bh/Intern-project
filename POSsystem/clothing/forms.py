@@ -23,7 +23,7 @@ class OfferForm(forms.ModelForm):
     offer_name = forms.ChoiceField(
         choices=OFFER_NAME_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'form-control',
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
         })
     )
     
@@ -105,42 +105,42 @@ class OfferForm(forms.ModelForm):
         ]
         widgets = {
             'offer_type': forms.Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'id': 'id_offer_type'
             }),
             'description': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'rows': 3,
                 'placeholder': 'Optional description'
             }),
             'discount_value': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'placeholder': 'e.g., 10 for 10% or 500 for Rs 500',
                 'step': '0.01'
             }),
             'start_date': forms.DateInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'type': 'date'
             }),
             'end_date': forms.DateInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'type': 'date'
             }),
             'product': forms.Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'id': 'id_product'
             }),
             'category': forms.Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'id': 'id_category'
             }),
             'minimum_purchase': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'placeholder': '0',
                 'step': '0.01'
             }),
             'status': forms.Select(attrs={
-                'class': 'form-control'
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             }),
         }
     
