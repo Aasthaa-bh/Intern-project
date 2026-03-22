@@ -12,7 +12,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
-from pos.models import Category, Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -196,6 +196,8 @@ def product_list(request):
     business = _get_request_business(request)
     search_query = (request.GET.get("q") or "").strip()
     category_id = (request.GET.get("category") or "").strip()
+    brand_id = (request.GET.get("brand") or "").strip()
+    gender = (request.GET.get("gender") or "").strip().upper()
 
     products = _filter_by_business(
         Item.objects.filter(item_type="PRODUCT").select_related("category", "brand"),
@@ -205,11 +207,21 @@ def product_list(request):
     if search_query:
         products = products.filter(
             Q(name__icontains=search_query) |
-            Q(category__name__icontains=search_query)
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
         )
 
     if category_id:
         products = products.filter(category_id=category_id)
+
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+
+    valid_genders = {choice[0] for choice in ClothingItem.GENDER}
+    if gender in valid_genders:
+        products = products.filter(clothing__gender=gender)
+    else:
+        gender = ""
 
     if _model_table_ok(ItemVariant):
         products = products.annotate(
@@ -239,10 +251,19 @@ def product_list(request):
         business,
     ).distinct().order_by("name")
 
+    brands = _filter_by_business(
+        Brand.objects.filter(item__item_type="PRODUCT", is_active=True),
+        business,
+    ).distinct().order_by("name")
+
     context = {
         "products": products.order_by("name"),
         "categories": categories,
+        "brands": brands,
+        "genders": ClothingItem.GENDER,
         "selected_category": category_id,
+        "selected_brand": brand_id,
+        "selected_gender": gender,
         "search_query": search_query,
     }
     return render(request, "clothing/product_list.html", context)
@@ -335,6 +356,50 @@ def product_detail(request, product_id):
         "variants": variants,
     }
     return render(request, "clothing/product_detail.html", context)
+
+
+@inventory_access_required
+def variant_list(request):
+    business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    product_id = (request.GET.get("product") or "").strip()
+
+    if _model_table_ok(ItemVariant):
+        variants = _filter_by_business(
+            ItemVariant.objects.filter(item__item_type="PRODUCT").select_related(
+                "item",
+                "clothing_detail__size",
+                "clothing_detail__color",
+            ),
+            business,
+        )
+    else:
+        variants = ItemVariant.objects.none()
+
+    if search_query:
+        variants = variants.filter(
+            Q(name__icontains=search_query)
+            | Q(sku__icontains=search_query)
+            | Q(item__name__icontains=search_query)
+            | Q(clothing_detail__size__name__icontains=search_query)
+            | Q(clothing_detail__color__name__icontains=search_query)
+        )
+
+    if product_id:
+        variants = variants.filter(item_id=product_id)
+
+    products = _filter_by_business(
+        Item.objects.filter(item_type="PRODUCT"),
+        business,
+    ).order_by("name")
+
+    context = {
+        "variants": variants.order_by("item__name", "name"),
+        "products": products,
+        "selected_product": product_id,
+        "search_query": search_query,
+    }
+    return render(request, "clothing/variant_list.html", context)
 
 
 @inventory_access_required
