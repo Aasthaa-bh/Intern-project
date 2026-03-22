@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from django.db import models
+from django.core.exceptions import ValidationError
 from .utils_barcode import generate_barcode_image
 
 class Category(models.Model):
@@ -48,7 +48,6 @@ class Supplier(models.Model):
         return self.name
 
 class Item(models.Model):
-
     ITEM_TYPE = (
         ("MENU", "Menu"),
         ("PRODUCT", "Product"),
@@ -62,8 +61,10 @@ class Item(models.Model):
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=100, null=True, blank=True)
     barcode = models.CharField(max_length=100, null=True, blank=True)
+    barcode_image = models.CharField(max_length=255, blank=True)
+    has_variants = models.BooleanField(default=False)
+
     item_type = models.CharField(max_length=20, choices=ITEM_TYPE)
-    
     description = models.TextField(blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -80,10 +81,105 @@ class Item(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["business", "item_type", "is_active"]),
+            models.Index(fields=["business", "barcode"]),
+        ]
+
     def __str__(self):
         if self.sku:
             return f"{self.name} ({self.sku})"
         return self.name
+
+    @property
+    def actual_has_variants(self):
+        if not self.pk:
+            return False
+        return self.variants.exists()
+
+    def generate_next_barcode(self):
+        prefix = "ITM-"
+
+        last_item = (
+            Item.objects.filter(
+                business=self.business,
+                item_type="PRODUCT",
+                barcode__startswith=prefix,
+            )
+            .exclude(pk=self.pk)
+            .order_by("-id")
+            .first()
+        )
+
+        next_number = 1
+        if last_item and last_item.barcode:
+            try:
+                last_number = int(last_item.barcode.replace(prefix, ""))
+                next_number = last_number + 1
+            except ValueError:
+                next_number = 1
+
+        return f"{prefix}{next_number:06d}"
+
+    def clean(self):
+        super().clean()
+
+        if self.item_type != "PRODUCT":
+            return
+
+        if self.barcode:
+            item_qs = Item.objects.filter(
+                business=self.business,
+                barcode=self.barcode,
+            ).exclude(pk=self.pk)
+            if item_qs.exists():
+                raise ValidationError({"barcode": "This barcode is already used by another item."})
+
+            variant_qs = ItemVariant.objects.filter(
+                business=self.business,
+                barcode=self.barcode,
+            )
+            if variant_qs.exists():
+                raise ValidationError({"barcode": "This barcode is already used by a variant."})
+
+    def save(self, *args, **kwargs):
+        previous_barcode = None
+        if self.pk:
+            previous_barcode = (
+                Item.objects.filter(pk=self.pk)
+                .values_list("barcode", flat=True)
+                .first()
+            )
+
+        if self.item_type != "PRODUCT":
+            # MENU / SERVICE ma barcode force nagarne
+            self.barcode = self.barcode or None
+            self.barcode_image = self.barcode_image or ""
+        else:
+            if self.has_variants:
+                # variant-based product ma parent barcode rakhna chaina
+                self.barcode = None
+                self.barcode_image = ""
+            else:
+                if not self.barcode and self.business_id:
+                    self.barcode = self.generate_next_barcode()
+
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+        should_have_image = (
+            self.item_type == "PRODUCT"
+            and not self.has_variants
+            and bool(self.barcode)
+        )
+
+        barcode_changed = previous_barcode != self.barcode
+
+        if should_have_image and (not self.barcode_image or barcode_changed):
+            file_name = f"item_{self.id}_{self.barcode}"
+            self.barcode_image = generate_barcode_image(self.barcode, file_name)
+            super().save(update_fields=["barcode_image"])
 
 class ItemVariant(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -111,14 +207,22 @@ class ItemVariant(models.Model):
             ("business", "sku"),
             ("item", "name"),
         )
+        indexes = [
+            models.Index(fields=["business", "barcode"]),
+        ]
 
     def generate_next_barcode(self):
-        prefix = "CLTH-"
+        prefix = "VAR-"
 
-        last_variant = ItemVariant.objects.filter(
-            business=self.business,
-            barcode__startswith=prefix
-        ).order_by("-id").first()
+        last_variant = (
+            ItemVariant.objects.filter(
+                business=self.business,
+                barcode__startswith=prefix,
+            )
+            .exclude(pk=self.pk)
+            .order_by("-id")
+            .first()
+        )
 
         next_number = 1
         if last_variant and last_variant.barcode:
@@ -130,24 +234,71 @@ class ItemVariant(models.Model):
 
         return f"{prefix}{next_number:06d}"
 
+    def clean(self):
+        super().clean()
+
+        if self.item_id and self.item.item_type != "PRODUCT":
+            raise ValidationError("Variants are only allowed for PRODUCT items.")
+
+        if self.barcode:
+            item_qs = Item.objects.filter(
+                business=self.business,
+                barcode=self.barcode,
+            )
+            if item_qs.exists():
+                raise ValidationError({"barcode": "This barcode is already used by an item."})
+
+            variant_qs = ItemVariant.objects.filter(
+                business=self.business,
+                barcode=self.barcode,
+            ).exclude(pk=self.pk)
+            if variant_qs.exists():
+                raise ValidationError({"barcode": "This barcode is already used by another variant."})
+
     def save(self, *args, **kwargs):
+        previous_barcode = None
+        if self.pk:
+            previous_barcode = (
+                ItemVariant.objects.filter(pk=self.pk)
+                .values_list("barcode", flat=True)
+                .first()
+            )
+
         if self.item_id and not self.business_id:
             self.business = self.item.business
+
+        if self.item_id and self.item.item_type != "PRODUCT":
+            raise ValidationError("Variants can only be created for PRODUCT items.")
 
         if not self.barcode and self.business_id:
             self.barcode = self.generate_next_barcode()
 
+        self.full_clean()
         super().save(*args, **kwargs)
 
-        if self.barcode and not self.barcode_image:
+        barcode_changed = previous_barcode != self.barcode
+        if self.barcode and (not self.barcode_image or barcode_changed):
             file_name = f"variant_{self.id}_{self.barcode}"
             self.barcode_image = generate_barcode_image(self.barcode, file_name)
             super().save(update_fields=["barcode_image"])
 
+        # parent item lai variant-based mark garne
+        updates = {}
+        if not self.item.has_variants:
+            updates["has_variants"] = True
+        if self.item.barcode is not None:
+            updates["barcode"] = None
+        if self.item.barcode_image:
+            updates["barcode_image"] = ""
+
+        if updates:
+            for key, value in updates.items():
+                setattr(self.item, key, value)
+            self.item.save(update_fields=list(updates.keys()) + ["updated_at"])
+
     def __str__(self):
         return f"{self.item.name} / {self.name}"
-
-
+    
 class Customer(models.Model):
 
     STATUS = (
@@ -227,7 +378,6 @@ class Order(models.Model):
             models.Index(fields=["business", "order_type", "opened_at"]),
         ]
 
-
 class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -255,7 +405,22 @@ class OrderItem(models.Model):
             models.Index(fields=["item"]),
             models.Index(fields=["variant"]),
         ]
-    
+        
+    def clean(self):
+        super().clean()
+
+        if self.variant and self.variant.item_id != self.item_id:
+            raise ValidationError({"variant": "Selected variant does not belong to the selected item."})
+        if self.item_id:
+            if self.item.has_variants and not self.variant:
+                raise ValidationError({"variant": "This item requires a variant to be selected."})
+            if not self.item.has_variants and self.variant:
+                raise ValidationError({"variant": "This item does not use variants, so variant selection is not allowed."})
+            
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
 class Purchase(models.Model):
 
     STATUS = (
@@ -329,6 +494,22 @@ class PurchaseItem(models.Model):
     def __str__(self):
         return f"{self.purchase.purchase_no} - {self.item_name_snapshot}"
     
+    def clean(self):
+        super().clean()
+
+        if self.variant is not None and self.variant.item_id != self.item_id:
+            raise ValidationError({"variant": "Selected variant does not belong to the selected item."})
+
+        if self.item_id:
+            if self.item.has_variants and self.variant is None:
+                raise ValidationError({"variant": "This item requires a variant."})
+            if not self.item.has_variants and self.variant is not None:
+                raise ValidationError({"variant": "This item does not use variants."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
 class StockMovement(models.Model):
 
     MOVEMENT_TYPE = (
@@ -369,6 +550,21 @@ class StockMovement(models.Model):
             models.Index(fields=["variant"]),
             models.Index(fields=["business", "movement_type", "created_at"]),
         ]
+    def clean(self):
+        super().clean()
+
+        if self.variant is not None and self.variant.item_id != self.item_id:
+            raise ValidationError({"variant": "Selected variant does not belong to the selected item."})
+
+        if self.item_id:
+            if self.item.has_variants and self.variant is None:
+                raise ValidationError({"variant": "This item requires a variant."})
+            if not self.item.has_variants and self.variant is not None:
+                raise ValidationError({"variant": "This item does not use variants."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
     
 class Invoice(models.Model):
 

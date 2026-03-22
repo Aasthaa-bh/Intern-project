@@ -20,19 +20,86 @@
     <div class="card">
         <div class="card-header">Variant Information</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Name</label>{{ form.name }}</div>
-            <div><label>SKU</label>{{ form.sku }}</div>
-            <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div><label>Size</label>{{ form.size }}</div>
-            <div><label>Or New Size</label>{{ form.new_size }}</div>
-            <div><label>Color</label>{{ form.color }}</div>
-            <div><label>Or New Color</label>{{ form.new_color }}</div>
-            <div><label>Price</label>{{ form.price }}</div>
-            <div><label>Cost Price</label>{{ form.cost_price }}</div>
-            <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
-            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
-            <div><label>Active</label>{{ form.is_active }}</div>
+            <div>
+                <label>Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="alert alert-error">{{ form.name.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>SKU</label>
+                {{ form.sku }}
+                {% if form.sku.errors %}<div class="alert alert-error">{{ form.sku.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Barcode</label>
+                {{ form.barcode }}
+                {% if form.barcode.errors %}<div class="alert alert-error">{{ form.barcode.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Blank chhoda bhane barcode automatically generate huncha.
+                </small>
+            </div>
+
+            <div>
+                <label>Size</label>
+                {{ form.size }}
+                {% if form.size.errors %}<div class="alert alert-error">{{ form.size.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Or New Size</label>
+                {{ form.new_size }}
+                {% if form.new_size.errors %}<div class="alert alert-error">{{ form.new_size.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Color</label>
+                {{ form.color }}
+                {% if form.color.errors %}<div class="alert alert-error">{{ form.color.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Or New Color</label>
+                {{ form.new_color }}
+                {% if form.new_color.errors %}<div class="alert alert-error">{{ form.new_color.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Price</label>
+                {{ form.price }}
+                {% if form.price.errors %}<div class="alert alert-error">{{ form.price.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Cost Price</label>
+                {{ form.cost_price }}
+                {% if form.cost_price.errors %}<div class="alert alert-error">{{ form.cost_price.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Track Stock</label>
+                {{ form.track_stock }}
+                {% if form.track_stock.errors %}<div class="alert alert-error">{{ form.track_stock.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Opening Stock</label>
+                {{ form.stock_qty }}
+                {% if form.stock_qty.errors %}<div class="alert alert-error">{{ form.stock_qty.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Min Stock</label>
+                {{ form.min_stock_qty }}
+                {% if form.min_stock_qty.errors %}<div class="alert alert-error">{{ form.min_stock_qty.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Active</label>
+                {{ form.is_active }}
+                {% if form.is_active.errors %}<div class="alert alert-error">{{ form.is_active.errors }}</div>{% endif %}
+            </div>
         </div>
     </div>
 

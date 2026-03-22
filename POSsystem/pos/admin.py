@@ -86,9 +86,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'sku', 'item_type', 'price', 'stock_qty', 'is_active', 'business']
-    list_filter = ['item_type', 'is_active', 'business', 'category']
-    search_fields = ['name', 'sku']
+    list_display = ['name', 'sku', 'item_type', 'barcode', 'price', 'stock_qty', 'is_active', 'business']
+    list_filter = ['item_type', 'is_active', 'business', 'category', 'has_variants']
+    search_fields = ['name', 'sku', 'barcode']
     list_editable = ['is_active', 'price']
     
     def get_queryset(self, request):
@@ -101,9 +101,9 @@ class ItemAdmin(admin.ModelAdmin):
 
 @admin.register(ItemVariant)
 class ItemVariantAdmin(admin.ModelAdmin):
-    list_display = ['item', 'name', 'sku', 'stock_qty', 'is_active', 'business']
-    list_filter = ['is_active', 'business', 'item']
-    search_fields = ['item__name', 'name', 'sku']
+    list_display = ['item', 'name', 'sku', 'stock_qty', 'barcode', 'is_active', 'business']
+    list_filter = ['is_active', 'business', 'item__name']
+    search_fields = ['item__name', 'name', 'sku', 'barcode']
 
 
 @admin.register(Supplier)

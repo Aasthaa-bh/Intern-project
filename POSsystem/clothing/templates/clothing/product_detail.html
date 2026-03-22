@@ -27,16 +27,50 @@
                 <td>{{ product.category.name|default:"-" }}</td>
             </tr>
             <tr>
+                <th>Has Variants</th>
+                <td>{% if product.has_variants %}Yes{% else %}No{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Barcode</th>
+                <td>
+                    {% if product.has_variants %}
+                        Managed by variants
+                    {% else %}
+                        {{ product.barcode|default:"-" }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% if not product.has_variants and product.barcode_image %}
+            <tr>
+                <th>Barcode Image</th>
+                <td>
+                    <img src="{{ MEDIA_URL }}{{ product.barcode_image }}" alt="Barcode" style="max-height:80px;">
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
                 <th>Price</th>
                 <td>{{ product.price }}</td>
             </tr>
             <tr>
                 <th>Stock Qty</th>
-                <td>{{ product.stock_qty }}</td>
+                <td>
+                    {% if product.has_variants %}
+                        Managed by variants
+                    {% else %}
+                        {{ product.stock_qty }}
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>Min Stock</th>
-                <td>{{ product.min_stock_qty }}</td>
+                <td>
+                    {% if product.has_variants %}
+                        Managed by variants
+                    {% else %}
+                        {{ product.min_stock_qty }}
+                    {% endif %}
+                </td>
             </tr>
             {% if product.clothing %}
             <tr>
@@ -74,6 +108,8 @@
             <tr>
                 <th>Variant</th>
                 <th>SKU</th>
+                <th>Barcode</th>
+                <th>Barcode Image</th>
                 <th>Size</th>
                 <th>Color</th>
                 <th>Stock Qty</th>
@@ -86,7 +122,15 @@
             {% for variant in variants %}
             <tr>
                 <td>{{ variant.name }}</td>
-                <td>{{ variant.sku }}</td>
+                <td>{{ variant.sku|default:"-" }}</td>
+                <td>{{ variant.barcode|default:"-" }}</td>
+                <td>
+                    {% if variant.barcode_image %}
+                        <img src="{{ MEDIA_URL }}{{ variant.barcode_image }}" alt="Barcode" style="max-height:60px;">
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
                 <td>
                     {% if variant.clothing_detail and variant.clothing_detail.size %}
                         {{ variant.clothing_detail.size.name }}

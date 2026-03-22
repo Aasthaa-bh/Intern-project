@@ -20,30 +20,139 @@
     <div class="card">
         <div class="card-header">Product Information</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Name</label>{{ form.name }}</div>
-            <div><label>SKU</label>{{ form.sku }}</div>
-            <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div><label>Category</label>{{ form.category }}</div>
-            <div><label>New Category</label>{{ form.new_category }}</div>
-            <div><label>Brand</label>{{ form.brand }}</div>
-            <div><label>New Brand</label>{{ form.new_brand }}</div>
-            <div><label>Price</label>{{ form.price }}</div>
-            <div><label>Cost Price</label>{{ form.cost_price }}</div>
-            <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
-            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
-            <div style="grid-column: 1 / -1;"><label>Description</label>{{ form.description }}</div>
-            <div><label>Active</label>{{ form.is_active }}</div>
+            <div>
+                <label>Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="alert alert-error">{{ form.name.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>SKU</label>
+                {{ form.sku }}
+                {% if form.sku.errors %}<div class="alert alert-error">{{ form.sku.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Barcode</label>
+                {{ form.barcode }}
+                {% if form.barcode.errors %}<div class="alert alert-error">{{ form.barcode.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Single product ko lagi barcode yaha use huncha. Variants bhaye parent barcode blank chhoda.
+                </small>
+            </div>
+
+            <div>
+                <label>Has Variants</label>
+                {{ form.has_variants }}
+                {% if form.has_variants.errors %}<div class="alert alert-error">{{ form.has_variants.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Size/color jasta variants chha bhane yo enable gara.
+                </small>
+            </div>
+
+            <div>
+                <label>Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}<div class="alert alert-error">{{ form.category.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>New Category</label>
+                {{ form.new_category }}
+                {% if form.new_category.errors %}<div class="alert alert-error">{{ form.new_category.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Brand</label>
+                {{ form.brand }}
+                {% if form.brand.errors %}<div class="alert alert-error">{{ form.brand.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>New Brand</label>
+                {{ form.new_brand }}
+                {% if form.new_brand.errors %}<div class="alert alert-error">{{ form.new_brand.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Price</label>
+                {{ form.price }}
+                {% if form.price.errors %}<div class="alert alert-error">{{ form.price.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Variant product bhaye yo base/default price ko rupma use huna sakcha.
+                </small>
+            </div>
+
+            <div>
+                <label>Cost Price</label>
+                {{ form.cost_price }}
+                {% if form.cost_price.errors %}<div class="alert alert-error">{{ form.cost_price.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Track Stock</label>
+                {{ form.track_stock }}
+                {% if form.track_stock.errors %}<div class="alert alert-error">{{ form.track_stock.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Has Variants on bhaye parent stock normally use hudaina.
+                </small>
+            </div>
+
+            <div>
+                <label>Opening Stock</label>
+                {{ form.stock_qty }}
+                {% if form.stock_qty.errors %}<div class="alert alert-error">{{ form.stock_qty.errors }}</div>{% endif %}
+                <small style="color:#666; display:block; margin-top:4px;">
+                    Single product ko lagi matra meaningful ho.
+                </small>
+            </div>
+
+            <div>
+                <label>Min Stock</label>
+                {{ form.min_stock_qty }}
+                {% if form.min_stock_qty.errors %}<div class="alert alert-error">{{ form.min_stock_qty.errors }}</div>{% endif %}
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+                <label>Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="alert alert-error">{{ form.description.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Active</label>
+                {{ form.is_active }}
+                {% if form.is_active.errors %}<div class="alert alert-error">{{ form.is_active.errors }}</div>{% endif %}
+            </div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">Clothing Details</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Gender</label>{{ form.gender }}</div>
-            <div><label>Material</label>{{ form.material }}</div>
-            <div><label>Fit</label>{{ form.fit }}</div>
-            <div style="grid-column: 1 / -1;"><label>Care Note</label>{{ form.care_note }}</div>
+            <div>
+                <label>Gender</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}<div class="alert alert-error">{{ form.gender.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Material</label>
+                {{ form.material }}
+                {% if form.material.errors %}<div class="alert alert-error">{{ form.material.errors }}</div>{% endif %}
+            </div>
+
+            <div>
+                <label>Fit</label>
+                {{ form.fit }}
+                {% if form.fit.errors %}<div class="alert alert-error">{{ form.fit.errors }}</div>{% endif %}
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+                <label>Care Note</label>
+                {{ form.care_note }}
+                {% if form.care_note.errors %}<div class="alert alert-error">{{ form.care_note.errors }}</div>{% endif %}
+            </div>
         </div>
     </div>
 

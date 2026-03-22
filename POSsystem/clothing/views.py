@@ -10,9 +10,14 @@ from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models import Case, When
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET, require_POST
+
+from pos.services_barcode import find_sellable_by_barcode
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
-from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from pos.models import Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier, Order, OrderItem
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -26,6 +31,14 @@ from .models import ClothingItem, ClothingVariantDetail
 
 _TABLE_COLUMNS = {}
 
+
+def validate_product_variant_selection(item, variant):
+    if item.has_variants and variant is None:
+        raise ValueError(f"{item.name} requires a variant.")
+    if not item.has_variants and variant is not None:
+        raise ValueError(f"{item.name} does not use variants.")
+    if variant is not None and variant.item_id != item.id:
+        raise ValueError("Selected variant does not belong to the selected product.")
 
 def _get_table_columns(table_name):
     if table_name in _TABLE_COLUMNS:
@@ -162,8 +175,12 @@ def product_list(request):
                 Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
             ),
         ).annotate(
-            total_stock=ExpressionWrapper(
-                F("stock_qty") + F("variants_stock"),
+            total_stock=Case(
+                When(
+                    has_variants=True,
+                    then=F("variants_stock"),
+                ),
+                default=F("stock_qty"),
                 output_field=DecimalField(max_digits=12, decimal_places=2),
             )
         )
@@ -176,10 +193,10 @@ def product_list(request):
             ),
         )
 
-    context = {
-        "products": products.order_by("name"),
-    }
-    return render(request, "clothing/product_list.html", context)
+        context = {
+            "products": products.order_by("name"),
+        }
+        return render(request, "clothing/product_list.html", context)
 
 
 @inventory_access_required
@@ -356,17 +373,18 @@ def variant_delete(request, product_id, variant_id):
     if request.method == "POST":
         try:
             variant.delete()
+
+            remaining_variants = product.variants.count()
+            if remaining_variants == 0:
+                product.has_variants = False
+                if not product.barcode:
+                    product.barcode = product.generate_next_barcode()
+                product.save()
+
             messages.success(request, "Variant deleted successfully.")
         except ProtectedError:
             messages.error(request, "Variant cannot be deleted because it is used in transactions.")
         return redirect("clothing_product_detail", product_id=product.id)
-
-    return render(
-        request,
-        "clothing/variant_delete.html",
-        {"product": product, "variant": variant},
-    )
-
 
 @inventory_access_required
 def stock_movement_list(request):
@@ -753,3 +771,146 @@ def low_stock_alert(request):
     }
     return render(request, "clothing/low_stock.html", context)
 
+@require_GET
+def barcode_lookup(request):
+    business = request.user.business
+    barcode = (request.GET.get("barcode") or "").strip()
+
+    if not barcode:
+        return JsonResponse(
+            {"ok": False, "message": "Barcode is required."},
+            status=400,
+        )
+
+    result = find_sellable_by_barcode(business, barcode)
+    if not result:
+        return JsonResponse(
+            {"ok": False, "message": "No product found for this barcode."},
+            status=404,
+        )
+
+    item = result["item"]
+    variant = result["variant"]
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "type": result["type"],
+            "item_id": item.id,
+            "item_name": result["name"],
+            "variant_id": variant.id if variant else None,
+            "variant_name": result["variant_name"],
+            "barcode": result["barcode"],
+            "sku": result["sku"],
+            "price": str(result["price"]),
+            "stock_qty": str(result["stock_qty"]),
+        }
+    )
+    
+def _get_or_create_counter_order(request):
+    business = request.user.business
+    user = request.user
+
+    order = (
+        Order.objects.filter(
+            business=business,
+            status="OPEN",
+            order_type="COUNTER",
+            created_by=user,
+        )
+        .order_by("-id")
+        .first()
+    )
+
+    if order:
+        return order
+
+    order_count = Order.objects.filter(business=business).count() + 1
+    order_no = f"ORD-{order_count:06d}"
+
+    return Order.objects.create(
+        business=business,
+        order_no=order_no,
+        order_type="COUNTER",
+        status="OPEN",
+        opened_at=timezone.now(),
+        created_by=user,
+        updated_by=user,
+    )
+
+
+@require_POST
+def barcode_add_to_cart(request):
+    business = request.user.business
+    barcode = (request.POST.get("barcode") or "").strip()
+    quantity_raw = (request.POST.get("quantity") or "1").strip()
+
+    try:
+        quantity = Decimal(quantity_raw)
+        if quantity <= 0:
+            raise ValueError
+    except Exception:
+        return JsonResponse(
+            {"ok": False, "message": "Quantity must be greater than zero."},
+            status=400,
+        )
+
+    result = find_sellable_by_barcode(business, barcode)
+    if not result:
+        return JsonResponse(
+            {"ok": False, "message": "No product found for this barcode."},
+            status=404,
+        )
+
+    item = result["item"]
+    variant = result["variant"]
+    unit_price = result["price"]
+
+    order = _get_or_create_counter_order(request)
+
+    order_item = (
+        OrderItem.objects.filter(
+            order=order,
+            item=item,
+            variant=variant,
+        )
+        .first()
+    )
+
+    if order_item:
+        order_item.quantity += quantity
+        order_item.line_total = order_item.quantity * order_item.unit_price
+        order_item.save()
+    else:
+        order_item = OrderItem.objects.create(
+            order=order,
+            item=item,
+            variant=variant,
+            item_name_snapshot=item.name,
+            variant_name_snapshot=variant.name if variant else "",
+            sku_snapshot=(variant.sku if variant and variant.sku else item.sku) or "",
+            unit_price=unit_price,
+            cost_price_snapshot=(
+                variant.cost_price if variant and variant.cost_price is not None
+                else item.cost_price
+            ),
+            quantity=quantity,
+            discount_amount=Decimal("0.00"),
+            tax_amount=Decimal("0.00"),
+            line_total=quantity * unit_price,
+        )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "Item added to cart.",
+            "order_id": order.id,
+            "order_no": order.order_no,
+            "order_item_id": order_item.id,
+            "item_name": item.name,
+            "variant_name": variant.name if variant else "",
+            "quantity": str(order_item.quantity),
+            "unit_price": str(order_item.unit_price),
+            "line_total": str(order_item.line_total),
+        }
+    )

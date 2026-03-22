@@ -28,4 +28,6 @@ urlpatterns = [
     path("suppliers/<int:supplier_id>/edit/", views.supplier_edit, name="clothing_supplier_edit"),
     path("suppliers/<int:supplier_id>/delete/", views.supplier_delete, name="clothing_supplier_delete"),
     path("low-stock/", views.low_stock_alert, name="clothing_low_stock"),
+    path("barcode/lookup/", views.barcode_lookup, name="clothing_barcode_lookup"),
+    path("barcode/add-to-cart/", views.barcode_add_to_cart, name="clothing_barcode_add_to_cart"),
 ]

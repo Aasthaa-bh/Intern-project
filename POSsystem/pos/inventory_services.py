@@ -18,8 +18,16 @@ def _to_decimal(value):
 
 
 def get_stock_target(item: Item, variant: ItemVariant | None):
+    validate_item_variant_relation(item, variant)
     return variant if variant else item
 
+def validate_item_variant_relation(item: Item, variant: ItemVariant | None):
+    if item.has_variants and variant is None:
+        raise ValueError(f"{item.name} requires a variant.")
+    if not item.has_variants and variant is not None:
+        raise ValueError(f"{item.name} does not use variants.")
+    if variant is not None and variant.item_id != item.id:
+        raise ValueError("Selected variant does not belong to the selected item.")
 
 def assert_stock_available(item: Item, variant: ItemVariant | None, quantity: Decimal):
     target = get_stock_target(item, variant)

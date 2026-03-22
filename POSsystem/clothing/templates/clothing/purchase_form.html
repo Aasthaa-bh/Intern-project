@@ -39,6 +39,9 @@
 
     <div class="card">
         <div class="card-header">Purchase Items</div>
+        <p style="margin-top: 0; color:#666;">
+            Product ma variants chha bhane Variant select gara. Variants chaina bhane Variant blank chhoda.
+        </p>
         {{ formset.management_form }}
         {% if formset.non_form_errors %}
             <div class="alert alert-error">{{ formset.non_form_errors }}</div>

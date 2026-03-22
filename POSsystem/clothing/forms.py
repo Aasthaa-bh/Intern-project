@@ -1,3 +1,5 @@
+from turtle import color
+
 from django import forms
 from django.forms import inlineformset_factory
 import re
@@ -28,6 +30,7 @@ class ClothingProductForm(forms.ModelForm):
             "track_stock",
             "stock_qty",
             "min_stock_qty",
+            "has_variants",
             "description",
             "is_active",
         ]
@@ -64,6 +67,8 @@ class ClothingProductForm(forms.ModelForm):
         brand = cleaned_data.get("brand")
         new_category = (cleaned_data.get("new_category") or "").strip()
         new_brand = (cleaned_data.get("new_brand") or "").strip()
+        has_variants = cleaned_data.get("has_variants")
+        barcode = (cleaned_data.get("barcode") or "").strip()
 
         if new_category:
             if not self.business:
@@ -95,12 +100,23 @@ class ClothingProductForm(forms.ModelForm):
                 )
             cleaned_data["brand"] = brand
 
-        # Keep selected values when no new text is entered.
         cleaned_data["category"] = category
         cleaned_data["brand"] = brand
+
+        # ❗ important validation
+        if self.instance.pk and self.instance.variants.exists() and not has_variants:
+            self.add_error("has_variants", "This product already has variants.")
+
+        if has_variants and barcode:
+            self.add_error("barcode", "Leave barcode blank for products with variants.")
+
+        if has_variants:
+            cleaned_data["track_stock"] = False
+            cleaned_data["stock_qty"] = 0
+            cleaned_data["min_stock_qty"] = 0
+
         return cleaned_data
-
-
+    
 class ClothingVariantForm(forms.ModelForm):
     size = forms.ModelChoiceField(queryset=Size.objects.none(), required=False)
     color = forms.ModelChoiceField(queryset=Color.objects.none(), required=False)
@@ -135,6 +151,8 @@ class ClothingVariantForm(forms.ModelForm):
                 business=business,
                 is_active=True,
             ).order_by("name")
+            self.fields["barcode"].required = False
+            self.fields["barcode"].help_text = "Leave blank to auto-generate barcode."
 
         detail = getattr(self.instance, "clothing_detail", None) if self.instance and self.instance.pk else None
         if detail:
@@ -270,8 +288,17 @@ class ClothingPurchaseItemForm(forms.ModelForm):
         item = cleaned_data.get("item")
         variant = cleaned_data.get("variant")
 
-        if variant and item and variant.item_id != item.id:
+        if not item:
+            return cleaned_data
+
+        if variant and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
+
+        if item.has_variants and not variant:
+            raise forms.ValidationError("This product requires a variant.")
+
+        if not item.has_variants and variant:
+            raise forms.ValidationError("This product does not use variants.")
 
         return cleaned_data
 
@@ -317,6 +344,14 @@ class ClothingStockAdjustmentForm(forms.Form):
         cleaned_data = super().clean()
         item = cleaned_data.get("item")
         variant = cleaned_data.get("variant")
-        if variant and item and variant.item_id != item.id:
+        if not item:
+            return cleaned_data
+
+        if variant and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
-        return cleaned_data
+
+        if item.has_variants and not variant:
+            raise forms.ValidationError("This product requires a variant.")
+
+        if not item.has_variants and variant:
+            raise forms.ValidationError("This product does not use variants.")
