@@ -1,5 +1,6 @@
 from django import forms
-from .models import Category, Item, LoyaltySetting 
+from .models import Category, Item, LoyaltySetting
+
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -11,7 +12,8 @@ class CategoryForm(forms.ModelForm):
         if not name:
             raise forms.ValidationError("Category name is required.")
         return name
-    
+
+
 class ItemForm(forms.ModelForm):
 
     class Meta:
@@ -20,6 +22,7 @@ class ItemForm(forms.ModelForm):
             "name",
             "category",
             "price",
+            "image", # Add image field to the form
             "is_active",
         ]
 
@@ -30,10 +33,10 @@ class ItemForm(forms.ModelForm):
         # Only show categories of this business
         if business:
             self.fields["category"].queryset = Category.objects.filter(
-                business=business,
-                is_active=True
+                business=business, is_active=True
             )
-            
+
+
 class LoyaltySettingForm(forms.ModelForm):
 
     class Meta:
