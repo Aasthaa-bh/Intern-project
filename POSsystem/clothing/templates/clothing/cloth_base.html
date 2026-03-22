@@ -444,6 +444,12 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'clothing_variant_list' %}"
+                   class="{% if request.resolver_match.url_name == 'clothing_variant_list' or request.resolver_match.url_name == 'clothing_variant_create' or request.resolver_match.url_name == 'clothing_variant_edit' or request.resolver_match.url_name == 'clothing_variant_delete' %}active{% endif %}">
+                    <span>Variants</span>
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'clothing_stock_movements' %}"
                    class="{% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}active{% endif %}">
                     <span>Stock Movements</span>

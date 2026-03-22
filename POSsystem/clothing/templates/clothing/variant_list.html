@@ -1,0 +1,130 @@
+{% extends "clothing/cloth_base.html" %}
+
+{% block title %}Clothing Variants{% endblock %}
+{% block page_title %}Variant Catalog{% endblock %}
+
+{% block extra_css %}
+<style>
+    .variant-filters {
+        display: grid;
+        grid-template-columns: minmax(240px, 2fr) minmax(200px, 1fr) auto auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 16px;
+    }
+
+    .variant-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .variant-filters input,
+    .variant-filters select {
+        width: 100%;
+    }
+
+    .scroll-table {
+        max-height: 65vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .scroll-table table {
+        margin: 0;
+    }
+
+    .scroll-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    @media (max-width: 980px) {
+        .variant-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Variants</div>
+    <form method="get" class="variant-filters">
+        <div>
+            <label for="variant-search">Search by variant, SKU, product, color, or size</label>
+            <input id="variant-search" type="text" name="q" value="{{ search_query }}" placeholder="Search variants">
+        </div>
+        <div>
+            <label for="variant-product">Product</label>
+            <select id="variant-product" name="product">
+                <option value="">All products</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if selected_product == product.id|stringformat:"s" %}selected{% endif %}>
+                    {{ product.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_variant_list' %}">Clear</a>
+    </form>
+
+    {% if variants %}
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Variant</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Size</th>
+                    <th>Color</th>
+                    <th>Stock Qty</th>
+                    <th>Min Stock</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variant in variants %}
+                <tr>
+                    <td>{{ variant.name }}</td>
+                    <td>{{ variant.item.name }}</td>
+                    <td>{{ variant.sku|default:"-" }}</td>
+                    <td>
+                        {% if variant.clothing_detail and variant.clothing_detail.size %}
+                            {{ variant.clothing_detail.size.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if variant.clothing_detail and variant.clothing_detail.color %}
+                            {{ variant.clothing_detail.color.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ variant.stock_qty }}</td>
+                    <td>{{ variant.min_stock_qty }}</td>
+                    <td>{{ variant.price|default:variant.item.price }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' variant.item.id %}">Product</a>
+                        <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' variant.item.id variant.id %}">Edit</a>
+                        <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' variant.item.id variant.id %}">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No variants found.</p>
+    {% endif %}
+</div>
+{% endblock %}

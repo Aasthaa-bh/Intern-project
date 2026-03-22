@@ -7,10 +7,14 @@
 <style>
     .catalog-filters {
         display: grid;
-        grid-template-columns: minmax(240px, 2fr) minmax(180px, 1fr) auto auto;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
         gap: 12px;
         align-items: end;
         margin-bottom: 16px;
+    }
+
+    .catalog-filters > div {
+        min-width: 0;
     }
 
     .catalog-filters label {
@@ -24,6 +28,26 @@
     .catalog-filters input,
     .catalog-filters select {
         width: 100%;
+        margin-right: 0;
+    }
+
+    .catalog-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        align-self: end;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 1280px) {
+        .catalog-filters {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .catalog-filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
     }
 
     .scroll-table {
@@ -47,6 +71,15 @@
         .catalog-filters {
             grid-template-columns: 1fr;
         }
+
+        .catalog-filter-actions {
+            width: 100%;
+        }
+
+        .catalog-filter-actions .btn {
+            flex: 1;
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}
@@ -60,7 +93,7 @@
     <div class="card-header">Products</div>
     <form method="get" class="catalog-filters">
         <div>
-            <label for="catalog-search">Search by name or category</label>
+            <label for="catalog-search">Search by name, category, or brand</label>
             <input id="catalog-search" type="text" name="q" value="{{ search_query }}" placeholder="Search products">
         </div>
         <div>
@@ -74,8 +107,32 @@
                 {% endfor %}
             </select>
         </div>
-        <button class="btn btn-primary" type="submit">Search</button>
-        <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Clear</a>
+        <div>
+            <label for="catalog-brand">Brand</label>
+            <select id="catalog-brand" name="brand">
+                <option value="">All brands</option>
+                {% for brand in brands %}
+                <option value="{{ brand.id }}" {% if selected_brand == brand.id|stringformat:"s" %}selected{% endif %}>
+                    {{ brand.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="catalog-gender">Gender</label>
+            <select id="catalog-gender" name="gender">
+                <option value="">All genders</option>
+                {% for value, label in genders %}
+                <option value="{{ value }}" {% if selected_gender == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="catalog-filter-actions">
+            <button class="btn btn-primary" type="submit">Search</button>
+            <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Clear</a>
+        </div>
     </form>
     {% if products %}
     <div class="scroll-table">
