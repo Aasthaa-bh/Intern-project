@@ -1,28 +1,43 @@
 {% extends "owner/base.html" %}
-{% block title %}Delete Category{% endblock %}
-{% block page_title %}Delete Category{% endblock %}
-{% block page_subtitle %}Confirm category removal{% endblock %}
+{% load static i18n %}
+
+{% block title %}{% trans "Delete Category" %}{% endblock %}
+{% block page_title %}{% trans "Delete Category" %}{% endblock %}
+{% block page_subtitle %}{% trans "Confirm category removal" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-2">Delete Category</h2>
-    <p class="text-sm text-gray-600 mb-6">
-      Are you sure you want to delete the category
-      <span class="font-semibold text-gray-900">"{{ category.name }}"</span>?
+
+  <div class="card">
+
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+      {% trans "Delete Category" %}
+    </h2>
+
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+      {% blocktrans with category_name=category.name %}
+      Are you sure you want to delete the category "{{ category_name }}"?
+      {% endblocktrans %}
     </p>
 
     <form method="POST" class="flex items-center gap-3">
       {% csrf_token %}
+
       <button type="submit"
               class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
-        Yes, Delete
+        {% trans "Yes, Delete" %}
       </button>
+
       <a href="{% url 'category_list' %}"
-         class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100">
-        Cancel
+         class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600
+                text-gray-700 dark:text-gray-300 text-sm font-medium
+                hover:bg-gray-100 dark:hover:bg-gray-700">
+        {% trans "Cancel" %}
       </a>
+
     </form>
+
   </div>
+
 </div>
 {% endblock %}

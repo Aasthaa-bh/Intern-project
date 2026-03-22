@@ -1,57 +1,93 @@
 {% extends "owner/base.html" %}
-{% block title %}Table Categories{% endblock %}
-{% block page_title %}Table Categories{% endblock %}
-{% block page_subtitle %}Organize your restaurant seating{% endblock %}
+{% load i18n nepali_number %}
+
+
+{% block title %}{% trans "Table Categories" %}{% endblock %}
+{% block page_title %}{% trans "Table Categories" %}{% endblock %}
+{% block page_subtitle %}{% trans "Organize your restaurant seating" %}{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow border border-gray-200">
+
+<div class="card">
 
   <div class="p-5 flex items-center justify-between">
+
     <div>
-      <div class="text-base font-semibold text-gray-900">Categories</div>
+      <div class="text-base font-semibold text-gray-900 dark:text-white">
+        {% trans "Categories" %}
+      </div>
     </div>
+
     <a href="{% url 'table_category_create' %}"
-       class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-      + Add Category
+       class="btn-primary">
+       + {% trans "Add Category" %}
     </a>
+
   </div>
 
   <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 text-gray-600">
+
+    <table class="table">
+
+      <thead class="bg-gray-50 dark:bg-gray-800">
+
         <tr>
-          <th class="text-left px-5 py-3 font-medium">Name</th>
-          <th class="text-left px-5 py-3 font-medium">Code Prefix</th>
-          <th class="text-right px-5 py-3 font-medium">Actions</th>
+          <th class="text-left px-5 py-3 font-medium">{% trans "Name" %}</th>
+          <th class="text-left px-5 py-3 font-medium">{% trans "Code Prefix" %}</th>
+          <th class="text-right px-5 py-3 font-medium">{% trans "Actions" %}</th>
         </tr>
+
       </thead>
-      <tbody class="divide-y divide-gray-200">
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+
         {% for c in categories %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-5 py-3">{{ c.name }}</td>
-          <td class="px-5 py-3">{{ c.code_prefix }}</td>
-          <td class="px-5 py-3 text-right">
+
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+
+          <td class="px-5 py-3 text-gray-900 dark:text-gray-200">
+            {{ c.name|translate_category }}
+          </td>
+
+          <td class="px-5 py-3 text-gray-700 dark:text-gray-300">
+            {{ c.code_prefix }}
+          </td>
+
+          <td class="px-5 py-3 text-right space-x-2">
+
             <a href="{% url 'table_category_edit' c.id %}"
-               class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
-              Edit
+            class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              {% trans "Edit" %}
             </a>
+
             <a href="{% url 'table_category_delete' c.id %}"
-               class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
-              Delete
+            class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
+              {% trans "Delete" %}
             </a>
+
           </td>
 
         </tr>
+
         {% empty %}
+
         <tr>
-          <td colspan="2" class="px-5 py-10 text-center text-gray-500">
-            No table categories created yet.
+
+          <td colspan="3"
+          class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+            {% trans "No table categories created yet." %}
           </td>
+
         </tr>
+
         {% endfor %}
+
       </tbody>
+
     </table>
+
   </div>
 
 </div>
+
 {% endblock %}

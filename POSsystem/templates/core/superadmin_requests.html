@@ -92,23 +92,31 @@
               </td>
 
               <td class="px-5 py-3">
-                {% if r.status == "PENDING" %}
-                  <a href="{% url 'approve_request' r.id %}"
-                     class="inline-flex px-3 py-1 rounded-md bg-green-600 text-white text-xs font-semibold hover:bg-green-700">
-                    Approve
+                <div class="flex flex-wrap items-center gap-2">
+                  <a href="{% url 'request_detail' r.id %}"
+                     class="inline-flex px-3 py-1 rounded-md bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700">
+                    View
                   </a>
-                  <a href="{% url 'reject_request' r.id %}"
-                     class="inline-flex px-3 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700 ml-2">
-                    Reject
-                  </a>
-                {% else %}
-                  <span class="px-3 py-1 rounded-md text-xs font-semibold
-                    {% if r.status == 'APPROVED' %} bg-green-100 text-green-700
-                    {% elif r.status == 'REJECTED' %} bg-red-100 text-red-700
-                    {% else %} bg-gray-100 text-gray-700 {% endif %}">
-                    {{ r.status }}
-                  </span>
-                {% endif %}
+
+                  {% if r.status == "PENDING" %}
+                    <a href="{% url 'approve_request' r.id %}"
+                       class="inline-flex px-3 py-1 rounded-md bg-green-600 text-white text-xs font-semibold hover:bg-green-700">
+                      Approve
+                    </a>
+
+                    <a href="{% url 'reject_request' r.id %}"
+                       class="inline-flex px-3 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700">
+                      Reject
+                    </a>
+                  {% else %}
+                    <span class="px-3 py-1 rounded-md text-xs font-semibold
+                      {% if r.status == 'APPROVED' %} bg-green-100 text-green-700
+                      {% elif r.status == 'REJECTED' %} bg-red-100 text-red-700
+                      {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                      {{ r.status }}
+                    </span>
+                  {% endif %}
+                </div>
               </td>
             </tr>
           {% empty %}

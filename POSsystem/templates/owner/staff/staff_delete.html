@@ -1,63 +1,89 @@
 {% extends "owner/base.html" %}
-{% block title %}Delete Staff{% endblock %}
-{% block page_title %}Delete Staff{% endblock %}
-{% block page_subtitle %}Remove staff user from your business{% endblock %}
+{% load static i18n %}
+
+
+{% block title %}{% trans "Delete Staff" %}{% endblock %}
+{% block page_title %}{% trans "Delete Staff" %}{% endblock %}
+{% block page_subtitle %}{% trans "Remove staff user from your business" %}{% endblock %}
 
 {% block content %}
-  <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow border border-gray-200">
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">Delete Staff Member</h2>
-        <p class="text-sm text-gray-500 mt-1">
-          Please confirm before deleting this staff account.
+
+<div class="max-w-2xl mx-auto">
+
+  <div class="card">
+
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {% trans "Delete Staff Member" %}
+      </h2>
+
+      <p class="text-sm text-gray-500 dark:text-gray-300 mt-1">
+        {% trans "Please confirm before deleting this staff account." %}
+      </p>
+    </div>
+
+    <div class="p-6 space-y-5">
+
+      <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 p-4">
+        <p class="text-sm text-red-700 dark:text-red-300 font-medium">
+          {% trans "Warning: This action cannot be undone." %}
         </p>
       </div>
 
-      <div class="p-6 space-y-5">
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p class="text-sm text-red-700 font-medium">
-            Warning: This action cannot be undone.
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Username" %}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ staff.username }}
           </p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p class="text-sm text-gray-500">Username</p>
-            <p class="text-sm font-medium text-gray-900">{{ staff.username }}</p>
-          </div>
-
-          <div>
-            <p class="text-sm text-gray-500">Full Name</p>
-            <p class="text-sm font-medium text-gray-900">
-              {{ staff.full_name|default:"-" }}
-            </p>
-          </div>
-
-          <div>
-            <p class="text-sm text-gray-500">Role</p>
-            <p class="text-sm font-medium text-gray-900">{{ staff.role }}</p>
-          </div>
-
-          <div>
-            <p class="text-sm text-gray-500">Status</p>
-            <p class="text-sm font-medium text-gray-900">
-              {% if staff.is_active %}Active{% else %}Inactive{% endif %}
-            </p>
-          </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Full Name" %}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ staff.full_name|default:"-" }}
+          </p>
         </div>
 
-        <form method="POST" class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-          {% csrf_token %}
-          <a href="{% url 'staff_list' %}"
-             class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
-            Cancel
-          </a>
-          <button type="submit"
-                  class="px-4 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700">
-            Yes, Delete
-          </button>
-        </form>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Role" %}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ staff.role }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Status" %}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            {% if staff.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+          </p>
+        </div>
+
       </div>
+
+      <form method="POST"
+            class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+
+        {% csrf_token %}
+
+        <a href="{% url 'staff_list' %}"
+           class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600
+                  text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+          {% trans "Cancel" %}
+        </a>
+
+        <button type="submit"
+                class="px-4 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700">
+          {% trans "Yes, Delete" %}
+        </button>
+
+      </form>
+
     </div>
+
   </div>
+
+</div>
+
 {% endblock %}
