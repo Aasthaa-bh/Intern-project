@@ -25,7 +25,7 @@ class DiningTable(models.Model):
         ('RESERVED', 'Reserved'),
     )
 
-    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)     
     category = models.ForeignKey(TableCategory, on_delete=models.CASCADE)
 
     number = models.PositiveIntegerField()   # 1,2,3,4
