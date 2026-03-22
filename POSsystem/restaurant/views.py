@@ -1677,3 +1677,93 @@ def process_payment(request, invoice_id):
 
     context = {"invoice": invoice}
     return render(request, "restaurant/process_payment.html", context)
+
+
+
+# ============================================================
+# Menu Items (antim added)
+# ============================================================
+
+import cloudinary.uploader  # antim added
+from pos.models import Item  # antim added - already imported above, skip if duplicate
+
+
+def menu_list(request):  # antim added
+    business = _get_request_business(request)
+    if business is None:
+        business = _get_dev_business_fallback()
+
+    menus = Item.objects.filter(
+        item_type="MENU",
+        business=business
+    ).order_by("-created_at")
+
+    context = {"menus": menus}
+    return render(request, "restaurant/menu_list.html", context)
+
+
+def menu_add(request):  # antim added
+    if request.method == "POST":
+        business = _get_request_business(request)
+        if business is None:
+            business = _get_dev_business_fallback()
+
+        name     = request.POST.get("name")
+        price    = request.POST.get("price")
+        category = request.POST.get("category")
+        image    = request.FILES.get("image")
+
+        image_public_id = None  # antim added
+
+        if image:
+            # antim added - upload image to cloudinary restaurant folder
+            result = cloudinary.uploader.upload(
+                image,
+                folder="pos-system/restaurant",
+            )
+            image_public_id = result["public_id"]  # antim added - save public_id not url
+
+        Item.objects.create(  # antim added
+            name      = name,
+            price     = price,
+            item_type = "MENU",
+            image     = image_public_id,
+            business  = business,
+        )
+
+        messages.success(request, "Menu item added successfully!")
+        return redirect("menu_list")
+
+    return render(request, "restaurant/menu_form.html")
+
+
+def menu_edit(request, pk):  # antim added
+    item = get_object_or_404(Item, pk=pk, item_type="MENU")
+
+    if request.method == "POST":
+        item.name  = request.POST.get("name")
+        item.price = request.POST.get("price")
+        image      = request.FILES.get("image")
+
+        if image:
+            # antim added - upload new image to cloudinary restaurant folder
+            result = cloudinary.uploader.upload(
+                image,
+                folder="pos-system/restaurant",
+            )
+            item.image = result["public_id"]  # antim added
+
+        item.save()
+        messages.success(request, "Menu item updated successfully!")
+        return redirect("menu_list")
+
+    context = {"item": item}
+    return render(request, "restaurant/menu_form.html", context)
+
+
+def menu_delete(request, pk):  # antim added
+    item = get_object_or_404(Item, pk=pk, item_type="MENU")
+    item.delete()
+    messages.success(request, "Menu item deleted!")
+    return redirect("menu_list")
+
