@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Clothing Products{% endblock %}
 {% block page_title %}Product Catalog{% endblock %}
@@ -85,12 +85,16 @@
 {% endblock %}
 
 {% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_variant_list' %}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
 {% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-header">Products</div>
+    <p style="margin: 0 0 16px 0; color: var(--text-muted);">
+        Manage variants from each product detail page. Use Variant Search only when you need to find a variant across all products.
+    </p>
     <form method="get" class="catalog-filters">
         <div>
             <label for="catalog-search">Search by name, category, or brand</label>
@@ -142,9 +146,9 @@
                     <th>Product</th>
                     <th>SKU</th>
                     <th>Category</th>
+                    <th>Status</th>
                     <th>Variants</th>
                     <th>Total Stock</th>
-                    <th>Price</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -154,9 +158,15 @@
                     <td>{{ product.name }}</td>
                     <td>{{ product.sku|default:"-" }}</td>
                     <td>{{ product.category.name|default:"-" }}</td>
+                    <td>
+                        {% if product.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-warning">Inactive</span>
+                        {% endif %}
+                    </td>
                     <td>{{ product.variant_count }}</td>
                     <td>{{ product.total_stock }}</td>
-                    <td>{{ product.price }}</td>
                     <td>
                         <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
                             View

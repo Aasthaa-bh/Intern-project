@@ -1,7 +1,11 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Clothing Variants{% endblock %}
-{% block page_title %}Variant Catalog{% endblock %}
+{% block title %}Variant Search{% endblock %}
+{% block page_title %}Variant Search{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -53,7 +57,10 @@
 
 {% block content %}
 <div class="card">
-    <div class="card-header">Variants</div>
+    <div class="card-header">Variant Search</div>
+    <p style="margin: 0 0 16px 0; color: var(--text-muted);">
+        Use this page to quickly find variants across products. Create and manage variants from the related product detail page.
+    </p>
     <form method="get" class="variant-filters">
         <div>
             <label for="variant-search">Search by variant, SKU, product, color, or size</label>
@@ -114,7 +121,7 @@
                     <td>{{ variant.min_stock_qty }}</td>
                     <td>{{ variant.price|default:variant.item.price }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' variant.item.id %}">Product</a>
+                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' variant.item.id %}#variant-{{ variant.id }}">Product</a>
                         <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' variant.item.id variant.id %}">Edit</a>
                         <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' variant.item.id variant.id %}">Delete</a>
                     </td>

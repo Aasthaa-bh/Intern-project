@@ -1,11 +1,13 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ product.name }} - Details{% endblock %}
 {% block page_title %}Product Detail{% endblock %}
 
 {% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_variant_list' %}?product={{ product.id }}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
 <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
+<a class="btn btn-secondary" href="{% url 'clothing_product_delete' product.id %}">Delete Product</a>
 <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
 {% endblock %}
 
@@ -20,11 +22,15 @@
 
     .product-main-column {
         min-width: 0;
+        position: relative;
+        z-index: 2;
     }
 
     .variant-sidebar {
         position: sticky;
         top: 90px;
+        align-self: start;
+        z-index: 1;
     }
 
     .variant-sidebar-list {
@@ -91,6 +97,12 @@
             position: static;
         }
     }
+
+    @media (max-height: 760px) {
+        .variant-sidebar {
+            position: static;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -112,10 +124,6 @@
                     <tr>
                         <th>Category</th>
                         <td>{{ product.category.name|default:"-" }}</td>
-                    </tr>
-                    <tr>
-                        <th>Price</th>
-                        <td>{{ product.price }}</td>
                     </tr>
                     <tr>
                         <th>Stock Qty</th>
@@ -167,6 +175,9 @@
 
         <div class="card">
             <div class="card-header">Variants & Sizes</div>
+            <p style="margin: 0 0 16px 0; color: var(--text-muted);">
+                This is the main place to add, edit, and review variants for this product.
+            </p>
             {% if variants %}
             <table>
                 <thead>
@@ -178,6 +189,9 @@
                         <th>Stock Qty</th>
                         <th>Min Stock</th>
                         <th>Price</th>
+                        <th>Open Layers</th>
+                        <th>Open Qty</th>
+                        <th>Open Value</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -202,7 +216,10 @@
                         </td>
                         <td>{{ variant.stock_qty }}</td>
                         <td>{{ variant.min_stock_qty }}</td>
-                        <td>{{ variant.price|default:product.price }}</td>
+                        <td>{{ variant.price|default:"-" }}</td>
+                        <td>{{ variant.batch_summary.open_layers }} / {{ variant.batch_summary.total_layers }}</td>
+                        <td>{{ variant.batch_summary.open_qty }}</td>
+                        <td>{{ variant.batch_summary.open_value }}</td>
                         <td>
                             <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
                             <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
@@ -213,6 +230,78 @@
             </table>
             {% else %}
             <p>No variants defined for this product.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">FIFO Batch History</div>
+            {% if variants %}
+                {% for variant in variants %}
+                    <h4 style="margin: 8px 0 10px 0;">
+                        {{ variant.name }}
+                        <span style="font-weight: 500; color: #64748b;">(SKU: {{ variant.sku|default:"-" }})</span>
+                        <span style="font-weight: 500; color: #64748b;">| Size:
+                            {% if variant.clothing_detail and variant.clothing_detail.size %}
+                                {{ variant.clothing_detail.size.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                        <span style="font-weight: 500; color: #64748b;">| Color:
+                            {% if variant.clothing_detail and variant.clothing_detail.color %}
+                                {{ variant.clothing_detail.color.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                    </h4>
+                    <p style="margin: 0 0 10px 0; color: #475569; font-size: 13px;">
+                        Open layers: <strong>{{ variant.batch_summary.open_layers }}</strong>
+                        of <strong>{{ variant.batch_summary.total_layers }}</strong>
+                        | Open qty: <strong>{{ variant.batch_summary.open_qty }}</strong>
+                        | Open value: <strong>{{ variant.batch_summary.open_value }}</strong>
+                    </p>
+                    {% if variant.batch_history %}
+                    <table style="margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Received At</th>
+                                <th>Purchase No</th>
+                                <th>Unit Cost</th>
+                                <th>Selling Price</th>
+                                <th>Batch Qty</th>
+                                <th>Open Qty</th>
+                                <th>Consumed Qty</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch in variant.batch_history %}
+                            <tr>
+                                <td>{{ batch.received_at|date:"Y-m-d H:i" }}</td>
+                                <td>{{ batch.purchase_no }}</td>
+                                <td>{{ batch.unit_cost }}</td>
+                                <td>{{ batch.selling_price|default:"-" }}</td>
+                                <td>{{ batch.quantity }}</td>
+                                <td>{{ batch.remaining_qty }}</td>
+                                <td>{{ batch.consumed_qty }}</td>
+                                <td>
+                                    {% if batch.is_open %}
+                                        <span class="badge badge-success">Open</span>
+                                    {% else %}
+                                        <span class="badge">Consumed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="margin: 0 0 14px 0; color: #64748b;">No batch history available for this variant yet.</p>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+            <p>Create variants to start tracking FIFO batch history.</p>
             {% endif %}
         </div>
     </div>
