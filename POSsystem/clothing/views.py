@@ -12,7 +12,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
-from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, StockMovement, Supplier
+from pos.models import Brand, Category, Item, ItemVariant, OrderItem, Purchase, PurchaseItem, StockBatch, StockMovement, Supplier
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -115,6 +115,36 @@ def _variant_snapshot_name(variant):
 def _purchase_variant_item_map(business):
     variants = _filter_by_business(ItemVariant.objects.all(), business).values_list("id", "item_id")
     return {str(variant_id): item_id for variant_id, item_id in variants}
+
+
+def _product_delete_block_reasons(product):
+    reasons = []
+    variant_qs = ItemVariant.objects.filter(item=product)
+
+    if PurchaseItem.objects.filter(item=product).exists():
+        reasons.append("Used in purchase transactions")
+    if OrderItem.objects.filter(item=product).exists():
+        reasons.append("Used in sales transactions")
+    if StockMovement.objects.filter(item=product).exists():
+        reasons.append("Used in stock movement history")
+    if StockBatch.objects.filter(item=product).exists():
+        reasons.append("Used in FIFO batch history")
+
+    if variant_qs.exists():
+        if PurchaseItem.objects.filter(variant__in=variant_qs).exists():
+            reasons.append("Variants used in purchase transactions")
+        if OrderItem.objects.filter(variant__in=variant_qs).exists():
+            reasons.append("Variants used in sales transactions")
+        if StockMovement.objects.filter(variant__in=variant_qs).exists():
+            reasons.append("Variants used in stock movement history")
+        if StockBatch.objects.filter(variant__in=variant_qs).exists():
+            reasons.append("Variants used in FIFO batch history")
+
+    unique_reasons = []
+    for reason in reasons:
+        if reason not in unique_reasons:
+            unique_reasons.append(reason)
+    return unique_reasons
 
 
 def inventory_access_required(view_func):
@@ -343,7 +373,7 @@ def product_detail(request, product_id):
     product = get_object_or_404(base_qs, id=product_id)
 
     if _model_table_ok(ItemVariant):
-        variants = (
+        variants = list(
             ItemVariant.objects.filter(item=product)
             .select_related("clothing_detail__size", "clothing_detail__color")
             .order_by("name")
@@ -351,11 +381,117 @@ def product_detail(request, product_id):
     else:
         variants = []
 
+    if variants and _model_table_ok(StockBatch):
+        variant_ids = [variant.id for variant in variants]
+        batch_history_map = {variant_id: [] for variant_id in variant_ids}
+        batch_summary_map = {
+            variant_id: {
+                "total_layers": 0,
+                "open_layers": 0,
+                "open_qty": Decimal("0"),
+                "open_value": Decimal("0"),
+            }
+            for variant_id in variant_ids
+        }
+
+        batches = (
+            StockBatch.objects.filter(item=product, variant_id__in=variant_ids)
+            .select_related("purchase", "purchase_item", "variant")
+            .order_by("variant_id", "-received_at", "-id")
+        )
+
+        for batch in batches:
+            quantity = batch.quantity or Decimal("0")
+            remaining_qty = batch.remaining_qty or Decimal("0")
+            consumed_qty = quantity - remaining_qty
+            summary = batch_summary_map[batch.variant_id]
+            summary["total_layers"] += 1
+            if remaining_qty > 0:
+                summary["open_layers"] += 1
+                summary["open_qty"] += remaining_qty
+                summary["open_value"] += remaining_qty * (batch.unit_cost or Decimal("0"))
+
+            batch_history_map[batch.variant_id].append(
+                {
+                    "id": batch.id,
+                    "received_at": batch.received_at,
+                    "purchase_no": batch.purchase.purchase_no if batch.purchase_id else "-",
+                    "unit_cost": batch.unit_cost,
+                    "selling_price": batch.purchase_item.selling_price if batch.purchase_item_id else None,
+                    "quantity": quantity,
+                    "remaining_qty": remaining_qty,
+                    "consumed_qty": consumed_qty,
+                    "is_open": remaining_qty > 0,
+                }
+            )
+
+        for variant in variants:
+            variant.batch_history = batch_history_map.get(variant.id, [])
+            variant.batch_summary = batch_summary_map.get(
+                variant.id,
+                {
+                    "total_layers": 0,
+                    "open_layers": 0,
+                    "open_qty": Decimal("0"),
+                    "open_value": Decimal("0"),
+                },
+            )
+    else:
+        for variant in variants:
+            variant.batch_history = []
+            variant.batch_summary = {
+                "total_layers": 0,
+                "open_layers": 0,
+                "open_qty": Decimal("0"),
+                "open_value": Decimal("0"),
+            }
+
     context = {
         "product": product,
         "variants": variants,
     }
     return render(request, "clothing/product_detail.html", context)
+
+
+@inventory_access_required
+def product_delete(request, product_id):
+    business = _get_request_business(request)
+    base_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        base_qs = base_qs.filter(business=business)
+    product = get_object_or_404(base_qs, id=product_id)
+
+    block_reasons = _product_delete_block_reasons(product)
+    can_delete = not block_reasons
+
+    if request.method == "POST":
+        if not can_delete:
+            messages.error(
+                request,
+                "Product cannot be deleted because it has linked transactions or variants in use. Use Inactive instead.",
+            )
+            return redirect("clothing_product_detail", product_id=product.id)
+
+        try:
+            product.delete()
+            messages.success(request, "Product deleted successfully.")
+            return redirect("clothing_product_list")
+        except ProtectedError:
+            messages.error(
+                request,
+                "Product cannot be deleted because it has linked transactions. Use Inactive instead.",
+            )
+            return redirect("clothing_product_detail", product_id=product.id)
+
+    return render(
+        request,
+        "clothing/product_delete.html",
+        {
+            "product": product,
+            "can_delete": can_delete,
+            "block_reasons": block_reasons,
+        },
+    )
 
 
 @inventory_access_required
@@ -535,6 +671,156 @@ def stock_movement_list(request):
         "movement_type_choices": StockMovement.MOVEMENT_TYPE,
     }
     return render(request, "clothing/stock_movements.html", context)
+
+
+@inventory_access_required
+def current_stock(request):
+    business = _get_request_business(request)
+    search_query = (request.GET.get("q") or "").strip()
+    category_id = (request.GET.get("category") or "").strip()
+    product_id = (request.GET.get("product") or "").strip()
+    low_stock_only = (request.GET.get("low_stock") or "").strip() == "1"
+
+    products = _filter_by_business(
+        Item.objects.filter(item_type="PRODUCT").select_related("category"),
+        business,
+    )
+
+    categories = _filter_by_business(
+        Category.objects.filter(item__item_type="PRODUCT", is_active=True),
+        business,
+    ).distinct().order_by("name")
+
+    product_choices = products.order_by("name")
+
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    if product_id:
+        products = products.filter(id=product_id)
+
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query)
+            | Q(sku__icontains=search_query)
+            | Q(barcode__icontains=search_query)
+            | Q(category__name__icontains=search_query)
+        )
+
+    if _model_table_ok(ItemVariant):
+        standalone_products = products.annotate(
+            variant_count=Count("variants", distinct=True),
+        ).filter(variant_count=0)
+    else:
+        standalone_products = products
+
+    if low_stock_only:
+        standalone_products = standalone_products.filter(track_stock=True, stock_qty__lte=F("min_stock_qty"))
+
+    stock_rows = []
+    total_qty = Decimal("0")
+    total_value = Decimal("0")
+
+    for product in standalone_products.order_by("name"):
+        quantity = product.stock_qty or Decimal("0")
+        cost_price = product.cost_price or Decimal("0")
+        selling_price = product.price or Decimal("0")
+        stock_value = quantity * cost_price
+        min_stock_qty = product.min_stock_qty or Decimal("0")
+        is_low_stock = bool(product.track_stock and quantity <= min_stock_qty)
+
+        total_qty += quantity
+        total_value += stock_value
+
+        stock_rows.append(
+            {
+                "product": product,
+                "variant": None,
+                "variant_label": "-",
+                "category_name": product.category.name if product.category_id else "-",
+                "sku": product.sku or "-",
+                "barcode": product.barcode or "-",
+                "quantity": quantity,
+                "min_stock_qty": min_stock_qty,
+                "cost_price": cost_price,
+                "selling_price": selling_price,
+                "stock_value": stock_value,
+                "is_low_stock": is_low_stock,
+            }
+        )
+
+    if _model_table_ok(ItemVariant):
+        variants = _filter_by_business(
+            ItemVariant.objects.filter(item__item_type="PRODUCT").select_related(
+                "item",
+                "item__category",
+                "clothing_detail__size",
+                "clothing_detail__color",
+            ),
+            business,
+        )
+
+        if category_id:
+            variants = variants.filter(item__category_id=category_id)
+
+        if product_id:
+            variants = variants.filter(item_id=product_id)
+
+        if search_query:
+            variants = variants.filter(
+                Q(item__name__icontains=search_query)
+                | Q(name__icontains=search_query)
+                | Q(sku__icontains=search_query)
+                | Q(barcode__icontains=search_query)
+                | Q(item__category__name__icontains=search_query)
+                | Q(clothing_detail__size__name__icontains=search_query)
+                | Q(clothing_detail__color__name__icontains=search_query)
+            )
+
+        if low_stock_only:
+            variants = variants.filter(track_stock=True, stock_qty__lte=F("min_stock_qty"))
+
+        for variant in variants.order_by("item__name", "name"):
+            quantity = variant.stock_qty or Decimal("0")
+            cost_price = variant.cost_price if variant.cost_price is not None else (variant.item.cost_price or Decimal("0"))
+            selling_price = variant.price if variant.price is not None else (variant.item.price or Decimal("0"))
+            stock_value = quantity * cost_price
+            min_stock_qty = variant.min_stock_qty or Decimal("0")
+            is_low_stock = bool(variant.track_stock and quantity <= min_stock_qty)
+
+            total_qty += quantity
+            total_value += stock_value
+
+            stock_rows.append(
+                {
+                    "product": variant.item,
+                    "variant": variant,
+                    "variant_label": _variant_snapshot_name(variant) or variant.name,
+                    "category_name": variant.item.category.name if variant.item.category_id else "-",
+                    "sku": variant.sku or "-",
+                    "barcode": variant.barcode or "-",
+                    "quantity": quantity,
+                    "min_stock_qty": min_stock_qty,
+                    "cost_price": cost_price,
+                    "selling_price": selling_price,
+                    "stock_value": stock_value,
+                    "is_low_stock": is_low_stock,
+                }
+            )
+
+    context = {
+        "stock_rows": stock_rows,
+        "categories": categories,
+        "products": product_choices,
+        "search_query": search_query,
+        "selected_category": category_id,
+        "selected_product": product_id,
+        "low_stock_only": low_stock_only,
+        "total_qty": total_qty,
+        "total_value": total_value,
+        "row_count": len(stock_rows),
+    }
+    return render(request, "clothing/current_stock.html", context)
 
 
 @inventory_access_required
@@ -746,6 +1032,31 @@ def purchase_receive(request, purchase_id):
         .select_related("item", "variant")
         .order_by("id")
     )
+
+    for line in lines:
+        target = line.variant if line.variant_id else line.item
+        current_cost_price = Decimal(str(target.cost_price)) if target.cost_price is not None else None
+        current_selling_price = Decimal(str(target.price)) if target.price is not None else None
+        incoming_unit_cost = Decimal(str(line.unit_cost or 0))
+        incoming_selling_price = Decimal(str(line.selling_price)) if line.selling_price is not None else None
+
+        open_batches = StockBatch.objects.filter(
+            business=purchase.business,
+            item=line.item,
+            variant=line.variant,
+            remaining_qty__gt=0,
+        ).order_by("received_at", "id")
+
+        line.open_batch_preview = [
+            f"{batch.remaining_qty} @ {batch.unit_cost}"
+            for batch in open_batches[:5]
+        ]
+        line.open_batch_count = open_batches.count()
+        line.current_cost_price = current_cost_price
+        line.current_selling_price = current_selling_price
+        line.incoming_unit_cost = incoming_unit_cost
+        line.incoming_selling_price = incoming_selling_price
+
     if not lines:
         messages.error(request, "Purchase has no items to receive.")
         return redirect("clothing_purchase_detail", purchase_id=purchase.id)
