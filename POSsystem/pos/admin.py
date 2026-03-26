@@ -9,6 +9,7 @@ from .models import (
     Order,
     Purchase,
     PurchaseItem,
+    StockBatch,
     StockMovement,
     Supplier,
 )
@@ -131,5 +132,12 @@ class StockMovementAdmin(admin.ModelAdmin):
     list_display = ['item', 'variant', 'movement_type', 'quantity', 'business', 'created_at']
     list_filter = ['movement_type', 'business', 'created_at']
     search_fields = ['item__name', 'variant__name', 'note']
+
+
+@admin.register(StockBatch)
+class StockBatchAdmin(admin.ModelAdmin):
+    list_display = ['item', 'variant', 'unit_cost', 'quantity', 'remaining_qty', 'business', 'received_at']
+    list_filter = ['business', 'received_at']
+    search_fields = ['item__name', 'variant__name', 'purchase__purchase_no']
 
 admin.site.register(Order)

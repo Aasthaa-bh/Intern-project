@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Purchase {{ purchase.purchase_no }}{% endblock %}
 {% block page_title %}Purchase Detail{% endblock %}
@@ -17,7 +17,7 @@
     <table>
         <tbody>
             <tr>
-                <th style="width: 180px;">Purchase No</th>
+                <th style="width: 180px;">Invoice No</th>
                 <td>{{ purchase.purchase_no }}</td>
             </tr>
             <tr>
@@ -65,6 +65,7 @@
                 <th>Received</th>
                 <th>Remaining</th>
                 <th>Unit Cost</th>
+                <th>Selling Price</th>
                 <th>Line Total</th>
             </tr>
         </thead>
@@ -78,6 +79,7 @@
                 <td>{{ line.received_quantity }}</td>
                 <td>{{ line.remaining_quantity }}</td>
                 <td>{{ line.unit_cost }}</td>
+                <td>{{ line.selling_price|default:"-" }}</td>
                 <td>{{ line.line_total }}</td>
             </tr>
             {% endfor %}

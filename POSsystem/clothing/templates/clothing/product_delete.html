@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Product{% endblock %}
+{% block page_title %}Delete Product{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Confirm Delete</div>
+    <p>Product: <strong>{{ product.name }}</strong></p>
+
+    {% if can_delete %}
+        <p>Delete this product permanently? This should be used only for accidental or duplicate records.</p>
+        <form method="post" style="margin-top: 12px;">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit">Confirm Delete</button>
+        </form>
+    {% else %}
+        <div class="alert alert-error" style="margin-top: 12px;">
+            Product cannot be deleted because it has linked transactions or variants in use. Use Inactive instead.
+        </div>
+        {% if block_reasons %}
+            <ul style="margin-top: 10px; color: #64748b;">
+                {% for reason in block_reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">Set Inactive</a>
+            <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

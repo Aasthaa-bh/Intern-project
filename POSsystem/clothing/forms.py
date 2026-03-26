@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
-from decimal import Decimal
 import re
+from decimal import Decimal
 
 from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, Supplier
 
@@ -32,8 +32,8 @@ class ClothingProductForm(forms.ModelForm):
     material = forms.CharField(max_length=100, required=False)
     fit = forms.CharField(max_length=50, required=False)
     care_note = forms.CharField(max_length=255, required=False)
-    new_category = forms.CharField(max_length=100, required=False)
-    new_brand = forms.CharField(max_length=100, required=False)
+    category_name = forms.CharField(max_length=100, required=False)
+    brand_name = forms.CharField(max_length=100, required=False)
 
     class Meta:
         model = Item
@@ -44,10 +44,6 @@ class ClothingProductForm(forms.ModelForm):
             "category",
             "brand",
             "price",
-            "cost_price",
-            "track_stock",
-            "stock_qty",
-            "min_stock_qty",
             "description",
             "is_active",
         ]
@@ -56,11 +52,16 @@ class ClothingProductForm(forms.ModelForm):
         business = kwargs.pop("business", None)
         super().__init__(*args, **kwargs)
         self.business = business
-        self.has_variants = bool(
-            self.instance
-            and self.instance.pk
-            and self.instance.variants.exists()
-        )
+        self.fields["price"].required = False
+        self.fields["price"].widget = forms.HiddenInput()
+        if self.instance and self.instance.pk and self.instance.price is not None:
+            self.fields["price"].initial = self.instance.price
+        else:
+            self.fields["price"].initial = Decimal("0.00")
+        self.fields["category_name"].widget.attrs.update({"placeholder": "Select or type category"})
+        self.fields["brand_name"].widget.attrs.update({"placeholder": "Select or type brand"})
+        self.category_name_options = []
+        self.brand_name_options = []
 
         if business:
             self.fields["category"].queryset = Category.objects.filter(
@@ -71,17 +72,15 @@ class ClothingProductForm(forms.ModelForm):
                 business=business,
                 is_active=True,
             ).order_by("name")
+            self.category_name_options = list(self.fields["category"].queryset.values_list("name", flat=True))
+            self.brand_name_options = list(self.fields["brand"].queryset.values_list("name", flat=True))
 
         self.fields["category"].required = False
         self.fields["brand"].required = False
 
-        if self.has_variants:
-            self.fields["track_stock"].disabled = True
-            self.fields["stock_qty"].disabled = True
-            self.fields["min_stock_qty"].disabled = True
-            self.fields["track_stock"].help_text = "Parent product stock is disabled because this product uses variants."
-            self.fields["stock_qty"].help_text = "Stock is managed on variants for this product."
-            self.fields["min_stock_qty"].help_text = "Minimum stock is managed on variants for this product."
+        if self.instance and self.instance.pk:
+            self.fields["category_name"].initial = self.instance.category.name if self.instance.category_id else ""
+            self.fields["brand_name"].initial = self.instance.brand.name if self.instance.brand_id else ""
 
         clothing = getattr(self.instance, "clothing", None) if self.instance and self.instance.pk else None
         if clothing:
@@ -95,55 +94,54 @@ class ClothingProductForm(forms.ModelForm):
 
         category = cleaned_data.get("category")
         brand = cleaned_data.get("brand")
-        new_category = (cleaned_data.get("new_category") or "").strip()
-        new_brand = (cleaned_data.get("new_brand") or "").strip()
+        category_name = (cleaned_data.get("category_name") or "").strip()
+        brand_name = (cleaned_data.get("brand_name") or "").strip()
 
-        if new_category:
+        if category_name:
             if not self.business:
                 raise forms.ValidationError("Business is required to create a category.")
             category = Category.objects.filter(
                 business=self.business,
-                name__iexact=new_category,
+                name__iexact=category_name,
             ).first()
             if category is None:
                 category = Category.objects.create(
                     business=self.business,
-                    name=new_category,
+                    name=category_name,
                     is_active=True,
                 )
             cleaned_data["category"] = category
 
-        if new_brand:
+        if brand_name:
             if not self.business:
                 raise forms.ValidationError("Business is required to create a brand.")
             brand = Brand.objects.filter(
                 business=self.business,
-                name__iexact=new_brand,
+                name__iexact=brand_name,
             ).first()
             if brand is None:
                 brand = Brand.objects.create(
                     business=self.business,
-                    name=new_brand,
+                    name=brand_name,
                     is_active=True,
                 )
             cleaned_data["brand"] = brand
 
-        # Keep selected values when no new text is entered.
         cleaned_data["category"] = category
         cleaned_data["brand"] = brand
-
-        if self.has_variants:
-            cleaned_data["track_stock"] = False
-            cleaned_data["stock_qty"] = Decimal("0")
-            cleaned_data["min_stock_qty"] = Decimal("0")
+        if cleaned_data.get("price") in (None, ""):
+            if self.instance and self.instance.pk and self.instance.price is not None:
+                cleaned_data["price"] = self.instance.price
+            else:
+                cleaned_data["price"] = Decimal("0.00")
         return cleaned_data
 
 
 class ClothingVariantForm(forms.ModelForm):
     size = forms.ModelChoiceField(queryset=Size.objects.none(), required=False)
     color = forms.ModelChoiceField(queryset=Color.objects.none(), required=False)
-    new_size = forms.CharField(max_length=50, required=False)
-    new_color = forms.CharField(max_length=50, required=False)
+    size_name = forms.CharField(max_length=50, required=False)
+    color_name = forms.CharField(max_length=50, required=False)
 
     class Meta:
         model = ItemVariant
@@ -152,9 +150,7 @@ class ClothingVariantForm(forms.ModelForm):
             "sku",
             "barcode",
             "price",
-            "cost_price",
             "track_stock",
-            "stock_qty",
             "min_stock_qty",
             "is_active",
         ]
@@ -165,6 +161,16 @@ class ClothingVariantForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.business = business
         self.product = product or getattr(self.instance, "item", None)
+        self.fields["size_name"].widget.attrs.update({
+            "placeholder": "Select or type size",
+            "list": "size-name-options",
+        })
+        self.fields["color_name"].widget.attrs.update({
+            "placeholder": "Select or type color",
+            "list": "color-name-options",
+        })
+        self.size_name_options = []
+        self.color_name_options = []
 
         creating = not (self.instance and self.instance.pk)
         if creating:
@@ -180,17 +186,20 @@ class ClothingVariantForm(forms.ModelForm):
                 business=business,
                 is_active=True,
             ).order_by("name")
+            self.size_name_options = list(self.fields["size"].queryset.values_list("name", flat=True))
+            self.color_name_options = list(self.fields["color"].queryset.values_list("name", flat=True))
 
         detail = getattr(self.instance, "clothing_detail", None) if self.instance and self.instance.pk else None
         if detail:
             self.fields["size"].initial = detail.size_id
             self.fields["color"].initial = detail.color_id
+            self.fields["size_name"].initial = detail.size.name if detail.size_id else ""
+            self.fields["color_name"].initial = detail.color.name if detail.color_id else ""
 
         if creating and self.product:
             self.fields["name"].initial = self._build_variant_name(self.product.name)
             self.fields["sku"].initial = self._build_variant_sku(self.product.sku)
             self.fields["price"].initial = self.product.price
-            self.fields["cost_price"].initial = self.product.cost_price
 
     def _build_size_code(self, base_name):
         raw = re.sub(r"[^A-Za-z0-9]+", "", (base_name or "").upper())
@@ -244,43 +253,47 @@ class ClothingVariantForm(forms.ModelForm):
 
         size = cleaned_data.get("size")
         color = cleaned_data.get("color")
-        new_size = (cleaned_data.get("new_size") or "").strip()
-        new_color = (cleaned_data.get("new_color") or "").strip()
+        size_name = (cleaned_data.get("size_name") or "").strip()
+        color_name = (cleaned_data.get("color_name") or "").strip()
 
-        if new_size:
+        if size_name:
             if not self.business:
                 raise forms.ValidationError("Business is required to create a size.")
 
             size = Size.objects.filter(
                 business=self.business,
-                name__iexact=new_size,
+                name__iexact=size_name,
             ).first()
             if size is None:
                 size = Size.objects.create(
                     business=self.business,
-                    name=new_size,
-                    code=self._build_size_code(new_size),
+                    name=size_name,
+                    code=self._build_size_code(size_name),
                     size_type="ALPHA",
                     is_active=True,
                 )
             cleaned_data["size"] = size
+        else:
+            cleaned_data["size"] = None
 
-        if new_color:
+        if color_name:
             if not self.business:
                 raise forms.ValidationError("Business is required to create a color.")
 
             color = Color.objects.filter(
                 business=self.business,
-                name__iexact=new_color,
+                name__iexact=color_name,
             ).first()
             if color is None:
                 color = Color.objects.create(
                     business=self.business,
-                    name=new_color,
-                    code=(new_color[:20]).upper(),
+                    name=color_name,
+                    code=(color_name[:20]).upper(),
                     is_active=True,
                 )
             cleaned_data["color"] = color
+        else:
+            cleaned_data["color"] = None
 
         cleaned_data["size"] = size
         cleaned_data["color"] = color
@@ -294,8 +307,6 @@ class ClothingVariantForm(forms.ModelForm):
 
             if cleaned_data.get("price") is None:
                 cleaned_data["price"] = self.product.price
-            if cleaned_data.get("cost_price") is None:
-                cleaned_data["cost_price"] = self.product.cost_price
 
         return cleaned_data
 
@@ -314,8 +325,17 @@ class ClothingSupplierForm(forms.ModelForm):
             "is_active",
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["phone_no"].required = True
+        self.fields["pan_vat_no"].required = True
+
 
 class ClothingPurchaseForm(forms.ModelForm):
+    new_supplier_name = forms.CharField(max_length=150, required=False)
+    new_supplier_phone = forms.CharField(max_length=20, required=False)
+    new_supplier_pan = forms.CharField(max_length=50, required=False)
+
     purchase_date = forms.DateField(
         input_formats=["%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d"],
         widget=forms.DateInput(
@@ -331,6 +351,8 @@ class ClothingPurchaseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         business = kwargs.pop("business", None)
         super().__init__(*args, **kwargs)
+        self.business = business
+        self.fields["supplier"].required = False
 
         # Ensure HTML date input always gets ISO value while still accepting DD/MM/YYYY on submit.
         initial_purchase_date = self.initial.get("purchase_date")
@@ -343,18 +365,77 @@ class ClothingPurchaseForm(forms.ModelForm):
                 is_active=True,
             ).order_by("name")
 
+    def clean_purchase_no(self):
+        purchase_no = (self.cleaned_data.get("purchase_no") or "").strip()
+        if not purchase_no:
+            return purchase_no
+
+        lookup = Purchase.objects.filter(purchase_no__iexact=purchase_no)
+        if self.business is not None:
+            lookup = lookup.filter(business=self.business)
+
+        if self.instance and self.instance.pk:
+            lookup = lookup.exclude(pk=self.instance.pk)
+
+        if lookup.exists():
+            raise forms.ValidationError("Invoice No is already used. Please enter a different one.")
+
+        return purchase_no
+
+    def clean(self):
+        cleaned_data = super().clean()
+        supplier = cleaned_data.get("supplier")
+        new_supplier_name = (cleaned_data.get("new_supplier_name") or "").strip()
+        new_supplier_phone = (cleaned_data.get("new_supplier_phone") or "").strip()
+        new_supplier_pan = (cleaned_data.get("new_supplier_pan") or "").strip()
+
+        if new_supplier_name:
+            if not self.business:
+                raise forms.ValidationError("Business is required to create a supplier.")
+
+            if not new_supplier_phone:
+                self.add_error("new_supplier_phone", "Phone is required for new supplier.")
+
+            if not new_supplier_pan:
+                self.add_error("new_supplier_pan", "PAN/VAT is required for new supplier.")
+
+            if self.errors:
+                return cleaned_data
+
+            supplier = Supplier.objects.filter(
+                business=self.business,
+                name__iexact=new_supplier_name,
+            ).first()
+
+            if supplier is None:
+                supplier = Supplier.objects.create(
+                    business=self.business,
+                    name=new_supplier_name,
+                    phone_no=new_supplier_phone,
+                    pan_vat_no=new_supplier_pan,
+                    is_active=True,
+                )
+
+            cleaned_data["supplier"] = supplier
+
+        if not cleaned_data.get("supplier"):
+            raise forms.ValidationError("Select a supplier or enter a new supplier name.")
+
+        return cleaned_data
+
 
 class ClothingPurchaseItemForm(forms.ModelForm):
     variant = ClothingVariantChoiceField(queryset=ItemVariant.objects.none(), required=False)
 
     class Meta:
         model = PurchaseItem
-        fields = ["item", "variant", "quantity", "unit_cost"]
+        fields = ["item", "variant", "quantity", "unit_cost", "selling_price"]
 
     def __init__(self, *args, **kwargs):
         business = kwargs.pop("business", None)
         super().__init__(*args, **kwargs)
         self.fields["variant"].required = False
+        self.fields["selling_price"].required = False
 
         if business:
             self.fields["item"].queryset = Item.objects.filter(
@@ -370,6 +451,14 @@ class ClothingPurchaseItemForm(forms.ModelForm):
                 "clothing_detail__size",
                 "clothing_detail__color",
             ).order_by("item__name", "name")
+
+        if not (self.instance and self.instance.pk):
+            initial_item = self.initial.get("item")
+            initial_variant = self.initial.get("variant")
+            if initial_variant and getattr(initial_variant, "price", None) is not None:
+                self.fields["selling_price"].initial = initial_variant.price
+            elif initial_item and getattr(initial_item, "price", None) is not None:
+                self.fields["selling_price"].initial = initial_item.price
 
     def clean(self):
         cleaned_data = super().clean()
@@ -388,7 +477,7 @@ ClothingPurchaseItemFormSet = inlineformset_factory(
     Purchase,
     PurchaseItem,
     form=ClothingPurchaseItemForm,
-    fields=["item", "variant", "quantity", "unit_cost"],
+    fields=["item", "variant", "quantity", "unit_cost", "selling_price"],
     extra=1,
     can_delete=True,
 )

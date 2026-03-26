@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
@@ -23,14 +23,26 @@
             <div><label>Name</label>{{ form.name }}</div>
             <div><label>SKU</label>{{ form.sku }}</div>
             <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div><label>Size</label>{{ form.size }}</div>
-            <div><label>Or New Size</label>{{ form.new_size }}</div>
-            <div><label>Color</label>{{ form.color }}</div>
-            <div><label>Or New Color</label>{{ form.new_color }}</div>
-            <div><label>Price</label>{{ form.price }}</div>
-            <div><label>Cost Price</label>{{ form.cost_price }}</div>
+            <div>
+                <label>Size</label>
+                {{ form.size_name }}
+                <datalist id="size-name-options">
+                    {% for value in form.size_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div>
+                <label>Color</label>
+                {{ form.color_name }}
+                <datalist id="color-name-options">
+                    {% for value in form.color_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div><label>Selling Price</label>{{ form.price }}</div>
             <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
             <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
             <div><label>Active</label>{{ form.is_active }}</div>
         </div>

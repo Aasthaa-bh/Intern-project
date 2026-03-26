@@ -1,10 +1,48 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Clothing Inventory - Dashboard{% endblock %}
 {% block page_title %}Clothing Inventory Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat-card .icon {
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.1;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .stat-card .label {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
     .quick-actions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
