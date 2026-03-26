@@ -365,6 +365,9 @@ def product_edit(request, product_id):
 @inventory_access_required
 def product_detail(request, product_id):
     business = _get_request_business(request)
+    active_tab = (request.GET.get("tab") or "overview").strip().lower()
+    if active_tab not in {"overview", "variants", "purchases"}:
+        active_tab = "overview"
 
     base_qs = Item.objects.filter(item_type="PRODUCT").select_related("category", "brand", "clothing")
     if business is not None:
@@ -380,9 +383,9 @@ def product_detail(request, product_id):
         )
     else:
         variants = []
+    variant_ids = [variant.id for variant in variants]
 
     if variants and _model_table_ok(StockBatch):
-        variant_ids = [variant.id for variant in variants]
         batch_history_map = {variant_id: [] for variant_id in variant_ids}
         batch_summary_map = {
             variant_id: {
@@ -446,9 +449,54 @@ def product_detail(request, product_id):
                 "open_value": Decimal("0"),
             }
 
+    purchase_lines = []
+    purchase_summary = {
+        "purchase_count": 0,
+        "ordered_qty": Decimal("0"),
+        "received_qty": Decimal("0"),
+        "total_amount": Decimal("0"),
+    }
+
+    if _model_table_ok(PurchaseItem):
+        purchase_filters = Q(item=product)
+        if variant_ids:
+            purchase_filters |= Q(variant_id__in=variant_ids)
+
+        purchase_qs = PurchaseItem.objects.filter(purchase_filters).select_related(
+            "purchase",
+            "purchase__supplier",
+            "variant",
+        )
+
+        if business is not None:
+            purchase_qs = purchase_qs.filter(purchase__business=business)
+
+        purchase_lines = list(
+            purchase_qs.order_by("-purchase__purchase_date", "-purchase_id", "-id")
+        )
+
+        purchase_summary = purchase_qs.aggregate(
+            ordered_qty=Coalesce(
+                Sum("quantity"),
+                Value(Decimal("0"), output_field=DecimalField(max_digits=12, decimal_places=2)),
+            ),
+            received_qty=Coalesce(
+                Sum("received_quantity"),
+                Value(Decimal("0"), output_field=DecimalField(max_digits=12, decimal_places=2)),
+            ),
+            total_amount=Coalesce(
+                Sum("line_total"),
+                Value(Decimal("0"), output_field=DecimalField(max_digits=12, decimal_places=2)),
+            ),
+        )
+        purchase_summary["purchase_count"] = purchase_qs.values("purchase_id").distinct().count()
+
     context = {
         "product": product,
         "variants": variants,
+        "active_tab": active_tab,
+        "purchase_lines": purchase_lines,
+        "purchase_summary": purchase_summary,
     }
     return render(request, "clothing/product_detail.html", context)
 
