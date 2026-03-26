@@ -616,6 +616,7 @@ def variant_list(request):
         variants = variants.filter(
             Q(name__icontains=search_query)
             | Q(sku__icontains=search_query)
+            | Q(barcode__icontains=search_query)
             | Q(item__name__icontains=search_query)
             | Q(clothing_detail__size__name__icontains=search_query)
             | Q(clothing_detail__color__name__icontains=search_query)
@@ -711,6 +712,36 @@ def variant_edit(request, product_id, variant_id):
         {"form": form, "product": product, "variant": variant, "mode": "edit"},
     )
 
+@inventory_access_required
+def variant_barcode_label(request, product_id, variant_id):
+    business = _get_request_business(request)
+
+    product_qs = Item.objects.filter(item_type="PRODUCT")
+    if business is not None:
+        product_qs = product_qs.filter(business=business)
+    product = get_object_or_404(product_qs, id=product_id)
+
+    variant_qs = ItemVariant.objects.filter(item=product).select_related(
+        "item",
+        "clothing_detail__size",
+        "clothing_detail__color",
+    )
+    if business is not None:
+        variant_qs = variant_qs.filter(business=business)
+    variant = get_object_or_404(variant_qs, id=variant_id)
+
+    # Safety: generate barcode if missing
+    if not variant.barcode:
+        variant.save()
+
+    return render(
+        request,
+        "clothing/barcode_label.html",
+        {
+            "product": product,
+            "variant": variant,
+        },
+    )
 
 @inventory_access_required
 def variant_delete(request, product_id, variant_id):

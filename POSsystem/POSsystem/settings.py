@@ -108,18 +108,20 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 
 
 
-import dj_database_url
-
 DATABASES = {
-    "default": dj_database_url.parse(
-        "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
-    )
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQLDATABASE", "railway"),
+        "USER": os.getenv("MYSQLUSER", "root"),
+        "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
+        "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
+        "PORT": os.getenv("MYSQLPORT", "38652"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
 }
 
-
-# Connection pooling settings
-DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections open for 10 minutes
-DATABASES["default"]["POOL_SIZE"] = 20  # Maximum number of connections in the
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -172,8 +174,10 @@ AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "waiter_dashboard"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 ESEWA_USE_SANDBOX = True   # True for sandbox, False for production

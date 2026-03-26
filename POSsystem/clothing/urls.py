@@ -32,6 +32,7 @@ urlpatterns = [
     path("products/<int:product_id>/variants/create/", views.variant_create, name="clothing_variant_create"),
     path("products/<int:product_id>/variants/<int:variant_id>/edit/", views.variant_edit, name="clothing_variant_edit"),
     path("products/<int:product_id>/variants/<int:variant_id>/delete/", views.variant_delete, name="clothing_variant_delete"),
+    path("products/<int:product_id>/variants/<int:variant_id>/barcode/", views.variant_barcode_label, name="clothing_variant_barcode"),
     path("stock-movements/", views.stock_movement_list, name="clothing_stock_movements"),
     path("stock-adjustments/create/", views.stock_adjustment_create, name="clothing_stock_adjustment_create"),
     path("purchases/", views.purchase_list, name="clothing_purchase_list"),
@@ -44,4 +45,5 @@ urlpatterns = [
     path("suppliers/<int:supplier_id>/edit/", views.supplier_edit, name="clothing_supplier_edit"),
     path("suppliers/<int:supplier_id>/delete/", views.supplier_delete, name="clothing_supplier_delete"),
     path("low-stock/", views.low_stock_alert, name="clothing_low_stock"),
+    
 ]

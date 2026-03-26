@@ -370,7 +370,8 @@ class ClothingVariantForm(forms.ModelForm):
             self.fields["sku"].initial = self._build_variant_sku(self.product.sku)
             self.fields["price"].initial = self.product.price
             self.fields["cost_price"].initial = self.product.cost_price
-
+            self.fields["barcode"].help_text = "Leave blank to auto-generate barcode."
+                    
     def _build_size_code(self, base_name):
         raw = re.sub(r"[^A-Za-z0-9]+", "", (base_name or "").upper())
         base_code = (raw or "SIZE")[:20]
@@ -476,8 +477,50 @@ class ClothingVariantForm(forms.ModelForm):
             if cleaned_data.get("cost_price") is None:
                 cleaned_data["cost_price"] = self.product.cost_price
 
-        return cleaned_data
+        business = self.business or getattr(self.product, "business", None) or getattr(self.instance, "business", None)
 
+        barcode = (cleaned_data.get("barcode") or "").strip() or None
+        sku = (cleaned_data.get("sku") or "").strip()
+        name = (cleaned_data.get("name") or "").strip()
+
+        cleaned_data["barcode"] = barcode
+        cleaned_data["sku"] = sku
+        cleaned_data["name"] = name
+
+        if business and barcode:
+            barcode_qs = ItemVariant.objects.filter(
+                business=business,
+                barcode__iexact=barcode,
+            )
+            if self.instance and self.instance.pk:
+                barcode_qs = barcode_qs.exclude(pk=self.instance.pk)
+
+            if barcode_qs.exists():
+                self.add_error("barcode", "This barcode already exists for another variant.")
+
+        if business and sku:
+            sku_qs = ItemVariant.objects.filter(
+                business=business,
+                sku__iexact=sku,
+            )
+            if self.instance and self.instance.pk:
+                sku_qs = sku_qs.exclude(pk=self.instance.pk)
+
+            if sku_qs.exists():
+                self.add_error("sku", "This SKU already exists for another variant.")
+
+        if self.product and name:
+            name_qs = ItemVariant.objects.filter(
+                item=self.product,
+                name__iexact=name,
+            )
+            if self.instance and self.instance.pk:
+                name_qs = name_qs.exclude(pk=self.instance.pk)
+
+            if name_qs.exists():
+                self.add_error("name", "This variant name already exists for this product.")
+
+        return cleaned_data
 
 class ClothingSupplierForm(forms.ModelForm):
     class Meta:
