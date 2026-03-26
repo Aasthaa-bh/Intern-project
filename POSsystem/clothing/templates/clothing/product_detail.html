@@ -4,10 +4,10 @@
 {% block page_title %}Product Detail{% endblock %}
 
 {% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_variant_list' %}?product={{ product.id }}">Search Variants</a>
+<a class="btn btn-info" href="{% url 'clothing_variant_list' %}?product={{ product.id }}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
-<a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
-<a class="btn btn-secondary" href="{% url 'clothing_product_delete' product.id %}">Delete Product</a>
+<a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
+<a class="btn btn-danger" href="{% url 'clothing_product_delete' product.id %}">Delete Product</a>
 <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
 {% endblock %}
 
@@ -347,8 +347,8 @@
                             <td>{{ variant.batch_summary.open_qty }}</td>
                             <td>{{ variant.batch_summary.open_value }}</td>
                             <td>
-                                <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
-                                <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
+                                <a class="btn btn-info" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
+                                <a class="btn btn-danger" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -512,7 +512,7 @@
                     <td>{{ line.selling_price|default:"-" }}</td>
                     <td>{{ line.line_total }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' line.purchase.id %}">View</a>
+                        <a class="btn btn-info" href="{% url 'clothing_purchase_detail' line.purchase.id %}">View</a>
                     </td>
                 </tr>
                 {% endfor %}

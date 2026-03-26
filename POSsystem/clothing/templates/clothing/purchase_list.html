@@ -108,11 +108,11 @@
                     </td>
                     <td>{{ purchase.total_amount }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_purchase_detail' purchase.id %}">
                             View
                         </a>
                         {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
-                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">
                             Edit
                         </a>
                         {% endif %}

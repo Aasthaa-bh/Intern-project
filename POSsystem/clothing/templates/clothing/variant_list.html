@@ -121,9 +121,9 @@
                     <td>{{ variant.min_stock_qty }}</td>
                     <td>{{ variant.price|default:variant.item.price }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' variant.item.id %}#variant-{{ variant.id }}">Product</a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' variant.item.id variant.id %}">Edit</a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' variant.item.id variant.id %}">Delete</a>
+                        <a class="btn btn-info" href="{% url 'clothing_product_detail' variant.item.id %}#variant-{{ variant.id }}">Product</a>
+                        <a class="btn btn-info" href="{% url 'clothing_variant_edit' variant.item.id variant.id %}">Edit</a>
+                        <a class="btn btn-danger" href="{% url 'clothing_variant_delete' variant.item.id variant.id %}">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}

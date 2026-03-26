@@ -1,3 +1,4 @@
+from datetime import timedelta
 from functools import wraps
 from decimal import Decimal, InvalidOperation
 
@@ -10,6 +11,7 @@ from django.db.models.functions import Coalesce
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
 from pos.models import Brand, Category, Item, ItemVariant, OrderItem, Purchase, PurchaseItem, StockBatch, StockMovement, Supplier
@@ -163,6 +165,30 @@ def inventory_access_required(view_func):
 @inventory_access_required
 def inventory_dashboard(request):
     business = _get_request_business(request)
+    period = (request.GET.get("period") or "week").strip().lower()
+    if period not in {"today", "week", "month", "all"}:
+        period = "week"
+
+    today = timezone.localdate()
+    if period == "today":
+        date_from = today
+        period_label = "Today"
+    elif period == "week":
+        date_from = today - timedelta(days=6)
+        period_label = "Last 7 Days"
+    elif period == "month":
+        date_from = today.replace(day=1)
+        period_label = "This Month"
+    else:
+        date_from = None
+        period_label = "All Time"
+
+    period_options = [
+        ("today", "Today"),
+        ("week", "Last 7 Days"),
+        ("month", "This Month"),
+        ("all", "All Time"),
+    ]
 
     products_qs = _filter_by_business(
         Item.objects.filter(item_type="PRODUCT"),
@@ -182,39 +208,139 @@ def inventory_dashboard(request):
     total_variants = variants_qs.count()
     total_skus = total_products + total_variants
 
-    low_stock_items = products_qs.filter(stock_qty__lte=F("min_stock_qty"), variants__isnull=True)
+    standalone_products = products_qs.annotate(
+        variant_count=Count("variants", distinct=True),
+    ).filter(variant_count=0)
+
+    low_stock_items = standalone_products.filter(track_stock=True, stock_qty__lte=F("min_stock_qty"))
     if variants_enabled:
-        low_stock_variants = variants_qs.filter(stock_qty__lte=F("min_stock_qty"))
+        low_stock_variants = variants_qs.filter(track_stock=True, stock_qty__lte=F("min_stock_qty"))
         low_stock_count = low_stock_items.count() + low_stock_variants.count()
     else:
         low_stock_variants = ItemVariant.objects.none()
         low_stock_count = low_stock_items.count()
 
-    if _model_table_ok(StockMovement):
-        recent_movements = (
-            _filter_by_business(
-                StockMovement.objects.select_related("item", "variant"),
-                business,
-            )
-            .order_by("-created_at")[:10]
+    money_field = DecimalField(max_digits=14, decimal_places=2)
+    zero_money = Value(Decimal("0.00"), output_field=money_field)
+
+    standalone_stock_value = standalone_products.aggregate(
+        total=Coalesce(
+            Sum(
+                ExpressionWrapper(
+                    F("stock_qty") * Coalesce(F("cost_price"), zero_money),
+                    output_field=money_field,
+                )
+            ),
+            zero_money,
         )
+    )["total"]
+
+    if variants_enabled:
+        variant_stock_value = variants_qs.aggregate(
+            total=Coalesce(
+                Sum(
+                    ExpressionWrapper(
+                        F("stock_qty") * Coalesce(F("cost_price"), zero_money),
+                        output_field=money_field,
+                    )
+                ),
+                zero_money,
+            )
+        )["total"]
     else:
-        recent_movements = []
+        variant_stock_value = Decimal("0.00")
+
+    total_stock_value = (standalone_stock_value or Decimal("0.00")) + (variant_stock_value or Decimal("0.00"))
+
+    products_without_variants = products_qs.annotate(
+        variant_count=Count("variants", distinct=True),
+    ).filter(variant_count=0).count()
+
+    tracked_standalone = standalone_products.filter(track_stock=True)
+    tracked_variant_count = variants_qs.filter(track_stock=True).count() if variants_enabled else 0
+    tracked_sku_count = tracked_standalone.count() + tracked_variant_count
+
+    healthy_standalone_count = tracked_standalone.filter(stock_qty__gt=F("min_stock_qty")).count()
+    healthy_variant_count = (
+        variants_qs.filter(track_stock=True, stock_qty__gt=F("min_stock_qty")).count()
+        if variants_enabled
+        else 0
+    )
+    healthy_sku_count = healthy_standalone_count + healthy_variant_count
+    inventory_health_pct = round((healthy_sku_count / tracked_sku_count) * 100, 1) if tracked_sku_count else 100.0
 
     if _model_table_ok(Purchase):
         pending_purchase_count = _filter_by_business(
             Purchase.objects.filter(status="DRAFT"),
             business,
         ).count()
+        recent_purchases = _filter_by_business(
+            Purchase.objects.select_related("supplier"),
+            business,
+        )
+        if date_from is not None:
+            recent_purchases = recent_purchases.filter(purchase_date__gte=date_from)
+        recent_purchases = recent_purchases.order_by("-purchase_date", "-created_at")[:8]
     else:
         pending_purchase_count = 0
+        recent_purchases = []
+
+    needs_attention = [
+        {
+            "title": "Low stock items",
+            "count": low_stock_count,
+            "description": "Variants and standalone products below their minimum stock.",
+            "url": "clothing_current_stock",
+            "query": "?low_stock=1",
+            "tone": "danger",
+            "empty_label": "Stable",
+        },
+        {
+            "title": "Draft purchases",
+            "count": pending_purchase_count,
+            "description": "Purchase orders waiting to be received into stock.",
+            "url": "clothing_purchase_list",
+            "query": "?status=DRAFT",
+            "tone": "warning",
+            "empty_label": "Clear",
+        },
+        {
+            "title": "Products without variants",
+            "count": products_without_variants,
+            "description": "Products still managed without size or color variants.",
+            "url": "clothing_product_list",
+            "query": "",
+            "tone": "info",
+            "empty_label": "Covered",
+        },
+    ]
+
+    if _model_table_ok(StockMovement):
+        recent_movements = _filter_by_business(
+            StockMovement.objects.select_related("item", "variant"),
+            business,
+        )
+        if date_from is not None:
+            recent_movements = recent_movements.filter(created_at__date__gte=date_from)
+        recent_movements = recent_movements.order_by("-created_at")[:10]
+    else:
+        recent_movements = []
 
     context = {
+        "period": period,
+        "period_label": period_label,
+        "period_options": period_options,
         "total_products": total_products,
         "total_variants": total_variants,
         "total_skus": total_skus,
+        "total_stock_value": total_stock_value,
+        "inventory_health_pct": inventory_health_pct,
+        "healthy_sku_count": healthy_sku_count,
+        "tracked_sku_count": tracked_sku_count,
         "low_stock_count": low_stock_count,
         "pending_purchase_count": pending_purchase_count,
+        "needs_attention": needs_attention,
+        "recent_purchases": recent_purchases,
         "recent_movements": recent_movements,
         "variants_enabled": variants_enabled,
     }

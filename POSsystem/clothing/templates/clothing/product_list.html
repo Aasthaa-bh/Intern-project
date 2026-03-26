@@ -85,7 +85,7 @@
 {% endblock %}
 
 {% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_variant_list' %}">Search Variants</a>
+<a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
 {% endblock %}
 
@@ -168,10 +168,10 @@
                     <td>{{ product.variant_count }}</td>
                     <td>{{ product.total_stock }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_product_detail' product.id %}">
                             View
                         </a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">
                             Edit
                         </a>
                         <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">

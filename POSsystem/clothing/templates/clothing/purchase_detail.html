@@ -5,8 +5,8 @@
 
 {% block header_actions %}
 {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
-<a class="btn btn-primary" href="{% url 'clothing_purchase_receive' purchase.id %}">Receive Stock</a>
-<a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
+<a class="btn btn-success" href="{% url 'clothing_purchase_receive' purchase.id %}">Receive Stock</a>
+<a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
 {% endif %}
 <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
 {% endblock %}
