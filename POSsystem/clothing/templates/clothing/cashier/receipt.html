@@ -1,0 +1,456 @@
+{% extends "clothing/cashier/base.html" %}
+{% load static %}
+
+{% block page_title %}Receipt - {{ invoice.invoice_number }}{% endblock %}
+{% block page_subtitle %}Transaction completed successfully{% endblock %}
+
+{% block extra_css %}
+<style>
+    .receipt-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .receipt {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .receipt-header {
+        text-align: center;
+        padding: 20px;
+        border-bottom: 2px solid #3498db;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .business-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .business-address {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .receipt-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .receipt-body {
+        padding: 20px;
+    }
+
+    .receipt-info {
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 2px 0;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .info-value {
+        color: #495057;
+    }
+
+    .items-section {
+        margin: 20px 0;
+        border-top: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        padding: 15px 0;
+    }
+
+    .items-header {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding: 5px 0;
+    }
+
+    .item-name {
+        flex: 2;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .item-qty {
+        flex: 1;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .item-price {
+        flex: 1;
+        text-align: right;
+        color: #27ae60;
+        font-weight: bold;
+    }
+
+    .item-variant {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+
+    .totals-section {
+        margin-top: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 3px 0;
+    }
+
+    .total-row.final {
+        font-weight: bold;
+        font-size: 16px;
+        color: #2c3e50;
+        border-top: 2px solid #3498db;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .payment-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .receipt-footer {
+        text-align: center;
+        padding: 20px;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        color: #6c757d;
+    }
+
+    .thank-you {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .footer-text {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .barcode-section {
+        text-align: center;
+        margin: 15px 0;
+        padding: 10px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .barcode {
+        font-family: 'Libre Barcode 39', 'Courier New', monospace;
+        font-size: 24px;
+        letter-spacing: 2px;
+        color: #2c3e50;
+    }
+
+    .print-actions {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .print-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0 10px;
+        transition: background 0.3s;
+    }
+
+    .print-btn:hover {
+        background: #2980b9;
+    }
+
+    .back-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 10px;
+        transition: background 0.3s;
+    }
+
+    .back-btn:hover {
+        background: #5a6268;
+        text-decoration: none;
+        color: white;
+    }
+
+    /* Print styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .receipt-container,
+        .receipt-container * {
+            visibility: visible;
+        }
+
+        .receipt-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: none;
+        }
+
+        .print-actions {
+            display: none;
+        }
+
+        .receipt {
+            box-shadow: none;
+            border: 1px solid #000;
+        }
+
+        .receipt-header {
+            background: white !important;
+            color: black !important;
+            border-bottom: 2px solid black;
+        }
+
+        .business-name {
+            color: black !important;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .receipt-container {
+            padding: 10px;
+        }
+
+        .receipt {
+            font-size: 12px;
+        }
+
+        .business-name {
+            font-size: 20px;
+        }
+
+        .receipt-title {
+            font-size: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block cashier_content %}
+<div class="receipt-container">
+    <div class="receipt">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="business-name">{{ business.name|default:"POS SYSTEM" }}</div>
+            <div class="business-address">
+                {% if business.address %}
+                    {{ business.address }}
+                {% else %}
+                    Kathmandu, Nepal
+                {% endif %}
+            </div>
+            <div class="receipt-title">SALES RECEIPT</div>
+        </div>
+
+        <!-- Body -->
+        <div class="receipt-body">
+            <!-- Receipt Info -->
+            <div class="receipt-info">
+                <div class="info-row">
+                    <span class="info-label">Invoice #:</span>
+                    <span class="info-value">{{ invoice.invoice_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value">{{ invoice.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% if invoice.customer %}
+                <div class="info-row">
+                    <span class="info-label">Customer:</span>
+                    <span class="info-value">{{ invoice.customer.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">{{ invoice.customer.phone }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label">Cashier:</span>
+                    <span class="info-value">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="items-section">
+                <div class="items-header">
+                    <span>Item</span>
+                    <span>Qty</span>
+                    <span>Amount</span>
+                </div>
+
+                {% for item in invoice_items %}
+                <div class="item-row">
+                    <div class="item-name">
+                        {{ item.item_name }}
+                        {% if item.variant_info %}
+                            <div class="item-variant">{{ item.variant_info|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="item-qty">{{ item.quantity }}</div>
+                    <div class="item-price">Rs. {{ item.line_total|floatformat:2 }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Totals -->
+            <div class="totals-section">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>Rs. {{ invoice.subtotal|floatformat:2 }}</span>
+                </div>
+
+                {% if invoice.promo_discount > 0 %}
+                <div class="total-row">
+                    <span>Promo Discount:</span>
+                    <span>-Rs. {{ invoice.promo_discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                {% if invoice.loyalty_discount > 0 %}
+                <div class="total-row">
+                    <span>Loyalty Discount:</span>
+                    <span>-Rs. {{ invoice.loyalty_discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                <div class="total-row">
+                    <span>VAT (13%):</span>
+                    <span>Rs. {{ invoice.vat_amount|floatformat:2 }}</span>
+                </div>
+
+                <div class="total-row final">
+                    <span>TOTAL:</span>
+                    <span>Rs. {{ invoice.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="payment-info">
+                <div class="payment-row">
+                    <span><strong>Payment Method:</strong></span>
+                    <span>{{ invoice.payment_method|title }}</span>
+                </div>
+
+                {% if invoice.cash_received %}
+                <div class="payment-row">
+                    <span>Cash Received:</span>
+                    <span>Rs. {{ invoice.cash_received|floatformat:2 }}</span>
+                </div>
+                <div class="payment-row">
+                    <span>Change:</span>
+                    <span>Rs. {{ invoice.change|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                {% if invoice.customer and invoice.loyalty_points_earned %}
+                <div class="payment-row">
+                    <span>Loyalty Points Earned:</span>
+                    <span style="color: #27ae60; font-weight: bold;">+{{ invoice.loyalty_points_earned }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Barcode -->
+            <div class="barcode-section">
+                <div class="barcode">*{{ invoice.invoice_number }}*</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+            <div class="thank-you">Thank You for Your Business!</div>
+            <div class="footer-text">Please keep this receipt for your records</div>
+            <div class="footer-text">For exchanges, original receipt required</div>
+            <div class="footer-text">Visit us again soon!</div>
+        </div>
+    </div>
+
+    <!-- Print Actions -->
+    <div class="print-actions">
+        <button class="print-btn" onclick="window.print()">🖨️ Print Receipt</button>
+        <a href="{% url 'clothing_cashier_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+        <a href="{% url 'clothing_cashier_pos' %}" class="back-btn">🛒 New Sale</a>
+    </div>
+</div>
+
+<script>
+// Auto-print on load if requested
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('print') === 'true') {
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
