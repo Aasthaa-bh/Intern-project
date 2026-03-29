@@ -1030,7 +1030,16 @@ def purchase_list(request):
     if date_to:
         purchases = purchases.filter(purchase_date__lte=date_to)
 
-    purchases = purchases.distinct().order_by("-purchase_date", "-created_at")
+    remaining_expr = ExpressionWrapper(
+        F("items__quantity") - F("items__received_quantity"),
+        output_field=DecimalField(max_digits=12, decimal_places=2),
+    )
+    purchases = purchases.annotate(
+        remaining_total=Coalesce(
+            Sum(remaining_expr),
+            Value(0, output_field=DecimalField(max_digits=12, decimal_places=2)),
+        )
+    ).distinct().order_by("-purchase_date", "-created_at")
 
     context = {
         "purchases": purchases,
@@ -1111,13 +1120,26 @@ def purchase_detail(request, purchase_id):
 
     purchase = get_object_or_404(base_qs, id=purchase_id)
 
-    items = (
+    items = list(
         PurchaseItem.objects.filter(purchase=purchase)
         .select_related("item", "variant")
         .order_by("id")
     )
 
-    context = {"purchase": purchase, "items": items}
+    has_remaining_items = any(
+        (line.quantity or Decimal("0")) > (line.received_quantity or Decimal("0"))
+        for line in items
+    )
+
+    can_receive_stock = purchase.status != "CANCELLED" and has_remaining_items
+    can_edit_purchase = purchase.status != "RECEIVED"
+
+    context = {
+        "purchase": purchase,
+        "items": items,
+        "can_receive_stock": can_receive_stock,
+        "can_edit_purchase": can_edit_purchase,
+    }
     return render(request, "clothing/purchase_detail.html", context)
 
 

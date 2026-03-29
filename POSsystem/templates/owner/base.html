@@ -7,6 +7,215 @@
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-soft: #f4f7fb;
+      --bg-deep: #e6ecf5;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fc;
+      --surface-strong: #eef3fb;
+      --border: #d8e1ee;
+      --border-strong: #c0cbdd;
+      --text-main: #132033;
+      --text-muted: #5f6f87;
+      --brand-dark: #0f1728;
+      --brand-mid: #1d2b40;
+      --primary: #2b6df8;
+      --primary-dark: #1f57cd;
+      --primary-soft: #e8f0ff;
+      --success: #1f9d63;
+      --success-dark: #15784a;
+      --success-soft: #e7f8f0;
+      --warning: #d9822b;
+      --warning-dark: #b8681d;
+      --warning-soft: #fff2e4;
+      --danger: #d84c63;
+      --danger-dark: #b93d53;
+      --danger-soft: #ffe9ee;
+      --info: #4c7df0;
+      --info-dark: #345dc0;
+      --info-soft: #edf2ff;
+    }
+
+    body {
+      color: var(--text-main);
+      font-family: "Segoe UI Variable", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-success {
+      background: #059669;
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      background: #047857;
+    }
+
+    .btn-info {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-info:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-warning {
+      background: #d97706;
+      color: #fff;
+    }
+
+    .btn-warning:hover {
+      background: #b45309;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #111827;
+      border-color: #d1d5db;
+    }
+
+    .btn-secondary:hover {
+      background: #f9fafb;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .badge-success {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .badge-warning {
+      background: #fff7ed;
+      color: #b45309;
+      border-color: #fed7aa;
+    }
+
+    .alert {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      margin-bottom: 10px;
+    }
+
+    .alert-error {
+      color: #b91c1c;
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .alert-success {
+      color: #14532d;
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .alert-info {
+      color: #1e3a8a;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    table th,
+    table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    table th {
+      background: #111827;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
 </head>
 
 <body class="bg-gray-100">
@@ -15,11 +224,66 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-gray-900 text-white flex flex-col">
       <div class="px-6 py-5 border-b border-gray-800">
+        {% if '/clothing/' in request.path %}
+        <div class="text-xl font-bold">FlexiPOS</div>
+        <div class="text-xs text-gray-400 mt-1">Clothing Inventory</div>
+        {% else %}
         <div class="text-xl font-bold">🍽 FlexiPOS</div>
         <div class="text-xs text-gray-400 mt-1">Owner Panel</div>
+        {% endif %}
       </div>
 
       <nav class="flex-1 px-3 py-4 space-y-1">
+        {% if '/clothing/' in request.path %}
+        <a href="{% url 'clothing_inventory_dashboard' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory_dashboard' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Dashboard</span>
+        </a>
+
+        <a href="{% url 'clothing_product_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_edit' or request.resolver_match.url_name == 'clothing_product_delete' or request.resolver_match.url_name == 'clothing_variant_create' or request.resolver_match.url_name == 'clothing_variant_edit' or request.resolver_match.url_name == 'clothing_variant_delete' or request.resolver_match.url_name == 'clothing_variant_list' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Products</span>
+        </a>
+
+        <a href="{% url 'clothing_purchase_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_purchase_list' or request.resolver_match.url_name == 'clothing_purchase_create' or request.resolver_match.url_name == 'clothing_purchase_detail' or request.resolver_match.url_name == 'clothing_purchase_edit' or request.resolver_match.url_name == 'clothing_purchase_receive' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Purchases</span>
+        </a>
+
+        <a href="{% url 'clothing_supplier_list' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_supplier_list' or request.resolver_match.url_name == 'clothing_supplier_create' or request.resolver_match.url_name == 'clothing_supplier_edit' or request.resolver_match.url_name == 'clothing_supplier_delete' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Suppliers</span>
+        </a>
+
+        <a href="{% url 'clothing_current_stock' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_current_stock' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Current Stock</span>
+        </a>
+
+        <a href="{% url 'clothing_stock_movements' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Stock Movements</span>
+        </a>
+
+        <a href="{% url 'clothing_low_stock' %}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
+           {% if request.resolver_match.url_name == 'clothing_low_stock' %} bg-gray-800 {% endif %}">
+          <span class="text-sm font-medium">Low Stock</span>
+        </a>
+
+        <div class="mt-4 pt-3 border-t border-gray-800">
+          <a href="{% url 'logout' %}"
+             class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
+            <span class="text-sm font-medium">Logout</span>
+          </a>
+        </div>
+        {% else %}
         <!-- Dashboard -->
         <a href="{% url 'owner_dashboard' %}"
            class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800
@@ -89,6 +353,7 @@
            {% if '/owner/reports' in request.path %} bg-gray-800 {% endif %}">
           <span class="text-sm font-medium">Reports</span>
         </a>
+        {% endif %}
 
       </nav>
 
@@ -108,8 +373,10 @@
             <div class="text-xs text-gray-500">{% block page_subtitle %}{% endblock %}</div>
           </div>
 
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 flex-wrap justify-end">
+            {% block header_actions %}{% endblock %}
 
+            {% if '/clothing/' not in request.path %}
             <!-- Upgrade Button -->
             <a href="{% url 'business_package_list' %}"
               class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
@@ -125,7 +392,7 @@
               class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">
               Logout
             </a>
-
+            {% endif %}
           </div>
         </div>
       </header>
@@ -133,24 +400,26 @@
       <!-- CONTENT -->
       <main class="p-6">
         {% if messages %}
-    <div class="mb-4 space-y-2">
-      {% for message in messages %}
-        <div class="px-4 py-3 rounded-md border
-                    {% if message.tags == 'error' %}
-                      bg-red-50 text-red-700 border-red-200
-                    {% elif message.tags == 'success' %}
-                      bg-green-50 text-green-700 border-green-200
-                    {% else %}
-                      bg-gray-50 text-gray-700 border-gray-200
-                    {% endif %}">
-          {{ message }}
+        <div class="mb-4 space-y-2">
+          {% for message in messages %}
+          <div class="px-4 py-3 rounded-md border
+                      {% if message.tags == 'error' %}
+                        bg-red-50 text-red-700 border-red-200
+                      {% elif message.tags == 'success' %}
+                        bg-green-50 text-green-700 border-green-200
+                      {% else %}
+                        bg-gray-50 text-gray-700 border-gray-200
+                      {% endif %}">
+            {{ message }}
+          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-{% endif %}
+        {% endif %}
         {% block content %}{% endblock %}
       </main>
     </div>
   </div>
+
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

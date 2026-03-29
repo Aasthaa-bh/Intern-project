@@ -111,6 +111,11 @@
                         <a class="btn btn-info" href="{% url 'clothing_purchase_detail' purchase.id %}">
                             View
                         </a>
+                        {% if purchase.status != "CANCELLED" and purchase.remaining_total > 0 %}
+                        <a class="btn btn-success" href="{% url 'clothing_purchase_receive' purchase.id %}">
+                            Receive
+                        </a>
+                        {% endif %}
                         {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
                         <a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">
                             Edit

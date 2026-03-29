@@ -4,8 +4,17 @@
 {% block page_title %}Purchase Detail{% endblock %}
 
 {% block header_actions %}
-{% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
+{% if can_receive_stock %}
 <a class="btn btn-success" href="{% url 'clothing_purchase_receive' purchase.id %}">Receive Stock</a>
+{% elif purchase.status == "RECEIVED" %}
+<span class="badge badge-success">Fully Received</span>
+{% elif purchase.status == "CANCELLED" %}
+<span class="badge badge-warning">Cancelled</span>
+{% else %}
+<span class="badge">No Remaining Qty</span>
+{% endif %}
+
+{% if can_edit_purchase %}
 <a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
 {% endif %}
 <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
