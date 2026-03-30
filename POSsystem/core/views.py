@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from pos.models import Item, Category, ItemVariant
+from pos.models import Item, Category
 from .models import BusinessRequest, Business
 from restaurant.models import DiningTable
 from .forms import BusinessRequestForm
@@ -415,32 +415,8 @@ def clothing_owner_dashboard(request):
 
     total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
 
-    # Get clothing-specific data
-    total_products = Item.objects.filter(business=business, item_type="PRODUCT").count()
-    total_variants = ItemVariant.objects.filter(item__business=business, item__item_type="PRODUCT").count()
-    total_categories = Category.objects.filter(business=business).count()
-
-    # Low stock count (simplified)
-    low_stock_products = Item.objects.filter(
-        business=business, 
-        item_type="PRODUCT", 
-        track_stock=True, 
-        stock_qty__lte=models.F('min_stock_qty')
-    ).count()
-    low_stock_variants = ItemVariant.objects.filter(
-        item__business=business, 
-        item__item_type="PRODUCT", 
-        track_stock=True, 
-        stock_qty__lte=models.F('min_stock_qty')
-    ).count()
-    low_stock_count = low_stock_products + low_stock_variants
-
     context = {
         "total_staff": total_staff,
-        "total_products": total_products,
-        "total_variants": total_variants,
-        "total_categories": total_categories,
-        "low_stock_count": low_stock_count,
     }
     return render(request, "owner/dashboard_clothing.html", context)
 
@@ -461,3 +437,40 @@ def mart_owner_dashboard(request):
         "total_staff": total_staff,
     }
     return render(request, "owner/dashboard_mart.html", context)
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    try:
+        from clothing.models import Notification
+        notification = Notification.objects.get(
+            id=notification_id,
+            business=request.user.business
+        )
+        notification.is_read = True
+        notification.save()
+        
+        # Redirect to the notification link if it exists
+        if notification.link:
+            return redirect(notification.link)
+        return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))
+    except Notification.DoesNotExist:
+        messages.error(request, 'Notification not found.')
+        return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))
+
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    try:
+        from clothing.models import Notification
+        Notification.objects.filter(
+            business=request.user.business,
+            is_read=False
+        ).update(is_read=True)
+        messages.success(request, 'All notifications marked as read.')
+    except Exception as e:
+        messages.error(request, f'Error marking notifications as read: {str(e)}')
+    
+    return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))
