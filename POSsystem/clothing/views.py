@@ -1556,8 +1556,28 @@ def purchase_receive(request, purchase_id):
 
         if any_received and all_received:
             messages.success(request, "Purchase fully received and stock updated.")
+            # Create notification for purchase received
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='PURCHASE_RECEIVED',
+                title=f'Purchase Received: {purchase.supplier.name if purchase.supplier else "N/A"}',
+                message=f'Purchase order #{purchase.id} has been fully received. Total: Rs. {purchase.total_amount}',
+                link=f'/clothing/purchases/{purchase.id}/',
+                is_read=False
+            )
         elif any_received:
             messages.success(request, "Partial receive completed and stock updated.")
+            # Create notification for partial receive
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='PURCHASE_RECEIVED',
+                title=f'Partial Purchase Received: {purchase.supplier.name if purchase.supplier else "N/A"}',
+                message=f'Purchase order #{purchase.id} has been partially received.',
+                link=f'/clothing/purchases/{purchase.id}/',
+                is_read=False
+            )
         else:
             messages.error(request, "No items were received.")
 
