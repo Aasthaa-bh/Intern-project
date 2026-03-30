@@ -5,12 +5,9 @@
 {% block page_subtitle %}Manage clothing products and variants{% endblock %}
 
 {% block header_actions %}
-<<<<<<< HEAD
 <a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
-=======
 <a class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700" href="{% url 'clothing_product_create' %}">Add Product</a>
->>>>>>> origin/appnotification
 {% endblock %}
 
 {% block extra_css %}
@@ -178,7 +175,7 @@
                         </a>
                         <a class="px-3 py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 text-xs" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
                                 Create Offer
-                         </a>
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
