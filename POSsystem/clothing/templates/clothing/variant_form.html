@@ -1,4 +1,5 @@
 {% extends "owner/base.html" %}
+{% load static %}
 
 {% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}

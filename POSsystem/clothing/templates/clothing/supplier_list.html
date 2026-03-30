@@ -21,11 +21,18 @@
         margin-bottom: 6px;
     }
 
+    .supplier-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
     .scroll-table {
         max-height: 60vh;
         overflow: auto;
         border: 1px solid var(--border);
         border-radius: 10px;
+        margin-top: 4px;
     }
 
     .scroll-table table {
@@ -60,6 +67,10 @@
         .supplier-filters {
             grid-template-columns: 1fr;
         }
+
+        .supplier-filter-actions .btn {
+            flex: 1;
+        }
     }
 </style>
 {% endblock %}
@@ -84,8 +95,10 @@
                 <option value="all" {% if status == "all" %}selected{% endif %}>All</option>
             </select>
         </div>
-        <button class="btn btn-primary" type="submit">Apply</button>
-        <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Clear</a>
+        <div class="supplier-filter-actions">
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Clear</a>
+        </div>
     </form>
     {% if suppliers %}
     <div class="scroll-table">

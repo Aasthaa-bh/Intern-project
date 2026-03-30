@@ -46,6 +46,8 @@
             --info: #4c7df0;
             --info-dark: #345dc0;
             --info-soft: #edf2ff;
+            --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
+            --shadow-strong: 0 14px 30px rgba(43, 109, 248, 0.2);
         }
 
         body {
@@ -65,6 +67,7 @@
             font-weight: 600;
             text-decoration: none;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -253,15 +256,26 @@
             <nav class="flex-1 px-3 py-4 space-y-1">
 
                 <!-- COMMON -->
+                {% if current_business_type == "clothing" %}
+                     <a href="{% url 'clothing_inventory_dashboard' %}"
+                         class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory_dashboard' %}bg-gray-800{% endif %}">
+                    <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
+                </a>
+                {% else %}
                 <a href="{% url 'owner_dashboard' %}"
                    class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.path == '/owner/dashboard/' %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
                 </a>
+                {% endif %}
 
                 <a href="{% url 'staff_list' %}"
                    class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/staff/' in request.path %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Staff Management" %}</span>
                 </a>
+
+                {% if current_business_type == "clothing" %}
+                <div class="my-2 border-t border-gray-800"></div>
+                {% endif %}
 
                 <!-- RESTAURANT SIDEBAR -->
                 {% if current_business_type == "restaurant" %}
@@ -320,11 +334,6 @@
 
                 <!-- CLOTHING SIDEBAR -->
                 {% elif current_business_type == "clothing" %}
-
-                    <a href="{% url 'clothing_inventory_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                    </a>
 
                     <a href="{% url 'clothing_product_list' %}"
                        class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_edit' or request.resolver_match.url_name == 'clothing_product_delete' %}bg-gray-800{% endif %}">
@@ -435,8 +444,6 @@
                     </div>
 
                     <div class="flex items-center gap-3 flex-wrap justify-end">
-                        {% block header_actions %}{% endblock %}
-
                         <div class="relative">
                             <button type="button"
                                     onclick="toggleProfileMenu()"
@@ -499,6 +506,12 @@
                         {% endfor %}
                     </div>
                 {% endif %}
+
+                <div class="mb-5 flex justify-end">
+                    <div class="flex items-center gap-3 flex-wrap justify-end">
+                        {% block header_actions %}{% endblock %}
+                    </div>
+                </div>
 
                 {% block content %}{% endblock %}
             </main>

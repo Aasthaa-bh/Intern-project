@@ -51,6 +51,12 @@
         margin-bottom: 6px;
     }
 
+    .stock-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
     .low-stock-toggle {
         display: flex;
         align-items: center;
@@ -74,6 +80,7 @@
         overflow: auto;
         border: 1px solid var(--border);
         border-radius: 14px;
+        margin-top: 4px;
     }
 
     .scroll-table table {
@@ -94,6 +101,10 @@
     @media (max-width: 1100px) {
         .stock-filters {
             grid-template-columns: 1fr;
+        }
+
+        .stock-filter-actions .btn {
+            flex: 1;
         }
     }
 
@@ -159,8 +170,10 @@
             <input id="low-stock-only" type="checkbox" name="low_stock" value="1" {% if low_stock_only %}checked{% endif %}>
             <span>Low stock only</span>
         </label>
-        <button class="btn btn-primary" type="submit">Apply</button>
-        <a class="btn btn-secondary" href="{% url 'clothing_current_stock' %}">Clear</a>
+        <div class="stock-filter-actions">
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-secondary" href="{% url 'clothing_current_stock' %}">Clear</a>
+        </div>
     </form>
 </div>
 

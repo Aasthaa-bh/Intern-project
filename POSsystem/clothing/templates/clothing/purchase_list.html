@@ -21,11 +21,18 @@
         margin-bottom: 6px;
     }
 
+    .purchase-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
     .scroll-table {
         max-height: 60vh;
         overflow: auto;
         border: 1px solid var(--border);
         border-radius: 10px;
+        margin-top: 4px;
     }
 
     .scroll-table table {
@@ -41,6 +48,10 @@
     @media (max-width: 1100px) {
         .purchase-filters {
             grid-template-columns: 1fr;
+        }
+
+        .purchase-filter-actions .btn {
+            flex: 1;
         }
     }
 </style>
@@ -75,8 +86,10 @@
                 {% endfor %}
             </select>
         </div>
-        <button class="btn btn-primary" type="submit">Apply</button>
-        <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Clear</a>
+        <div class="purchase-filter-actions">
+            <button class="btn btn-primary" type="submit">Apply</button>
+            <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Clear</a>
+        </div>
     </form>
     {% if purchases %}
     <div class="scroll-table">
