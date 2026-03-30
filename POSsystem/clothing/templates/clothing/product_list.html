@@ -5,12 +5,9 @@
 {% block page_subtitle %}Manage clothing products and variants{% endblock %}
 
 {% block header_actions %}
-<<<<<<< HEAD
 <a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
-=======
 <a class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700" href="{% url 'clothing_product_create' %}">Add Product</a>
->>>>>>> origin/appnotification
 {% endblock %}
 
 {% block extra_css %}
@@ -89,7 +86,6 @@
 {% endblock %}
 
 {% block content %}
-<<<<<<< HEAD
 <div class="card">
     <div class="card-header">Products</div>
     <p style="margin: 0 0 16px 0; color: var(--text-muted);">
@@ -177,50 +173,9 @@
                         <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
                             Add Variant
                         </a>
-=======
-<div class="bg-white rounded-lg shadow border border-gray-200">
-    <div class="p-5 border-b border-gray-200">
-        <div class="text-base font-semibold text-gray-900">Products</div>
-    </div>
-    {% if products %}
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-600">
-                <tr>
-                    <th class="text-left px-5 py-3 font-medium">Product</th>
-                    <th class="text-left px-5 py-3 font-medium">SKU</th>
-                    <th class="text-left px-5 py-3 font-medium">Category</th>
-                    <th class="text-left px-5 py-3 font-medium">Variants</th>
-                    <th class="text-left px-5 py-3 font-medium">Total Stock</th>
-                    <th class="text-left px-5 py-3 font-medium">Price</th>
-                    <th class="text-right px-5 py-3 font-medium">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                {% for product in products %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-5 py-3 font-medium text-gray-900">{{ product.name }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ product.sku|default:"-" }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ product.category.name|default:"-" }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ product.variant_count }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ product.total_stock }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ product.price }}</td>
-                    <td class="px-5 py-3 text-right">
-                        <div class="flex gap-2 justify-end flex-wrap">
-                            <a class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs" href="{% url 'clothing_product_detail' product.id %}">
-                                View
-                            </a>
-                            <a class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs" href="{% url 'clothing_product_edit' product.id %}">
-                                Edit
-                            </a>
-                            <a class="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-xs" href="{% url 'clothing_variant_create' product.id %}">
-                                Add Variant
-                            </a>
-                            <a class="px-3 py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 text-xs" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
+                        <a class="px-3 py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 text-xs" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
                                 Create Offer
-                            </a>
-                        </div>
->>>>>>> origin/appnotification
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
