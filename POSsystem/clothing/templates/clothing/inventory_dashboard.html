@@ -51,7 +51,7 @@
         background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
         color: #fff;
         border-color: var(--primary-dark);
-        box-shadow: var(--shadow-strong);
+        box-shadow: 0 10px 24px rgba(43, 109, 248, 0.22);
     }
 
     .stats-grid {
@@ -92,12 +92,6 @@
         font-weight: 600;
     }
 
-    .quick-actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-    }
-
     .dashboard-panels {
         display: grid;
         grid-template-columns: minmax(280px, 1.05fr) minmax(0, 1.35fr);
@@ -134,7 +128,6 @@
         font-weight: 800;
         color: #fff;
         background: var(--tone, var(--primary));
-        box-shadow: 0 12px 24px color-mix(in srgb, var(--tone, var(--primary)) 24%, transparent);
     }
 
     .attention-item--danger { --tone: var(--danger); }
@@ -177,6 +170,12 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
     }
 
     .quick-action {
@@ -308,41 +307,6 @@
     </div>
 </div>
 
-<!-- Offers Statistics Section -->
-<div class="card" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: white; border: none;">
-    <div class="card-header" style="background: transparent; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <span style="font-size: 18px; font-weight: 600;">Sales & Offers Overview</span>
-    </div>
-    <div style="padding: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.15);">
-                <div style="font-size: 13px; opacity: 0.8; margin-bottom: 8px;">Total Offers</div>
-                <div style="font-size: 32px; font-weight: 700;">{{ offer_stats.total_offers }}</div>
-                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">{{ offer_stats.active_offers }} Active</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.15);">
-                <div style="font-size: 13px; opacity: 0.8; margin-bottom: 8px;">Total Discount Given</div>
-                <div style="font-size: 32px; font-weight: 700;">Rs {{ offer_stats.total_discount|floatformat:0 }}</div>
-                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Customer Savings</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.15);">
-                <div style="font-size: 13px; opacity: 0.8; margin-bottom: 8px;">Offer Usage</div>
-                <div style="font-size: 32px; font-weight: 700;">{{ offer_stats.total_usage }}</div>
-                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Times Applied</div>
-            </div>
-        </div>
-        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{% url 'clothing_offer_list' %}" class="btn" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; font-size: 13px;">
-                All Offers
-            </a>
-            <a href="{% url 'clothing_offer_list' %}?status=ACTIVE" class="btn" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; font-size: 13px;">
-                Active Offers
-            </a>
-            <a href="{% url 'clothing_offer_list' %}?offer_type=SEASONAL" class="btn" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; font-size: 13px;">
-                Seasonal
-            </a>
-            <a href="{% url 'clothing_offer_create' %}" class="btn" style="background: white; color: #111827; padding: 10px 20px; font-size: 13px; font-weight: 600;">
-                Create New Offer
 <div class="dashboard-panels">
     <div class="card">
         <div class="card-header">Needs Attention</div>
@@ -467,56 +431,6 @@
     </table>
     {% else %}
     <p>No stock movements recorded for {{ period_label|lower }}.</p>
-    {% endif %}
-</div>
-
-<div class="card">
-    <div class="card-header">
-        Products
-        <a href="{% url 'clothing_product_create' %}" class="btn btn-primary" style="float: right; margin-top: -5px;">Add Product</a>
-    </div>
-    {% if products %}
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Variants</th>
-                <th>Total Stock</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.sku|default:"-" }}</td>
-                <td>{{ product.category.name|default:"-" }}</td>
-                <td>{{ product.variant_count }}</td>
-                <td>{{ product.total_stock }}</td>
-                <td>Rs {{ product.price }}</td>
-                <td>
-                    <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}" style="padding: 6px 12px; font-size: 12px;">
-                        View
-                    </a>
-                    <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}" style="padding: 6px 12px; font-size: 12px;">
-                        Edit
-                    </a>
-                    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}" style="padding: 6px 12px; font-size: 12px;">
-                        Add Variant
-                    </a>
-                    <a class="btn btn-success" href="{% url 'clothing_offer_create' %}?product={{ product.id }}" style="padding: 6px 12px; font-size: 12px;">
-                        Create Offer
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No products found. <a href="{% url 'clothing_product_create' %}">Create your first product</a></p>
     {% endif %}
 </div>
 {% endblock %}
