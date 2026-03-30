@@ -2,7 +2,13 @@
 {% load widget_tweaks %}
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
-{% block page_subtitle %}Create and manage promotional offers{% endblock %}
+{% block page_subtitle %}
+    {% if selected_product %}
+        Create offer for: {{ selected_product.name }}
+    {% else %}
+        Create and manage promotional offers
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl bg-white rounded-lg shadow border border-gray-200 mx-auto mt-6">
@@ -185,8 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // If product is preselected, show product field
-    if (preselectedProduct && productSelect.value) {
+    // If product is preselected and offer type is PRODUCT, show product field immediately
+    if (preselectedProduct && productSelect.value && offerTypeSelect.value === 'PRODUCT') {
         productField.style.display = 'block';
     }
     

@@ -88,6 +88,7 @@ TEMPLATES = [
                 "accounts.context_processors.user_preferences",
                 "core.context_processors.business_context",
                 "clothing.context_processors.sidebar_offers",
+                "core.context_processors.notifications",
             ],
         },
     },
@@ -99,6 +100,19 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": os.getenv("MYSQLDATABASE", "railway"),
+#         "USER": os.getenv("MYSQLUSER", "root"),
+#         "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
+#         "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
+#         "PORT": os.getenv("MYSQLPORT", "38652"),
+#         "OPTIONS": {
+#             "charset": "utf8mb4",
+#         },
+#     }
+# }
 
 
 # Database

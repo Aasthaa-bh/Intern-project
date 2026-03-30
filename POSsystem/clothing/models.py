@@ -389,3 +389,37 @@ class ClothingEsewaPayment(models.Model):
 
     def __str__(self):
         return f"eSewa {self.transaction_uuid} — {self.status}"
+
+class Notification(models.Model):
+    """System notifications for users"""
+    NOTIFICATION_TYPES = (
+        ('OFFER_CREATED', 'Offer Created'),
+        ('OFFER_EXPIRING', 'Offer Expiring Soon'),
+        ('OFFER_EXPIRED', 'Offer Expired'),
+        ('LOW_STOCK', 'Low Stock Alert'),
+        ('PURCHASE_RECEIVED', 'Purchase Received'),
+        ('GENERAL', 'General'),
+    )
+    
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    link = models.CharField(max_length=500, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['business', 'is_read', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.title} - {self.created_at.strftime('%Y-%m-%d')}"
+    
+    def is_recent(self):
+        """Check if notification is within 3 days"""
+        from datetime import timedelta
+        three_days_ago = timezone.now() - timedelta(days=3)
+        return self.created_at >= three_days_ago

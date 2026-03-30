@@ -464,6 +464,8 @@ def clothing_owner_dashboard(request):
         "max_products": max_products,
         "remaining_users": remaining_users,
         "remaining_products": remaining_products,
+        "current_business": business,
+        "current_business_type": "clothing",
     }
     return render(request, "owner/dashboard_clothing.html", context)
 
