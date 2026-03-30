@@ -15,6 +15,7 @@ class Package(models.Model):
     duration_months = models.IntegerField()
     max_users = models.IntegerField()
     max_tables = models.IntegerField()  # added field for max tables
+    max_products = models.IntegerField(null=True, blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_active = models.BooleanField(default=True)

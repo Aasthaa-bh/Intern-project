@@ -415,10 +415,57 @@ def clothing_owner_dashboard(request):
 
     total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
 
+    # use existing imported models for now
+    total_products = Item.objects.filter(business=business).count()
+    total_categories = Category.objects.filter(business=business).count()
+
+    # until exact clothing variant model is confirmed
+    total_variants = 0
+
+    # adjust these fields if Item model uses different field names
+    try:
+        low_stock_count = Item.objects.filter(business=business, stock__lte=5).count()
+    except Exception:
+        low_stock_count = 0
+
+    try:
+        active_products = Item.objects.filter(business=business, is_active=True).count()
+    except Exception:
+        active_products = total_products
+
+    active_subscription = get_active_subscription(business)
+    days_remaining = None
+
+    max_users = active_subscription.package.max_users if active_subscription else 3
+    max_products = active_subscription.package.max_products if active_subscription else 5
+
+    current_users = User.objects.filter(business=business).count()
+    current_products = total_products
+
+    remaining_users = max(max_users - current_users, 0)
+    remaining_products = max(max_products - current_products, 0)
+
+    if active_subscription and active_subscription.end_date:
+        days_remaining = (active_subscription.end_date - timezone.now()).days
+
     context = {
         "total_staff": total_staff,
+        "total_products": total_products,
+        "total_variants": total_variants,
+        "total_categories": total_categories,
+        "low_stock_count": low_stock_count,
+        "active_products": active_products,
+        "active_subscription": active_subscription,
+        "days_remaining": days_remaining,
+        "current_users": current_users,
+        "max_users": max_users,
+        "current_products": current_products,
+        "max_products": max_products,
+        "remaining_users": remaining_users,
+        "remaining_products": remaining_products,
     }
     return render(request, "owner/dashboard_clothing.html", context)
+
 
 
 @login_required
