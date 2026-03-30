@@ -14,9 +14,12 @@
     <div class="card">
         <div class="card-header">Receive Against {{ purchase.purchase_no }}</div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 12px;">
-            <button class="btn btn-secondary" type="button" id="fill-remaining">Receive All Remaining</button>
+            <button class="btn btn-info" type="button" id="fill-remaining">Receive All Remaining</button>
             <button class="btn btn-secondary" type="button" id="clear-receive">Clear</button>
         </div>
+        <p style="margin: 0 0 12px 0; color: #64748b; font-size: 13px;">
+            FIFO preview shows currently open stock batches as Quantity @ Cost.
+        </p>
         <table>
             <thead>
                 <tr>
@@ -26,6 +29,11 @@
                     <th>Received</th>
                     <th>Remaining</th>
                     <th>Receive Now</th>
+                    <th>Current Cost</th>
+                    <th>Incoming Cost</th>
+                    <th>Current Sell</th>
+                    <th>Incoming Sell</th>
+                    <th>Open FIFO Batches</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,13 +54,39 @@
                             value="0"
                         >
                     </td>
+                    <td>
+                        {% if line.current_cost_price is not None %}
+                            {{ line.current_cost_price }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ line.incoming_unit_cost }}</td>
+                    <td>
+                        {% if line.current_selling_price is not None %}
+                            {{ line.current_selling_price }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ line.incoming_selling_price|default:"-" }}</td>
+                    <td>
+                        {% if line.open_batch_preview %}
+                            {{ line.open_batch_preview|join:", " }}
+                            {% if line.open_batch_count > 5 %}
+                                (+{{ line.open_batch_count|add:"-5" }} more)
+                            {% endif %}
+                        {% else %}
+                            No open batches
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <button class="btn btn-primary" type="submit">Confirm Receive</button>
+    <button class="btn btn-success" type="submit">Confirm Receive</button>
 </form>
 {% endblock %}
 

@@ -1,0 +1,220 @@
+{% extends "owner/base.html" %}
+
+{% block title %}Current Stock{% endblock %}
+{% block page_title %}Current Stock{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .summary-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .summary-card .label {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--brand-dark);
+        letter-spacing: -0.03em;
+    }
+
+    .stock-filters {
+        display: grid;
+        grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(180px, 1fr)) auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .stock-filters label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .low-stock-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 45px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        font-weight: 600;
+    }
+
+    .low-stock-toggle input {
+        width: 16px;
+        height: 16px;
+        accent-color: #111111;
+    }
+
+    .scroll-table {
+        max-height: 68vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+    }
+
+    .scroll-table table {
+        margin: 0;
+    }
+
+    .scroll-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .numeric {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 1100px) {
+        .stock-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .stock-summary {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<a class="btn btn-info" href="{% url 'clothing_stock_movements' %}">Movement Log</a>
+<a class="btn btn-warning" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
+{% endblock %}
+
+{% block content %}
+<div class="stock-summary">
+    <div class="summary-card">
+        <div class="label">Stock Rows</div>
+        <div class="value">{{ row_count }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Quantity</div>
+        <div class="value">{{ total_qty }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Stock Value</div>
+        <div class="value">{{ total_value }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Filter Current Stock</div>
+    <form method="get" class="stock-filters">
+        <div>
+            <label for="stock-search">Search by product, variant, SKU, barcode, or category</label>
+            <input id="stock-search" type="text" name="q" value="{{ search_query }}" placeholder="Search current stock">
+        </div>
+        <div>
+            <label for="stock-category">Category</label>
+            <select id="stock-category" name="category">
+                <option value="">All categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="stock-product">Product</label>
+            <select id="stock-product" name="product">
+                <option value="">All products</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if selected_product == product.id|stringformat:"s" %}selected{% endif %}>
+                    {{ product.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <label class="low-stock-toggle" for="low-stock-only">
+            <input id="low-stock-only" type="checkbox" name="low_stock" value="1" {% if low_stock_only %}checked{% endif %}>
+            <span>Low stock only</span>
+        </label>
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_current_stock' %}">Clear</a>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">Available Inventory</div>
+    {% if stock_rows %}
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Category</th>
+                    <th>SKU</th>
+                    <th>Barcode</th>
+                    <th class="numeric">Available Qty</th>
+                    <th class="numeric">Min Stock</th>
+                    <th class="numeric">Cost Price</th>
+                    <th class="numeric">Selling Price</th>
+                    <th class="numeric">Stock Value</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in stock_rows %}
+                <tr>
+                    <td>{{ row.product.name }}</td>
+                    <td>{{ row.variant_label }}</td>
+                    <td>{{ row.category_name }}</td>
+                    <td>{{ row.sku }}</td>
+                    <td>{{ row.barcode }}</td>
+                    <td class="numeric">{{ row.quantity }}</td>
+                    <td class="numeric">{{ row.min_stock_qty }}</td>
+                    <td class="numeric">{{ row.cost_price }}</td>
+                    <td class="numeric">{{ row.selling_price }}</td>
+                    <td class="numeric">{{ row.stock_value }}</td>
+                    <td>
+                        {% if row.is_low_stock %}
+                        <span class="badge badge-danger">Low Stock</span>
+                        {% else %}
+                        <span class="badge badge-success">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a class="btn btn-info" href="{% url 'clothing_product_detail' row.product.id %}">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No stock records found for the selected filters.</p>
+    {% endif %}
+</div>
+{% endblock %}

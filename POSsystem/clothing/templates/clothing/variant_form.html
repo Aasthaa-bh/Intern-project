@@ -1,5 +1,4 @@
 {% extends "owner/base.html" %}
-{% load static %}
 
 {% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
@@ -26,87 +25,32 @@
 
     <div class="card">
         <div class="card-header">Variant Information</div>
-        <div class="form-grid">
-            <div>
-                <label>Name</label>
-                {{ form.name }}
-                {{ form.name.errors }}
-            </div>
-
-            <div>
-                <label>SKU</label>
-                {{ form.sku }}
-                {{ form.sku.errors }}
-            </div>
-
-            <div>
-                <label>Barcode</label>
-                {{ form.barcode }}
-                {% if form.barcode.help_text %}
-                    <small style="display:block; color:#666; margin-top:6px;">{{ form.barcode.help_text }}</small>
-                {% endif %}
-                {{ form.barcode.errors }}
-            </div>
-
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div><label>Name</label>{{ form.name }}</div>
+            <div><label>SKU</label>{{ form.sku }}</div>
+            <div><label>Barcode</label>{{ form.barcode }}</div>
             <div>
                 <label>Size</label>
-                {{ form.size }}
-                {{ form.size.errors }}
+                {{ form.size_name }}
+                <datalist id="size-name-options">
+                    {% for value in form.size_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
             </div>
-
-            <div>
-                <label>Or New Size</label>
-                {{ form.new_size }}
-                {{ form.new_size.errors }}
-            </div>
-
             <div>
                 <label>Color</label>
-                {{ form.color }}
-                {{ form.color.errors }}
+                {{ form.color_name }}
+                <datalist id="color-name-options">
+                    {% for value in form.color_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
             </div>
-
-            <div>
-                <label>Or New Color</label>
-                {{ form.new_color }}
-                {{ form.new_color.errors }}
-            </div>
-
-            <div>
-                <label>Price</label>
-                {{ form.price }}
-                {{ form.price.errors }}
-            </div>
-
-            <div>
-                <label>Cost Price</label>
-                {{ form.cost_price }}
-                {{ form.cost_price.errors }}
-            </div>
-
-            <div>
-                <label>Track Stock</label>
-                {{ form.track_stock }}
-                {{ form.track_stock.errors }}
-            </div>
-
-            <div>
-                <label>Opening Stock</label>
-                {{ form.stock_qty }}
-                {{ form.stock_qty.errors }}
-            </div>
-
-            <div>
-                <label>Min Stock</label>
-                {{ form.min_stock_qty }}
-                {{ form.min_stock_qty.errors }}
-            </div>
-
-            <div>
-                <label>Active</label>
-                {{ form.is_active }}
-                {{ form.is_active.errors }}
-            </div>
+            <div><label>Selling Price</label>{{ form.price }}</div>
+            <div><label>Track Stock</label>{{ form.track_stock }}</div>
+            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
+            <div><label>Active</label>{{ form.is_active }}</div>
         </div>
     </div>
 

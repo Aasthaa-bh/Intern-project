@@ -339,6 +339,7 @@ class PurchaseItem(models.Model):
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     received_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -358,6 +359,34 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.purchase.purchase_no} - {self.item_name_snapshot}"
+
+
+class StockBatch(models.Model):
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.PROTECT)
+    variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
+
+    purchase = models.ForeignKey(Purchase, null=True, blank=True, on_delete=models.SET_NULL)
+    purchase_item = models.ForeignKey(PurchaseItem, null=True, blank=True, on_delete=models.SET_NULL)
+
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    remaining_qty = models.DecimalField(max_digits=10, decimal_places=2)
+
+    received_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["business", "item", "received_at"]),
+            models.Index(fields=["variant", "received_at"]),
+            models.Index(fields=["business", "remaining_qty"]),
+        ]
+
+    def __str__(self):
+        target = f"{self.item.name} / {self.variant.name}" if self.variant_id else self.item.name
+        return f"{target} @ {self.unit_cost} ({self.remaining_qty}/{self.quantity})"
     
 class StockMovement(models.Model):
 

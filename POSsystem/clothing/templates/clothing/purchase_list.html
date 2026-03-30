@@ -83,7 +83,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Purchase No</th>
+                    <th>Invoice No</th>
                     <th>Supplier</th>
                     <th>Date</th>
                     <th>Status</th>
@@ -108,11 +108,16 @@
                     </td>
                     <td>{{ purchase.total_amount }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_purchase_detail' purchase.id %}">
                             View
                         </a>
+                        {% if purchase.status != "CANCELLED" and purchase.remaining_total > 0 %}
+                        <a class="btn btn-success" href="{% url 'clothing_purchase_receive' purchase.id %}">
+                            Receive
+                        </a>
+                        {% endif %}
                         {% if purchase.status != "RECEIVED" and purchase.status != "CANCELLED" %}
-                        <a class="btn btn-secondary" href="{% url 'clothing_purchase_edit' purchase.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">
                             Edit
                         </a>
                         {% endif %}

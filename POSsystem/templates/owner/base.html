@@ -17,6 +17,213 @@
 
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     {% block extra_css %}{% endblock %}
+
+    <style>
+        :root {
+            --bg-soft: #f4f7fb;
+            --bg-deep: #e6ecf5;
+            --surface: #ffffff;
+            --surface-soft: #f7f9fc;
+            --surface-strong: #eef3fb;
+            --border: #d8e1ee;
+            --border-strong: #c0cbdd;
+            --text-main: #132033;
+            --text-muted: #5f6f87;
+            --brand-dark: #0f1728;
+            --brand-mid: #1d2b40;
+            --primary: #2b6df8;
+            --primary-dark: #1f57cd;
+            --primary-soft: #e8f0ff;
+            --success: #1f9d63;
+            --success-dark: #15784a;
+            --success-soft: #e7f8f0;
+            --warning: #d9822b;
+            --warning-dark: #b8681d;
+            --warning-soft: #fff2e4;
+            --danger: #d84c63;
+            --danger-dark: #b93d53;
+            --danger-soft: #ffe9ee;
+            --info: #4c7df0;
+            --info-dark: #345dc0;
+            --info-soft: #edf2ff;
+        }
+
+        body {
+            color: var(--text-main);
+            font-family: "Segoe UI Variable", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-info {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-info:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-warning {
+            background: #d97706;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background: #b45309;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #111827;
+            border-color: #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .badge-success {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #a7f3d0;
+        }
+
+        .badge-warning {
+            background: #fff7ed;
+            color: #b45309;
+            border-color: #fed7aa;
+        }
+
+        .alert {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            margin-bottom: 10px;
+        }
+
+        .alert-error {
+            color: #b91c1c;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .alert-success {
+            color: #14532d;
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .alert-info {
+            color: #1e3a8a;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table th,
+        table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        table th {
+            background: #111827;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-white">
@@ -25,8 +232,13 @@
         <!-- SIDEBAR -->
         <aside class="w-64 bg-gray-900 text-white dark:bg-black flex flex-col">
             <div class="px-6 py-5 border-b border-gray-800 dark:border-gray-700">
-                <div class="text-xl font-bold">FlexiPOS</div>
-                <div class="text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Owner Panel" %}</div>
+                {% if current_business_type == "clothing" %}
+                    <div class="text-xl font-bold">FlexiPOS</div>
+                    <div class="text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Clothing Inventory" %}</div>
+                {% else %}
+                    <div class="text-xl font-bold">FlexiPOS</div>
+                    <div class="text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Owner Panel" %}</div>
+                {% endif %}
 
                 {% if current_business %}
                     <div class="mt-3 text-xs text-gray-300">
@@ -55,13 +267,14 @@
                 {% if current_business_type == "restaurant" %}
 
                     <div class="mt-2">
-                        <button type="button" onclick="toggleMenu()"
+                        <button type="button"
+                                onclick="toggleSection('menuSubmenu', 'menuArrow')"
                                 class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
                             <span class="text-sm font-medium">{% trans "Menu" %}</span>
-                            <span id="menuArrow">▾</span>
+                            <span id="menuArrow">{% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}▾{% else %}▸{% endif %}</span>
                         </button>
 
-                        <div id="menuSubmenu" class="ml-4 mt-1 space-y-1">
+                        <div id="menuSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'category_list' and request.resolver_match.url_name != 'item_list' %}hidden{% endif %}">
                             <a href="{% url 'category_list' %}"
                                class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'category_list' %}bg-gray-800{% endif %}">
                                 {% trans "Categories" %}
@@ -75,13 +288,14 @@
                     </div>
 
                     <div class="mt-2">
-                        <button type="button" onclick="toggleTables()"
+                        <button type="button"
+                                onclick="toggleSection('tableSubmenu', 'tableArrow')"
                                 class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
                             <span class="text-sm font-medium">{% trans "Tables" %}</span>
-                            <span id="tableArrow">▾</span>
+                            <span id="tableArrow">{% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}▾{% else %}▸{% endif %}</span>
                         </button>
 
-                        <div id="tableSubmenu" class="ml-4 mt-1 space-y-1">
+                        <div id="tableSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'table_category_list' and request.resolver_match.url_name != 'table_list' %}hidden{% endif %}">
                             <a href="{% url 'table_category_list' %}"
                                class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_category_list' %}bg-gray-800{% endif %}">
                                 {% trans "Table Categories" %}
@@ -108,12 +322,12 @@
                 {% elif current_business_type == "clothing" %}
 
                     <a href="{% url 'clothing_inventory_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' %}bg-gray-800{% endif %}">
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory_dashboard' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
                     </a>
 
                     <a href="{% url 'clothing_product_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_edit' %}bg-gray-800{% endif %}">
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_edit' or request.resolver_match.url_name == 'clothing_product_delete' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Products" %}</span>
                     </a>
 
@@ -122,13 +336,34 @@
                         <span class="text-sm font-medium">{% trans "Variants" %}</span>
                     </a>
 
+                    <a href="{% url 'clothing_purchase_list' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_purchase_list' or request.resolver_match.url_name == 'clothing_purchase_create' or request.resolver_match.url_name == 'clothing_purchase_detail' or request.resolver_match.url_name == 'clothing_purchase_edit' or request.resolver_match.url_name == 'clothing_purchase_receive' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Purchases" %}</span>
+                    </a>
+
+                    <a href="{% url 'clothing_supplier_list' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_supplier_list' or request.resolver_match.url_name == 'clothing_supplier_create' or request.resolver_match.url_name == 'clothing_supplier_edit' or request.resolver_match.url_name == 'clothing_supplier_delete' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Suppliers" %}</span>
+                    </a>
+
+                    <a href="{% url 'clothing_current_stock' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_current_stock' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Current Stock" %}</span>
+                    </a>
+
                     <a href="{% url 'clothing_stock_movements' %}"
                        class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}bg-gray-800{% endif %}">
                         <span class="text-sm font-medium">{% trans "Stock Movements" %}</span>
                     </a>
 
+                    <a href="{% url 'clothing_low_stock' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_low_stock' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">{% trans "Low Stock" %}</span>
+                    </a>
+
                     <div class="mt-2">
-                        <button type="button" onclick="toggleOffers()"
+                        <button type="button"
+                                onclick="toggleSection('offerSubmenu', 'offerArrow')"
                                 class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800 {% if '/clothing/offers/' in request.path %}bg-gray-800{% endif %}">
                             <span class="text-sm font-medium">{% trans "Offers" %}</span>
                             <span id="offerArrow">{% if '/clothing/offers/' in request.path %}▾{% else %}▸{% endif %}</span>
@@ -177,6 +412,10 @@
 
                 {% endif %}
             </nav>
+
+            <div class="p-4 border-t border-gray-800 text-xs text-gray-400">
+                {% trans "Logged in as" %} <span class="text-gray-200">{{ request.user.username }}</span>
+            </div>
         </aside>
 
         <!-- MAIN CONTENT -->
@@ -195,16 +434,17 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap justify-end">
                         {% block header_actions %}{% endblock %}
 
                         <div class="relative">
-                            <button type="button" onclick="toggleProfileMenu()"
+                            <button type="button"
+                                    onclick="toggleProfileMenu()"
                                     class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
                                 <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
                                     {{ request.user.full_name|default:request.user.username|first }}
                                 </div>
-                                {{ request.user.full_name|default:request.user.username }}
+                                <span class="hidden sm:inline">{{ request.user.full_name|default:request.user.username }}</span>
                             </button>
 
                             <div id="profileMenu"
@@ -212,9 +452,7 @@
 
                                 <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                                     <p class="text-sm font-semibold">{{ request.user.full_name|default:request.user.username }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-300">
-                                        {{ request.user.email }}
-                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-300">{{ request.user.email }}</p>
                                 </div>
 
                                 <div class="py-1">
@@ -243,39 +481,38 @@
             </header>
 
             <main class="p-6">
+                {% if messages %}
+                    <div class="mb-4 space-y-2">
+                        {% for message in messages %}
+                            <div class="px-4 py-3 rounded-md border
+                                {% if message.tags == 'error' %}
+                                    bg-red-50 text-red-700 border-red-200
+                                {% elif message.tags == 'success' %}
+                                    bg-green-50 text-green-700 border-green-200
+                                {% elif message.tags == 'info' %}
+                                    bg-blue-50 text-blue-700 border-blue-200
+                                {% else %}
+                                    bg-gray-50 text-gray-700 border-gray-200
+                                {% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 {% block content %}{% endblock %}
             </main>
         </div>
     </div>
 
     <script>
-        function toggleMenu() {
-            const submenu = document.getElementById("menuSubmenu");
-            const arrow = document.getElementById("menuArrow");
+        function toggleSection(sectionId, arrowId) {
+            const section = document.getElementById(sectionId);
+            const arrow = document.getElementById(arrowId);
 
-            if (submenu && arrow) {
-                submenu.classList.toggle("hidden");
-                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
-            }
-        }
-
-        function toggleTables() {
-            const submenu = document.getElementById("tableSubmenu");
-            const arrow = document.getElementById("tableArrow");
-
-            if (submenu && arrow) {
-                submenu.classList.toggle("hidden");
-                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
-            }
-        }
-
-        function toggleOffers() {
-            const submenu = document.getElementById("offerSubmenu");
-            const arrow = document.getElementById("offerArrow");
-
-            if (submenu && arrow) {
-                submenu.classList.toggle("hidden");
-                arrow.textContent = submenu.classList.contains("hidden") ? "▸" : "▾";
+            if (section && arrow) {
+                section.classList.toggle("hidden");
+                arrow.textContent = section.classList.contains("hidden") ? "▸" : "▾";
             }
         }
 
@@ -286,7 +523,7 @@
             }
         }
 
-        window.addEventListener("click", function(e) {
+        window.addEventListener("click", function (e) {
             const profileButton = e.target.closest("button[onclick='toggleProfileMenu()']");
             const profileMenu = document.getElementById("profileMenu");
 
@@ -295,5 +532,7 @@
             }
         });
     </script>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -20,28 +20,34 @@
     <div class="card">
         <div class="card-header">Product Information</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            {{ form.price }}
             <div><label>Name</label>{{ form.name }}</div>
             <div><label>SKU</label>{{ form.sku }}</div>
             <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div><label>Category</label>{{ form.category }}</div>
-            <div><label>New Category</label>{{ form.new_category }}</div>
-            <div><label>Brand</label>{{ form.brand }}</div>
-            <div><label>New Brand</label>{{ form.new_brand }}</div>
-            <div><label>Price</label>{{ form.price }}</div>
-            <div><label>Cost Price</label>{{ form.cost_price }}</div>
             <div>
-                <label>Track Stock</label>{{ form.track_stock }}
-                {% if form.track_stock.help_text %}<small>{{ form.track_stock.help_text }}</small>{% endif %}
+                <label>Category</label>
+                <input type="text" name="category_name" list="category-name-options" value="{{ form.category_name.value|default_if_none:'' }}">
+                <datalist id="category-name-options">
+                    {% for name in form.category_name_options %}
+                    <option value="{{ name }}"></option>
+                    {% endfor %}
+                </datalist>
+                {% if form.category_name.errors %}<div class="alert alert-error">{{ form.category_name.errors }}</div>{% endif %}
             </div>
             <div>
-                <label>Opening Stock</label>{{ form.stock_qty }}
-                {% if form.stock_qty.help_text %}<small>{{ form.stock_qty.help_text }}</small>{% endif %}
-            </div>
-            <div>
-                <label>Min Stock</label>{{ form.min_stock_qty }}
-                {% if form.min_stock_qty.help_text %}<small>{{ form.min_stock_qty.help_text }}</small>{% endif %}
+                <label>Brand</label>
+                <input type="text" name="brand_name" list="brand-name-options" value="{{ form.brand_name.value|default_if_none:'' }}">
+                <datalist id="brand-name-options">
+                    {% for name in form.brand_name_options %}
+                    <option value="{{ name }}"></option>
+                    {% endfor %}
+                </datalist>
+                {% if form.brand_name.errors %}<div class="alert alert-error">{{ form.brand_name.errors }}</div>{% endif %}
             </div>
             <div style="grid-column: 1 / -1;"><label>Description</label>{{ form.description }}</div>
+            <div style="grid-column: 1 / -1; color: #64748b; font-size: 13px;">
+                Stock is managed from variants and purchase/stock adjustment entries.
+            </div>
             <div><label>Active</label>{{ form.is_active }}</div>
         </div>
     </div>

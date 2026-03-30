@@ -1,41 +1,286 @@
 {% extends "owner/base.html" %}
 
-{% block title %}Inventory Dashboard{% endblock %}
-{% block page_title %}Inventory Dashboard{% endblock %}
-{% block page_subtitle %}Overview of clothing inventory and recent movements{% endblock %}
+{% block title %}Clothing Inventory - Dashboard{% endblock %}
+{% block page_title %}Clothing Inventory Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-copy {
+        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .period-filter {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .period-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border-strong);
+        background: #fff;
+        color: var(--brand-dark);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.18s ease;
+    }
+
+    .period-chip:hover {
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        background: var(--primary-soft);
+    }
+
+    .period-chip.active {
+        background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff;
+        border-color: var(--primary-dark);
+        box-shadow: var(--shadow-strong);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .stat-card .icon {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--brand-dark);
+        margin-bottom: 4px;
+    }
+
+    .stat-card .label {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .dashboard-panels {
+        display: grid;
+        grid-template-columns: minmax(280px, 1.05fr) minmax(0, 1.35fr);
+        gap: 16px;
+        margin-bottom: 18px;
+        align-items: start;
+    }
+
+    .attention-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .attention-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .attention-count {
+        min-width: 54px;
+        height: 54px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+        background: var(--tone, var(--primary));
+        box-shadow: 0 12px 24px color-mix(in srgb, var(--tone, var(--primary)) 24%, transparent);
+    }
+
+    .attention-item--danger { --tone: var(--danger); }
+    .attention-item--warning { --tone: var(--warning); }
+    .attention-item--info { --tone: var(--info); }
+
+    .attention-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--brand-dark);
+        margin-bottom: 4px;
+    }
+
+    .attention-copy {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .attention-link {
+        color: var(--brand-dark);
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .attention-link:hover {
+        color: var(--primary-dark);
+    }
+
+    .attention-empty {
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+
+    .muted-copy {
+        margin: 0 0 14px 0;
+        color: var(--text-muted);
+    }
+
+    .health-copy {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .quick-action {
+        display: block;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+        color: var(--brand-dark);
+        transition: all 0.2s ease;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quick-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.11);
+    }
+
+    .quick-action-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: var(--brand-dark);
+    }
+
+    .quick-action-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .quick-action::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        border-radius: 20px 0 0 20px;
+        background: var(--accent, var(--primary));
+    }
+
+    .quick-action:hover .quick-action-title {
+        color: var(--accent-dark, var(--primary-dark));
+    }
+
+    .quick-action:hover .quick-action-subtitle {
+        color: var(--brand-mid);
+    }
+
+    .quick-action--product {
+        --accent: var(--primary);
+        --accent-dark: var(--primary-dark);
+    }
+
+    .quick-action--purchase {
+        --accent: var(--success);
+        --accent-dark: var(--success-dark);
+    }
+
+    .quick-action--supplier {
+        --accent: var(--info);
+        --accent-dark: var(--info-dark);
+    }
+
+    .quick-action--adjustment {
+        --accent: var(--warning);
+        --accent-dark: var(--warning-dark);
+    }
+
+    .quick-action--low-stock {
+        --accent: var(--danger);
+        --accent-dark: var(--danger-dark);
+    }
+
+    .quick-action--movement {
+        --accent: var(--brand-mid);
+        --accent-dark: var(--brand-dark);
+    }
+
+    @media (max-width: 1080px) {
+        .dashboard-panels {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">Quick Actions</div>
-    <div class="quick-actions-grid">
-        <a class="quick-action" href="{% url 'clothing_product_create' %}">
-            <div class="quick-action-title">Add Product</div>
-            <div class="quick-action-subtitle">Create a new clothing product.</div>
-        </a>
-        <a class="quick-action" href="{% url 'clothing_purchase_create' %}">
-            <div class="quick-action-title">Create Purchase</div>
-            <div class="quick-action-subtitle">Add inventory from supplier purchase.</div>
-        </a>
-        <a class="quick-action" href="{% url 'clothing_supplier_create' %}">
-            <div class="quick-action-title">Add Supplier</div>
-            <div class="quick-action-subtitle">Register a supplier for purchase flow.</div>
-        </a>
-        <a class="quick-action" href="{% url 'clothing_stock_adjustment_create' %}">
-            <div class="quick-action-title">Stock Adjustment</div>
-            <div class="quick-action-subtitle">Record manual stock in/out adjustments.</div>
-        </a>
-        <a class="quick-action" href="{% url 'clothing_low_stock' %}">
-            <div class="quick-action-title">Low Stock Report</div>
-            <div class="quick-action-subtitle">Review items below minimum stock level.</div>
-        </a>
-        <a class="quick-action" href="{% url 'clothing_stock_movements' %}">
-            <div class="quick-action-title">Stock Movements</div>
-            <div class="quick-action-subtitle">View all inventory transactions.</div>
-        </a>
+<div class="dashboard-toolbar">
+    <div class="toolbar-copy">Activity period: {{ period_label }}</div>
+    <div class="period-filter">
+        {% for value, label in period_options %}
+        <a class="period-chip {% if period == value %}active{% endif %}" href="{% url 'clothing_inventory_dashboard' %}?period={{ value }}">{{ label }}</a>
+        {% endfor %}
     </div>
 </div>
 
 <div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon">Stock Value</div>
+        <div class="value">{{ total_stock_value }}</div>
+        <div class="label">Current Inventory Value</div>
+    </div>
     <div class="stat-card">
         <div class="icon">Stock Units</div>
         <div class="value">{{ total_skus }}</div>
@@ -45,6 +290,11 @@
         <div class="icon">Products</div>
         <div class="value">{{ total_products }}</div>
         <div class="label">Total Products</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">Inventory Health</div>
+        <div class="value">{{ inventory_health_pct|floatformat:1 }}%</div>
+        <div class="label health-copy">{{ healthy_sku_count }} of {{ tracked_sku_count }} tracked SKUs above minimum stock</div>
     </div>
     <div class="stat-card">
         <div class="icon">Low Stock</div>
@@ -93,13 +343,103 @@
             </a>
             <a href="{% url 'clothing_offer_create' %}" class="btn" style="background: white; color: #111827; padding: 10px 20px; font-size: 13px; font-weight: 600;">
                 Create New Offer
+<div class="dashboard-panels">
+    <div class="card">
+        <div class="card-header">Needs Attention</div>
+        <p class="muted-copy">Priority issues that need stock, purchase, or catalog action.</p>
+        <div class="attention-list">
+            {% for item in needs_attention %}
+            <div class="attention-item attention-item--{{ item.tone }}">
+                <div class="attention-count">{{ item.count }}</div>
+                <div>
+                    <div class="attention-title">{{ item.title }}</div>
+                    <div class="attention-copy">{{ item.description }}</div>
+                </div>
+                {% if item.count %}
+                <a class="attention-link" href="{% url item.url %}{{ item.query }}">Review</a>
+                {% else %}
+                <span class="attention-empty">{{ item.empty_label }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Quick Actions</div>
+        <div class="quick-actions-grid">
+            <a class="quick-action quick-action--product" href="{% url 'clothing_product_create' %}">
+                <div class="quick-action-title">Add Product</div>
+                <div class="quick-action-subtitle">Create a new clothing product.</div>
+            </a>
+            <a class="quick-action quick-action--purchase" href="{% url 'clothing_purchase_create' %}">
+                <div class="quick-action-title">Create Purchase</div>
+                <div class="quick-action-subtitle">Add inventory from supplier purchase.</div>
+            </a>
+            <a class="quick-action quick-action--supplier" href="{% url 'clothing_supplier_create' %}">
+                <div class="quick-action-title">Add Supplier</div>
+                <div class="quick-action-subtitle">Register a supplier for purchase flow.</div>
+            </a>
+            <a class="quick-action quick-action--adjustment" href="{% url 'clothing_stock_adjustment_create' %}">
+                <div class="quick-action-title">Stock Adjustment</div>
+                <div class="quick-action-subtitle">Record manual stock in/out adjustments.</div>
+            </a>
+            <a class="quick-action quick-action--low-stock" href="{% url 'clothing_current_stock' %}?low_stock=1">
+                <div class="quick-action-title">Low Stock Report</div>
+                <div class="quick-action-subtitle">Review items below minimum stock level.</div>
+            </a>
+            <a class="quick-action quick-action--movement" href="{% url 'clothing_stock_movements' %}">
+                <div class="quick-action-title">Stock Movements</div>
+                <div class="quick-action-subtitle">View all inventory transactions.</div>
             </a>
         </div>
     </div>
 </div>
 
 <div class="card">
+    <div class="card-header">Recent Purchases</div>
+    <p class="muted-copy">Latest purchase orders for {{ period_label|lower }}.</p>
+    {% if recent_purchases %}
+    <table>
+        <thead>
+            <tr>
+                <th>Invoice No</th>
+                <th>Supplier</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in recent_purchases %}
+            <tr>
+                <td>{{ purchase.purchase_no }}</td>
+                <td>{{ purchase.supplier.name }}</td>
+                <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
+                <td>
+                    {% if purchase.status == "RECEIVED" %}
+                        <span class="badge badge-success">Received</span>
+                    {% elif purchase.status == "CANCELLED" %}
+                        <span class="badge badge-danger">Cancelled</span>
+                    {% else %}
+                        <span class="badge badge-warning">Draft</span>
+                    {% endif %}
+                </td>
+                <td>{{ purchase.total_amount }}</td>
+                <td><a class="btn btn-info" href="{% url 'clothing_purchase_detail' purchase.id %}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No purchases found for {{ period_label|lower }}.</p>
+    {% endif %}
+</div>
+
+<div class="card">
     <div class="card-header">Recent Stock Movements</div>
+    <p class="muted-copy">Latest inventory activity across purchases, adjustments, and sales-related stock changes for {{ period_label|lower }}.</p>
     {% if recent_movements %}
     <table>
         <thead>
@@ -126,7 +466,7 @@
         </tbody>
     </table>
     {% else %}
-    <p>No stock movements recorded.</p>
+    <p>No stock movements recorded for {{ period_label|lower }}.</p>
     {% endif %}
 </div>
 

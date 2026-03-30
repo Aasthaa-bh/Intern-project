@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from pos.models import Item, Category
+from pos.models import Item, Category, ItemVariant
 from .models import BusinessRequest, Business
 from restaurant.models import DiningTable
 from .forms import BusinessRequestForm
@@ -413,8 +413,32 @@ def clothing_owner_dashboard(request):
 
     total_staff = User.objects.filter(business=business).exclude(role="OWNER").count()
 
+    # Get clothing-specific data
+    total_products = Item.objects.filter(business=business, item_type="PRODUCT").count()
+    total_variants = ItemVariant.objects.filter(item__business=business, item__item_type="PRODUCT").count()
+    total_categories = Category.objects.filter(business=business).count()
+
+    # Low stock count (simplified)
+    low_stock_products = Item.objects.filter(
+        business=business, 
+        item_type="PRODUCT", 
+        track_stock=True, 
+        stock_qty__lte=models.F('min_stock_qty')
+    ).count()
+    low_stock_variants = ItemVariant.objects.filter(
+        item__business=business, 
+        item__item_type="PRODUCT", 
+        track_stock=True, 
+        stock_qty__lte=models.F('min_stock_qty')
+    ).count()
+    low_stock_count = low_stock_products + low_stock_variants
+
     context = {
         "total_staff": total_staff,
+        "total_products": total_products,
+        "total_variants": total_variants,
+        "total_categories": total_categories,
+        "low_stock_count": low_stock_count,
     }
     return render(request, "owner/dashboard_clothing.html", context)
 
