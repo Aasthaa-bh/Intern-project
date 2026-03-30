@@ -223,6 +223,11 @@ class ClothingProductForm(forms.ModelForm):
             "category",
             "brand",
             "price",
+            "cost_price",
+            "image",  # antim added for cloudinary
+            "track_stock",
+            "stock_qty",
+            "min_stock_qty",
             "description",
             "is_active",
         ]

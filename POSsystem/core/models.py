@@ -1,12 +1,17 @@
-from sys import prefix
-
+import os
 from django.db import models
 from django.conf import settings
-# import random
-# import string
-# from django.core.mail import send_mail
-# from django.utils import timezone
-# from accounts.models import User
+import cloudinary.uploader
+from .cloudinary_utils import get_cloudinary_upload_path
+
+def cloudinary_original_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='original')
+
+def cloudinary_thumbnail_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='thumbnail')
+
+cloudinary_document_path = cloudinary_original_path
+cloudinary_document_thumbnail_path = cloudinary_thumbnail_path
 
 class BusinessType(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -26,9 +31,84 @@ class Business(models.Model):
     business_code = models.CharField(max_length=20, unique=True)
     address = models.TextField()
     status = models.CharField(max_length=20, default="ACTIVE")
+    pan_image = models.ImageField(upload_to=cloudinary_original_path, max_length=512, null=True, blank=True)
+    citizenship_image = models.ImageField(upload_to=cloudinary_original_path, max_length=512, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Determine which images are entirely new uploads
+        new_images = []
+        for field_name in ['pan_image', 'citizenship_image']:
+            f = getattr(self, field_name)
+            if f and (not hasattr(f, 'name') or not f.name):
+                f.name = 'image.jpg'
+                
+            if f:
+                if not self.pk:
+                    new_images.append(field_name)
+                else:
+                    try:
+                        old = Business.objects.get(pk=self.pk)
+                        old_f = getattr(old, field_name)
+                        if not old_f or old_f.name != f.name:
+                            new_images.append(field_name)
+                    except Business.DoesNotExist:
+                        new_images.append(field_name)
+
+        super().save(*args, **kwargs)
+
+        # Physical Thumbnail Upload logic via robust CDN URLs
+        if new_images:
+            try:
+                from django.conf import settings
+                import cloudinary.uploader
+                
+                cloudinary.config(
+                    cloud_name=settings.CLOUDINARY_STORAGE["CLOUD_NAME"],
+                    api_key=settings.CLOUDINARY_STORAGE["API_KEY"],
+                    api_secret=settings.CLOUDINARY_STORAGE["API_SECRET"],
+                )
+                
+                for field_name in new_images:
+                    image_field = getattr(self, field_name)
+                    if image_field and hasattr(image_field, 'url'):
+                        safe_filename = os.path.basename(image_field.name)
+                        thumb_path = get_cloudinary_upload_path(self, safe_filename, image_type='thumbnail')
+                        
+                        media_prefix = getattr(settings, 'MEDIA_URL', '/media/').strip('/')
+                        if media_prefix:
+                            thumb_path = f"{media_prefix}/{thumb_path}"
+                            
+                        public_id = thumb_path.rsplit('.', 1)[0]
+                        folder_path = os.path.dirname(public_id)
+                        filename_only = os.path.basename(public_id)
+                        
+                        # Upload tightly integrated into folder structure
+                        cloudinary.uploader.upload(
+                            image_field.url,
+                            public_id=filename_only,
+                            folder=folder_path,
+                            transformation=[{'width': 400, 'height': 400, 'crop': 'fill', 'quality': 'auto'}],
+                            overwrite=True,
+                            resource_type="image"
+                        )
+            except Exception as e:
+                print(f"Cloudinary document thumbnail upload error: {e}")
+
+    @property
+    def pan_thumbnail(self):
+        if self.pan_image:
+            # Predictable physical path for the thumbnail
+            return self.pan_image.url.replace('/original/', '/thumbnail/')
+        return驱动None
+
+    @property
+    def citizenship_thumbnail(self):
+        if self.citizenship_image:
+            return self.citizenship_image.url.replace('/original/', '/thumbnail/')
+        return None
 
     @property
     def type_name(self):
@@ -59,9 +139,9 @@ class BusinessRequest(models.Model):
     phone_no = models.CharField(max_length=20)
     business_type = models.ForeignKey(BusinessType, on_delete=models.PROTECT)
     address = models.TextField()
+    pan_image = models.ImageField(upload_to=cloudinary_original_path, max_length=512, null=True, blank=True)
+    citizenship_image = models.ImageField(upload_to=cloudinary_original_path, max_length=512, null=True, blank=True)
 
-    pan_image = models.ImageField(upload_to="documents/pan/")
-    citizenship_image = models.ImageField(upload_to="documents/citizenship/")
 
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
     reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
@@ -70,6 +150,78 @@ class BusinessRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Determine which images are entirely new uploads
+        new_images = []
+        for field_name in ['pan_image', 'citizenship_image']:
+            f = getattr(self, field_name)
+            if f and (not hasattr(f, 'name') or not f.name):
+                f.name = 'image.jpg'
+                
+            if f:
+                if not self.pk:
+                    new_images.append(field_name)
+                else:
+                    try:
+                        old = BusinessRequest.objects.get(pk=self.pk)
+                        old_f = getattr(old, field_name)
+                        if not old_f or old_f.name != f.name:
+                            new_images.append(field_name)
+                    except BusinessRequest.DoesNotExist:
+                        new_images.append(field_name)
+
+        super().save(*args, **kwargs)
+
+        # Physical Thumbnail Upload logic
+        if new_images:
+            try:
+                from django.conf import settings
+                import cloudinary.uploader
+                
+                cloudinary.config(
+                    cloud_name=settings.CLOUDINARY_STORAGE["CLOUD_NAME"],
+                    api_key=settings.CLOUDINARY_STORAGE["API_KEY"],
+                    api_secret=settings.CLOUDINARY_STORAGE["API_SECRET"],
+                )
+                
+                for field_name in new_images:
+                    image_field = getattr(self, field_name)
+                    if image_field and hasattr(image_field, 'url'):
+                        safe_filename = os.path.basename(image_field.name)
+                        thumb_path = get_cloudinary_upload_path(self, safe_filename, image_type='thumbnail')
+                        
+                        media_prefix = getattr(settings, 'MEDIA_URL', '/media/').strip('/')
+                        if media_prefix:
+                            thumb_path = f"{media_prefix}/{thumb_path}"
+                            
+                        public_id = thumb_path.rsplit('.', 1)[0]
+                        folder_path = os.path.dirname(public_id)
+                        filename_only = os.path.basename(public_id)
+                        
+                        cloudinary.uploader.upload(
+                            image_field.url,
+                            public_id=filename_only,
+                            folder=folder_path,
+                            transformation=[{'width': 400, 'height': 400, 'crop': 'fill', 'quality': 'auto'}],
+                            overwrite=True,
+                            resource_type="image"
+                        )
+            except Exception as e:
+                print(f"Cloudinary document thumbnail upload error: {e}")
+
+    @property
+    def pan_thumbnail(self):
+        if self.pan_image:
+            # Predictable physical path for the thumbnail
+            return self.pan_image.url.replace('/original/', '/thumbnail/')
+        return None
+
+    @property
+    def citizenship_thumbnail(self):
+        if self.citizenship_image:
+            return self.citizenship_image.url.replace('/original/', '/thumbnail/')
+        return None
 
 
     # def approve(self, superadmin_user):

@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
@@ -33,6 +33,16 @@
                     {% endfor %}
                 </datalist>
                 {% if form.category_name.errors %}<div class="alert alert-error">{{ form.category_name.errors }}</div>{% endif %}
+                <!-- antim added for cloudinary -->
+                <label>Image</label>{{ form.image }}
+            </div>
+            <div>
+                <!-- antim added for cloudinary -->
+                <label>Thumbnail (Optional)</label>{{ form.thumbnail }}
+            </div>
+            <div>
+                <label>Track Stock</label>{{ form.track_stock }}
+                {% if form.track_stock.help_text %}<small>{{ form.track_stock.help_text }}</small>{% endif %}
             </div>
             <div>
                 <label>Brand</label>
