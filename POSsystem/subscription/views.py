@@ -86,7 +86,8 @@ def package_create(request):
             name=request.POST.get("name", "").strip(),
             duration_months=int(request.POST.get("duration_months") or 1),
             max_users=int(request.POST.get("max_users") or 1),
-            max_tables=int(request.POST.get("max_tables") or 1),   
+            max_tables=int(request.POST.get("max_tables") or 1), 
+            max_products=int(request.POST.get("max_products") or 0), 
             price=Decimal(request.POST.get("price") or "0"),
             is_active=True if request.POST.get("is_active") else False,
         )
@@ -108,7 +109,8 @@ def package_update(request, pk):
         package.name = request.POST.get("name", "").strip()
         package.duration_months = int(request.POST.get("duration_months") or package.duration_months)
         package.max_users = int(request.POST.get("max_users") or package.max_users)
-        package.max_tables = int(request.POST.get("max_tables") or package.max_tables)  
+        package.max_tables = int(request.POST.get("max_tables") or package.max_tables) 
+        package.max_products = int(request.POST.get("max_products") or package.max_products) 
 
         package.price = Decimal(request.POST.get("price") or package.price)
         package.is_active = True if request.POST.get("is_active") else False
