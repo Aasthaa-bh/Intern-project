@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}Suppliers{% endblock %}
 {% block page_title %}Suppliers{% endblock %}
@@ -125,8 +125,8 @@
                     <td>{{ supplier.address|default:"-" }}</td>
                     <td>{{ supplier.notes|default:"-" }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_supplier_delete' supplier.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
+                        <a class="btn {% if supplier.total_purchases %}btn-warning{% else %}btn-danger{% endif %}" href="{% url 'clothing_supplier_delete' supplier.id %}">
                             {% if supplier.total_purchases %}Archive{% else %}Delete{% endif %}
                         </a>
                     </td>

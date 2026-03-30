@@ -1,0 +1,197 @@
+{% extends "owner/base.html" %}
+{% load widget_tweaks %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Create and manage promotional offers{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl bg-white rounded-lg shadow border border-gray-200 mx-auto mt-6">
+    <div class="p-6">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Offer Name *</label>
+                {{ form.offer_name }}
+                {% if form.offer_name.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.offer_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Offer Type *</label>
+                {{ form.offer_type }}
+                {% if form.offer_type.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.offer_type.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1">Select the type of discount you want to offer</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Discount Value *</label>
+                {{ form.discount_value }}
+                {% if form.discount_value.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.discount_value.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1" id="discount-hint">
+                    For percentage: enter 10 for 10%. For flat: enter 500 for Rs 500
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                    {{ form.start_date }}
+                    {% if form.start_date.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.start_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
+                    {{ form.end_date }}
+                    {% if form.end_date.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ form.end_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="product-field" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                {{ form.product }}
+                {% if form.product.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.product.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1">Select the product for this offer</p>
+            </div>
+
+            <div id="variants-field" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Variants (Size/Color) *</label>
+                <div class="border border-gray-300 rounded-md p-4 max-h-64 overflow-y-auto bg-gray-50">
+                    {% if form.variants %}
+                        <div id="variants-container" class="space-y-2">
+                            {% for choice in form.variants %}
+                                <label class="flex items-center space-x-2 hover:bg-gray-100 p-2 rounded cursor-pointer">
+                                    {{ choice.tag }}
+                                    <span class="text-sm text-gray-700">{{ choice.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-gray-500" id="no-variants-msg">Please select a product first</p>
+                    {% endif %}
+                </div>
+                {% if form.variants.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.variants.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1">Select specific variants (e.g., Medium/Blue, Large/Red) for this offer</p>
+            </div>
+
+            <div id="category-field" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.category.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1">Select the category for this offer</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Purchase Amount</label>
+                {{ form.minimum_purchase }}
+                {% if form.minimum_purchase.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.minimum_purchase.errors.0 }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-500 mt-1">Leave 0 for no minimum requirement</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ form.status.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+                <button type="submit"
+                        class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                    {{ button_text }}
+                </button>
+                <a href="{% url 'clothing_offer_list' %}"
+                   class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const offerTypeSelect = document.getElementById('id_offer_type');
+    const productSelect = document.getElementById('id_product');
+    const productField = document.getElementById('product-field');
+    const variantsField = document.getElementById('variants-field');
+    const categoryField = document.getElementById('category-field');
+    const discountHint = document.getElementById('discount-hint');
+    
+    // Check if product is preselected from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedProduct = urlParams.get('product');
+    
+    function updateFields() {
+        const offerType = offerTypeSelect.value;
+        
+        productField.style.display = 'none';
+        variantsField.style.display = 'none';
+        categoryField.style.display = 'none';
+        
+        if (offerType === 'PRODUCT') {
+            productField.style.display = 'block';
+            discountHint.textContent = 'Enter percentage discount (e.g., 20 for 20% OFF)';
+        } else if (offerType === 'VARIANT') {
+            productField.style.display = 'block';
+            variantsField.style.display = 'block';
+            discountHint.textContent = 'Enter percentage discount (e.g., 15 for 15% OFF on selected variants)';
+        } else if (offerType === 'CATEGORY') {
+            categoryField.style.display = 'block';
+            discountHint.textContent = 'Enter percentage discount (e.g., 15 for 15% OFF)';
+        } else if (offerType === 'PERCENTAGE' || offerType === 'SEASONAL' || offerType === 'LOYALTY') {
+            discountHint.textContent = 'Enter percentage value (e.g., 10 for 10% OFF)';
+        } else if (offerType === 'FLAT') {
+            discountHint.textContent = 'Enter flat discount amount (e.g., 500 for Rs 500 OFF)';
+        }
+    }
+    
+    // Load variants when product changes
+    productSelect.addEventListener('change', function() {
+        const productId = this.value;
+        const offerType = offerTypeSelect.value;
+        
+        if (offerType === 'VARIANT' && productId) {
+            // Reload page with product parameter to load variants
+            const url = new URL(window.location.href);
+            url.searchParams.set('product', productId);
+            window.location.href = url.toString();
+        }
+    });
+    
+    // If product is preselected, show product field
+    if (preselectedProduct && productSelect.value) {
+        productField.style.display = 'block';
+    }
+    
+    updateFields();
+    offerTypeSelect.addEventListener('change', updateFields);
+});
+</script>
+{% endblock %}

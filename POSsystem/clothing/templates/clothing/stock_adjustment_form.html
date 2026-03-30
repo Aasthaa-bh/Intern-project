@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}Create Stock Adjustment{% endblock %}
 {% block page_title %}Create Stock Adjustment{% endblock %}
@@ -20,6 +20,6 @@
             <div style="grid-column: 1 / -1;"><label>Note</label>{{ form.note }}</div>
         </div>
     </div>
-    <button class="btn btn-primary" type="submit">Save Adjustment</button>
+    <button class="btn btn-warning" type="submit">Save Adjustment</button>
 </form>
 {% endblock %}

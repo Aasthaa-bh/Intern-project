@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.db import models
-from .utils_barcode import generate_barcode_image
+from .utils_barcode import generate_barcode_image, delete_barcode_file
 
 class Category(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -114,11 +114,16 @@ class ItemVariant(models.Model):
         )
 
     def generate_next_barcode(self):
+        """
+        Generate next barcode like:
+        CLTH-000001
+        CLTH-000002
+        """
         prefix = "CLTH-"
 
         last_variant = ItemVariant.objects.filter(
             business=self.business,
-            barcode__startswith=prefix
+            barcode__startswith=prefix,
         ).order_by("-id").first()
 
         next_number = 1
@@ -129,25 +134,49 @@ class ItemVariant(models.Model):
             except ValueError:
                 next_number = 1
 
-        return f"{prefix}{next_number:06d}"
+        candidate = f"{prefix}{next_number:06d}"
+
+        while ItemVariant.objects.filter(
+            business=self.business,
+            barcode=candidate,
+        ).exclude(pk=self.pk).exists():
+            next_number += 1
+            candidate = f"{prefix}{next_number:06d}"
+
+        return candidate
 
     def save(self, *args, **kwargs):
         if self.item_id and not self.business_id:
             self.business = self.item.business
+
+        self.barcode = (self.barcode or "").strip() or None
+
+        old_barcode = None
+        old_barcode_image = ""
+        if self.pk:
+            old = ItemVariant.objects.filter(pk=self.pk).values("barcode", "barcode_image").first()
+            if old:
+                old_barcode = old["barcode"]
+                old_barcode_image = old["barcode_image"] or ""
 
         if not self.barcode and self.business_id:
             self.barcode = self.generate_next_barcode()
 
         super().save(*args, **kwargs)
 
-        if self.barcode and not self.barcode_image:
+        barcode_changed = old_barcode != self.barcode
+        needs_image = bool(self.barcode) and (not self.barcode_image or barcode_changed)
+
+        if needs_image:
+            if old_barcode_image and old_barcode_image != self.barcode_image:
+                delete_barcode_file(old_barcode_image)
+
             file_name = f"variant_{self.id}_{self.barcode}"
             self.barcode_image = generate_barcode_image(self.barcode, file_name)
             super().save(update_fields=["barcode_image"])
 
     def __str__(self):
         return f"{self.item.name} / {self.name}"
-
 
 class Customer(models.Model):
 
@@ -310,6 +339,7 @@ class PurchaseItem(models.Model):
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     received_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -329,6 +359,34 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.purchase.purchase_no} - {self.item_name_snapshot}"
+
+
+class StockBatch(models.Model):
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.PROTECT)
+    variant = models.ForeignKey("pos.ItemVariant", null=True, blank=True, on_delete=models.PROTECT)
+
+    purchase = models.ForeignKey(Purchase, null=True, blank=True, on_delete=models.SET_NULL)
+    purchase_item = models.ForeignKey(PurchaseItem, null=True, blank=True, on_delete=models.SET_NULL)
+
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    remaining_qty = models.DecimalField(max_digits=10, decimal_places=2)
+
+    received_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["business", "item", "received_at"]),
+            models.Index(fields=["variant", "received_at"]),
+            models.Index(fields=["business", "remaining_qty"]),
+        ]
+
+    def __str__(self):
+        target = f"{self.item.name} / {self.variant.name}" if self.variant_id else self.item.name
+        return f"{target} @ {self.unit_cost} ({self.remaining_qty}/{self.quantity})"
     
 class StockMovement(models.Model):
 

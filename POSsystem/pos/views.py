@@ -6,9 +6,18 @@ from django.db import transaction
 from django.db.models import Sum, F, Count, Q
 from decimal import Decimal
 from .models import Order, OrderItem, Item, Customer
+from .inventory_services import consume_stock_fifo
 from restaurant.models import DiningTable, KitchenOrder
 import json
 from django.utils import timezone
+
+
+def _cost_snapshot_or_fallback(item, consumed_cost):
+    if consumed_cost is not None:
+        return consumed_cost
+    if item.cost_price is not None:
+        return item.cost_price
+    return Decimal('0.00')
 
 @login_required
 def waiter_dashboard(request):
@@ -222,15 +231,10 @@ def create_order(request, table_id=None):
         for item_data in items_data:
             item = Item.objects.get(id=item_data['item_id'], business=request.user.business)
             quantity = Decimal(str(item_data['quantity']))
-            
-            # Check stock if tracking is enabled
+
+            consumed_cost = None
             if item.track_stock:
-                if item.stock_qty < quantity:
-                    raise Exception(f'Insufficient stock for {item.name}')
-                
-                # Deduct stock
-                item.stock_qty -= quantity
-                item.save()
+                consumed_cost = consume_stock_fifo(item, None, quantity)
             
             # Calculate line total
             unit_price = item.price
@@ -241,6 +245,7 @@ def create_order(request, table_id=None):
                 item=item,
                 item_name_snapshot=item.name,
                 unit_price=unit_price,
+                cost_price_snapshot=_cost_snapshot_or_fallback(item, consumed_cost),
                 quantity=quantity,
                 line_total=line_total
             )
@@ -341,6 +346,10 @@ def add_order_items(request, order_id):
         for item_data in items_data:
             item = Item.objects.get(id=item_data['item_id'], business=request.user.business)
             quantity = Decimal(str(item_data['quantity']))
+            consumed_cost = None
+            if item.track_stock:
+                consumed_cost = consume_stock_fifo(item, None, quantity)
+            new_cost_snapshot = _cost_snapshot_or_fallback(item, consumed_cost)
             
             # Check if this item already exists in the order
             existing_order_item = OrderItem.objects.filter(
@@ -350,27 +359,20 @@ def add_order_items(request, order_id):
             
             if existing_order_item:
                 # Item exists - increment quantity
+                old_quantity = existing_order_item.quantity
                 existing_order_item.quantity += quantity
                 existing_order_item.line_total = existing_order_item.unit_price * existing_order_item.quantity
+
+                old_snapshot = existing_order_item.cost_price_snapshot
+                if old_snapshot is None:
+                    old_snapshot = _cost_snapshot_or_fallback(item, None)
+                total_qty = old_quantity + quantity
+                if total_qty > 0:
+                    blended_snapshot = ((old_quantity * old_snapshot) + (quantity * new_cost_snapshot)) / total_qty
+                    existing_order_item.cost_price_snapshot = blended_snapshot.quantize(Decimal('0.01'))
                 existing_order_item.save()
-                
-                # Update stock if tracking is enabled
-                if item.track_stock:
-                    if item.stock_qty < quantity:
-                        raise Exception(f'Insufficient stock for {item.name}')
-                    item.stock_qty -= quantity
-                    item.save()
             else:
                 # New item - create new order item
-                # Check stock if tracking is enabled
-                if item.track_stock:
-                    if item.stock_qty < quantity:
-                        raise Exception(f'Insufficient stock for {item.name}')
-                    
-                    # Deduct stock
-                    item.stock_qty -= quantity
-                    item.save()
-                
                 # Calculate line total
                 unit_price = item.price
                 line_total = unit_price * quantity
@@ -380,6 +382,7 @@ def add_order_items(request, order_id):
                     item=item,
                     item_name_snapshot=item.name,
                     unit_price=unit_price,
+                    cost_price_snapshot=new_cost_snapshot,
                     quantity=quantity,
                     line_total=line_total
                 )

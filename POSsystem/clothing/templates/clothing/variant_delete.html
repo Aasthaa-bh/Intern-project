@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}Delete Variant{% endblock %}
 {% block page_title %}Delete Variant{% endblock %}
@@ -13,7 +13,7 @@
     <p>Are you sure you want to delete variant <strong>{{ variant.name }}</strong> from product <strong>{{ product.name }}</strong>?</p>
     <form method="post" style="margin-top: 12px;">
         {% csrf_token %}
-        <button class="btn btn-primary" type="submit">Confirm Delete</button>
+        <button class="btn btn-danger" type="submit">Confirm Delete</button>
     </form>
 </div>
 {% endblock %}

@@ -62,9 +62,16 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "django.middleware.locale.LocaleMiddleware",
+
+
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.UserLanguageMiddleware",
+
+    
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -79,8 +86,13 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                 "accounts.context_processors.user_preferences",
+                 "core.context_processors.business_context",
+                  
+                "clothing.context_processors.sidebar_offers",
             ],
         },
     },
@@ -96,18 +108,20 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 
 
 
-import dj_database_url
-
 DATABASES = {
-    "default": dj_database_url.parse(
-        "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
-    )
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQLDATABASE", "railway"),
+        "USER": os.getenv("MYSQLUSER", "root"),
+        "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
+        "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
+        "PORT": os.getenv("MYSQLPORT", "38652"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
 }
 
-
-# Connection pooling settings
-DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections open for 10 minutes
-DATABASES["default"]["POOL_SIZE"] = 20  # Maximum number of connections in the
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -130,13 +144,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+# Internationalization
 
-TIME_ZONE = "Asia/Kathmandu"  # Nepal timezone
+LANGUAGE_CODE = "en"
+
+TIME_ZONE = "Asia/Kathmandu"
 
 USE_I18N = True
-
 USE_TZ = True
+
+LANGUAGES = [
+    ("en", "English"),
+    ("ne", "Nepali"),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -150,8 +174,10 @@ AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "waiter_dashboard"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 ESEWA_USE_SANDBOX = True   # True for sandbox, False for production

@@ -1,0 +1,183 @@
+{% load static %}
+<img src="/media/{{ variant.barcode_image }}">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Barcode Label - {{ variant.barcode }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #111827;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .top-actions button,
+        .top-actions a {
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .top-actions a {
+            background: #6b7280;
+        }
+
+        .page-wrap {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .label-card {
+            width: 420px;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .product-name {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: #111827;
+            line-height: 1.2;
+        }
+
+        .meta {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .meta strong {
+            color: #111827;
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #111827;
+        }
+
+        .barcode-wrapper {
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 18px;
+            margin-top: 8px;
+        }
+
+        .barcode-wrapper img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+        }
+
+        .barcode-text {
+            margin-top: 14px;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #111827;
+        }
+
+        .barcode-small-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #4b5563;
+            letter-spacing: 1px;
+        }
+
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+
+            .top-actions {
+                display: none;
+            }
+
+            .label-card {
+                width: 100%;
+                max-width: 420px;
+                border: 1px solid #000;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 18px;
+            }
+
+            .product-name {
+                font-size: 24px;
+            }
+
+            .meta {
+                font-size: 16px;
+            }
+
+            .price {
+                font-size: 18px;
+            }
+
+            .barcode-text {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-actions">
+        <button type="button" onclick="window.print()">Print</button>
+        <a href="{% url 'clothing_variant_list' %}">Back to Variants</a>
+    </div>
+
+    <div class="page-wrap">
+        <div class="label-card">
+            <div class="product-name">{{ product.name }}</div>
+
+            <div class="meta">
+                <div><strong>Variant:</strong> {{ variant.name }}</div>
+                <div><strong>SKU:</strong> {{ variant.sku|default:"-" }}</div>
+
+                {% if variant.clothing_detail and variant.clothing_detail.size %}
+                    <div><strong>Size:</strong> {{ variant.clothing_detail.size.name }}</div>
+                {% endif %}
+
+                {% if variant.clothing_detail and variant.clothing_detail.color %}
+                    <div><strong>Color:</strong> {{ variant.clothing_detail.color.name }}</div>
+                {% endif %}
+            </div>
+
+            <div class="price">
+                Price: Rs. {{ variant.price|default:product.price }}
+            </div>
+
+            <div class="barcode-wrapper">
+                <img src="/media/{{ variant.barcode_image }}">
+                <div class="barcode-text">{{ variant.barcode }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

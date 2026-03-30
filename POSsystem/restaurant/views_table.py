@@ -4,6 +4,7 @@ from subscription.utils import get_business_table_limit
 from core.decorators import owner_required
 from .models import TableCategory, DiningTable
 from .forms import DiningTableForm, TableCategoryForm
+from subscription.models import BusinessSubscription
 
 
 @owner_required
@@ -91,6 +92,7 @@ def table_list(request):
 @owner_required
 def table_create(request):
     business = request.user.business
+
     max_tables = int(get_business_table_limit(business) or 0)
     current_tables = DiningTable.objects.filter(business=business).count()
 
@@ -180,3 +182,15 @@ def table_delete(request, table_id):
     return render(request, "owner/tables/table_delete.html", {
         "table": table
     })
+
+def get_business_table_limit(business):
+    subscription = BusinessSubscription.objects.filter(
+        business=business,
+        is_current=True,
+        status="ACTIVE"
+    ).first()
+
+    if subscription:
+        return subscription.package.max_tables
+
+    return 5  # free plan default

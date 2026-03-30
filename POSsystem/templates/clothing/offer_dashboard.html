@@ -1,0 +1,234 @@
+{% extends "owner/base.html" %}
+{% block title %}Offers Dashboard{% endblock %}
+{% block page_title %}Offers Dashboard{% endblock %}
+{% block page_subtitle %}Sales offers analytics and insights{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Offers -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Total Offers</p>
+                    <p class="text-3xl font-bold mt-2">{{ stats.total_offers }}</p>
+                </div>
+                <div class="bg-blue-400 bg-opacity-30 rounded-full p-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-blue-100">
+                <span class="font-semibold">{{ stats.active_offers }}</span> active
+            </div>
+        </div>
+
+        <!-- Total Discount Given -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-medium">Total Discount</p>
+                    <p class="text-3xl font-bold mt-2">Rs {{ stats.total_discount|floatformat:0 }}</p>
+                </div>
+                <div class="bg-green-400 bg-opacity-30 rounded-full p-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-green-100">
+                Total savings for customers
+            </div>
+        </div>
+
+        <!-- Total Usage -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium">Total Usage</p>
+                    <p class="text-3xl font-bold mt-2">{{ stats.total_usage }}</p>
+                </div>
+                <div class="bg-purple-400 bg-opacity-30 rounded-full p-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-purple-100">
+                Times offers were applied
+            </div>
+        </div>
+
+        <!-- Average Discount -->
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-orange-100 text-sm font-medium">Avg Discount</p>
+                    <p class="text-3xl font-bold mt-2">Rs {{ stats.avg_discount|floatformat:0 }}</p>
+                </div>
+                <div class="bg-orange-400 bg-opacity-30 rounded-full p-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-orange-100">
+                Per order discount
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Offer Types Distribution -->
+        <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Offers by Type</h3>
+            <div class="space-y-3">
+                {% for type_stat in stats.by_type %}
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">{{ type_stat.type_display }}</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ type_stat.count }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ type_stat.percentage }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Offer Status -->
+        <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Offer Status</h3>
+            <div class="flex items-center justify-center h-48">
+                <div class="grid grid-cols-3 gap-8 w-full">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-3">
+                            <span class="text-2xl font-bold text-green-600">{{ stats.active_offers }}</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600">Active</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-3">
+                            <span class="text-2xl font-bold text-gray-600">{{ stats.inactive_offers }}</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600">Inactive</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 mb-3">
+                            <span class="text-2xl font-bold text-red-600">{{ stats.expired_offers }}</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600">Expired</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Offers -->
+    <div class="bg-white rounded-lg shadow border border-gray-200">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Top Performing Offers</h3>
+                <p class="text-sm text-gray-500 mt-1">Most used offers by customers</p>
+            </div>
+            <a href="{% url 'clothing_offer_list' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                View All →
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Offer Name</th>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Discount</th>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Usage Count</th>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Total Discount</th>
+                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for offer in top_offers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <a href="{% url 'clothing_offer_detail' offer.id %}" class="text-sm font-medium text-blue-600 hover:text-blue-700">
+                                {{ offer.offer_name }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ offer.get_offer_type_display }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-green-600">{{ offer.get_discount_display }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ offer.usage_count }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">Rs {{ offer.total_discount|floatformat:0 }}</td>
+                        <td class="px-6 py-4">
+                            {% if offer.status == 'ACTIVE' %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Active</span>
+                            {% elif offer.status == 'INACTIVE' %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Inactive</span>
+                            {% else %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Expired</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                            No offers have been used yet
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-lg shadow border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Offer Usage</h3>
+            <p class="text-sm text-gray-500 mt-1">Latest discount applications</p>
+        </div>
+        <div class="divide-y divide-gray-200">
+            {% for usage in recent_usage %}
+            <div class="p-6 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">{{ usage.offer.offer_name }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Order #{{ usage.order.order_no }} • {{ usage.applied_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-green-600">-Rs {{ usage.discount_amount }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ usage.offer.get_offer_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-gray-500">
+                No recent offer usage
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                <p class="text-sm text-gray-600 mt-1">Manage your offers efficiently</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'clothing_offer_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                    + Create New Offer
+                </a>
+                <a href="{% url 'clothing_offer_list' %}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                    View All Offers
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

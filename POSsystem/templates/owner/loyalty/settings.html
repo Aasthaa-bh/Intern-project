@@ -1,9 +1,9 @@
 {% extends "owner/base.html" %}
-{% load widget_tweaks %}
+{% load widget_tweaks static i18n %}
 
-{% block title %}Loyalty Settings{% endblock %}
-{% block page_title %}Loyalty Settings{% endblock %}
-{% block page_subtitle %}Configure customer reward system{% endblock %}
+{% block title %}{% trans "Loyalty Settings" %}{% endblock %}
+{% block page_title %}{% trans "Loyalty Settings" %}{% endblock %}
+{% block page_subtitle %}{% trans "Configure customer reward system" %}{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -22,48 +22,44 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- Amount Required -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Amount Required (Rs)
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Amount Required (Rs)" %}
           </label>
-          {{ form.amount_required|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+          {{ form.amount_required|add_class:"input w-full focus:ring-2 focus:ring-blue-500" }}
           {% if form.amount_required.errors %}
             <p class="text-sm text-red-600 mt-1">{{ form.amount_required.errors }}</p>
           {% endif %}
           <p class="text-xs text-gray-500 mt-1">
-            Points are earned per this amount spent.
+            {% trans "Points are earned per this amount spent." %}
           </p>
         </div>
 
-        <!-- Points Per Amount -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Points Per Amount
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Points Per Amount" %}
           </label>
-          {{ form.points_per_amount|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+          {{ form.points_per_amount|add_class:"input w-full focus:ring-2 focus:ring-blue-500" }}
           {% if form.points_per_amount.errors %}
             <p class="text-sm text-red-600 mt-1">{{ form.points_per_amount.errors }}</p>
           {% endif %}
         </div>
 
-        <!-- Minimum Redeem Points -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Minimum Redeem Points
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Minimum Redeem Points" %}
           </label>
-          {{ form.min_redeem_points|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+          {{ form.min_redeem_points|add_class:"input w-full focus:ring-2 focus:ring-blue-500" }}
           {% if form.min_redeem_points.errors %}
             <p class="text-sm text-red-600 mt-1">{{ form.min_redeem_points.errors }}</p>
           {% endif %}
         </div>
 
-        <!-- Max Redeem Percent -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Max Redeem Percent (%)
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Max Redeem Percent (%)" %}
           </label>
-          {{ form.max_redeem_percent|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+          {{ form.max_redeem_percent|add_class:"input w-full focus:ring-2 focus:ring-blue-500" }}
           {% if form.max_redeem_percent.errors %}
             <p class="text-sm text-red-600 mt-1">{{ form.max_redeem_percent.errors }}</p>
           {% endif %}
@@ -71,22 +67,20 @@
 
       </div>
 
-      <!-- Active Toggle -->
       <div class="flex items-center gap-3 mt-4">
         {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
-        <span class="text-sm text-gray-700 font-medium">Enable Loyalty System</span>
+        <span class="text-sm text-gray-700 font-medium">{% trans "Enable Loyalty System" %}</span>
       </div>
 
-      <!-- Buttons -->
       <div class="pt-4 flex items-center gap-4">
         <button type="submit"
           class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
-          Save Settings
+          {% trans "Save Settings" %}
         </button>
 
         <a href="{% url 'owner_dashboard' %}"
            class="px-6 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
-          Cancel
+          {% trans "Cancel" %}
         </a>
       </div>
 

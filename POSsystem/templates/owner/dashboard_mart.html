@@ -1,0 +1,124 @@
+{% extends "owner/base.html" %}
+{% load static i18n %}
+{% load nepali_number %}
+
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_subtitle %}
+    {% trans "Overview of your mart business" %}
+{% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+    {% trans "Dashboard" %}
+</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="text-sm text-gray-500 dark:text-gray-300">
+            {% trans "Business Type" %}
+        </p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {% trans "Mart" %}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {% trans "Manage your mart business easily" %}
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="text-sm text-gray-500 dark:text-gray-300">
+            {% trans "Total Staff" %}
+        </p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ total_staff|nepali_number }}
+            {% else %}
+                {{ total_staff }}
+            {% endif %}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {% trans "Staff currently available" %}
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="text-sm text-gray-500 dark:text-gray-300">
+            {% trans "Products" %}
+        </p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ total_products|default:0|nepali_number }}
+            {% else %}
+                {{ total_products|default:0 }}
+            {% endif %}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {% trans "Products available in mart" %}
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="text-sm text-gray-500 dark:text-gray-300">
+            {% trans "Low Stock Items" %}
+        </p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ low_stock_count|default:0|nepali_number }}
+            {% else %}
+                {{ low_stock_count|default:0 }}
+            {% endif %}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {% trans "Items that need restock" %}
+        </p>
+    </div>
+
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ total_categories|default:0|nepali_number }}
+            {% else %}
+                {{ total_categories|default:0 }}
+            {% endif %}
+        </h2>
+        <p class="text-gray-500 dark:text-gray-300 mt-2">
+            {% trans "Categories" %}
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ active_products|default:0|nepali_number }}
+            {% else %}
+                {{ active_products|default:0 }}
+            {% endif %}
+        </h2>
+        <p class="text-gray-500 dark:text-gray-300 mt-2">
+            {% trans "Active Products" %}
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+            {% if request.LANGUAGE_CODE == "ne" %}
+                {{ out_of_stock_count|default:0|nepali_number }}
+            {% else %}
+                {{ out_of_stock_count|default:0 }}
+            {% endif %}
+        </h2>
+        <p class="text-gray-500 dark:text-gray-300 mt-2">
+            {% trans "Out of Stock Items" %}
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}

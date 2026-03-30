@@ -1,13 +1,19 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
+{% block page_subtitle %}Manage variant details, stock and pricing{% endblock %}
 
 {% block header_actions %}
 <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
+{% if variant %}
+<a class="btn btn-primary" target="_blank" href="{% url 'clothing_variant_barcode' product.id variant.id %}">Print Barcode</a>
+{% endif %}
 {% endblock %}
 
 {% block content %}
+{% get_media_prefix as MEDIA_PREFIX %}
+
 <form method="post">
     {% csrf_token %}
 
@@ -23,19 +29,52 @@
             <div><label>Name</label>{{ form.name }}</div>
             <div><label>SKU</label>{{ form.sku }}</div>
             <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div><label>Size</label>{{ form.size }}</div>
-            <div><label>Or New Size</label>{{ form.new_size }}</div>
-            <div><label>Color</label>{{ form.color }}</div>
-            <div><label>Or New Color</label>{{ form.new_color }}</div>
-            <div><label>Price</label>{{ form.price }}</div>
-            <div><label>Cost Price</label>{{ form.cost_price }}</div>
+            <div>
+                <label>Size</label>
+                {{ form.size_name }}
+                <datalist id="size-name-options">
+                    {% for value in form.size_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div>
+                <label>Color</label>
+                {{ form.color_name }}
+                <datalist id="color-name-options">
+                    {% for value in form.color_name_options %}
+                    <option value="{{ value }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div><label>Selling Price</label>{{ form.price }}</div>
             <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Opening Stock</label>{{ form.stock_qty }}</div>
             <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
             <div><label>Active</label>{{ form.is_active }}</div>
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">{% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}</button>
+    {% if variant and variant.barcode %}
+    <div class="card">
+        <div class="card-header">Barcode Preview</div>
+        <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+            <div>
+                <div style="font-weight:600; margin-bottom:8px;">Barcode Value</div>
+                <div>{{ variant.barcode }}</div>
+            </div>
+
+            {% if variant.barcode_image %}
+            <div>
+                <div style="font-weight:600; margin-bottom:8px;">Barcode Image</div>
+                <img src="{{ MEDIA_PREFIX }}{{ variant.barcode_image }}" alt="Barcode" style="max-width:320px; height:auto; border:1px solid #ddd; padding:8px; background:#fff;">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <button class="btn btn-primary" type="submit">
+        {% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}
+    </button>
 </form>
 {% endblock %}

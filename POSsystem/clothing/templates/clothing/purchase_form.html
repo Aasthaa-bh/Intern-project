@@ -1,4 +1,4 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "create" %}Create Purchase{% else %}Edit Purchase{% endif %}{% endblock %}
@@ -7,6 +7,17 @@
 <style>
     .purchase-form-table {
         overflow-x: auto;
+    }
+
+    .purchase-item-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .purchase-item-actions .btn {
+        padding: 8px 14px;
     }
 </style>
 {% endblock %}
@@ -23,12 +34,27 @@
         <div class="card-header">Purchase Details</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
             <div>
-                <label>Supplier</label>
+                <label>Supplier (Select Existing)</label>
                 {{ form.supplier }}
                 {% if form.supplier.errors %}<div class="alert alert-error">{{ form.supplier.errors }}</div>{% endif %}
             </div>
             <div>
-                <label>Purchase No</label>
+                <label>Supplier (Or Enter New Name)</label>
+                {{ form.new_supplier_name }}
+                {% if form.new_supplier_name.errors %}<div class="alert alert-error">{{ form.new_supplier_name.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label>New Supplier Phone</label>
+                {{ form.new_supplier_phone }}
+                {% if form.new_supplier_phone.errors %}<div class="alert alert-error">{{ form.new_supplier_phone.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label>New Supplier PAN/VAT</label>
+                {{ form.new_supplier_pan }}
+                {% if form.new_supplier_pan.errors %}<div class="alert alert-error">{{ form.new_supplier_pan.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label>Invoice No</label>
                 {{ form.purchase_no }}
                 {% if form.purchase_no.errors %}<div class="alert alert-error">{{ form.purchase_no.errors }}</div>{% endif %}
             </div>
@@ -42,6 +68,9 @@
                 {{ form.notes }}
                 {% if form.notes.errors %}<div class="alert alert-error">{{ form.notes.errors }}</div>{% endif %}
             </div>
+            {% if form.non_field_errors %}
+            <div style="grid-column: 1 / -1;" class="alert alert-error">{{ form.non_field_errors }}</div>
+            {% endif %}
         </div>
     </div>
 
@@ -51,6 +80,11 @@
         {% if formset.non_form_errors %}
             <div class="alert alert-error">{{ formset.non_form_errors }}</div>
         {% endif %}
+        <div class="purchase-item-actions">
+            <button type="button" class="btn btn-info" id="add-purchase-line">+ Add Another Variant Line</button>
+            <button type="button" class="btn btn-secondary" id="duplicate-purchase-line">Duplicate Previous Row</button>
+            <span style="font-size: 13px; color: #64748b; align-self: center;">Use multiple rows for the same product with different variants.</span>
+        </div>
         <div class="purchase-form-table">
             <table>
                 <thead>
@@ -59,12 +93,13 @@
                         <th>Variant</th>
                         <th>Quantity</th>
                         <th>Unit Cost</th>
+                        <th>Selling Price</th>
                         <th>Delete</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="purchase-lines-body">
                     {% for line_form in formset %}
-                    <tr>
+                    <tr data-form-row="1">
                         <td>
                             {{ line_form.id }}
                             {{ line_form.item }}
@@ -83,6 +118,10 @@
                             {% if line_form.unit_cost.errors %}<div class="alert alert-error">{{ line_form.unit_cost.errors }}</div>{% endif %}
                         </td>
                         <td>
+                            {{ line_form.selling_price }}
+                            {% if line_form.selling_price.errors %}<div class="alert alert-error">{{ line_form.selling_price.errors }}</div>{% endif %}
+                        </td>
+                        <td>
                             {% if line_form.instance.pk %}
                                 {{ line_form.DELETE }}
                             {% else %}
@@ -94,6 +133,28 @@
                 </tbody>
             </table>
         </div>
+
+        <template id="empty-purchase-line-template">
+            <tr data-form-row="1">
+                <td>
+                    {{ formset.empty_form.id }}
+                    {{ formset.empty_form.item }}
+                </td>
+                <td>
+                    {{ formset.empty_form.variant }}
+                </td>
+                <td>
+                    {{ formset.empty_form.quantity }}
+                </td>
+                <td>
+                    {{ formset.empty_form.unit_cost }}
+                </td>
+                <td>
+                    {{ formset.empty_form.selling_price }}
+                </td>
+                <td>-</td>
+            </tr>
+        </template>
     </div>
 
     <div style="display: flex; gap: 10px;">
@@ -109,6 +170,21 @@
     (function () {
         const variantItemMapElement = document.getElementById("purchase-variant-item-map");
         const variantItemMap = variantItemMapElement ? JSON.parse(variantItemMapElement.textContent) : {};
+        const totalFormsInput = document.getElementById("id_items-TOTAL_FORMS");
+        const linesBody = document.getElementById("purchase-lines-body");
+        const addLineButton = document.getElementById("add-purchase-line");
+        const duplicateLineButton = document.getElementById("duplicate-purchase-line");
+        const emptyTemplate = document.getElementById("empty-purchase-line-template");
+
+        function initRow(row) {
+            syncRowVariantOptions(row);
+            const itemSelect = row.querySelector('select[name$="-item"]');
+            if (itemSelect) {
+                itemSelect.addEventListener("change", function () {
+                    syncRowVariantOptions(row);
+                });
+            }
+        }
 
         function syncRowVariantOptions(row) {
             const itemSelect = row.querySelector('select[name$="-item"]');
@@ -149,14 +225,80 @@
             }
         }
 
-        document.querySelectorAll("tbody tr").forEach(function (row) {
-            syncRowVariantOptions(row);
-            const itemSelect = row.querySelector('select[name$="-item"]');
-            if (itemSelect) {
-                itemSelect.addEventListener("change", function () {
-                    syncRowVariantOptions(row);
-                });
+        function addLine() {
+            if (!totalFormsInput || !linesBody || !emptyTemplate) {
+                return null;
             }
+
+            const formIndex = Number(totalFormsInput.value);
+            const rowHtml = emptyTemplate.innerHTML.replace(/__prefix__/g, String(formIndex));
+            const wrapper = document.createElement("tbody");
+            wrapper.innerHTML = rowHtml.trim();
+            const newRow = wrapper.querySelector("tr");
+            if (!newRow) {
+                return null;
+            }
+
+            linesBody.appendChild(newRow);
+            totalFormsInput.value = String(formIndex + 1);
+            initRow(newRow);
+            return newRow;
+        }
+
+        function duplicateLastRow() {
+            const rows = Array.from(linesBody.querySelectorAll('tr[data-form-row="1"]'));
+            if (!rows.length) {
+                addLine();
+                return;
+            }
+
+            const sourceRow = rows[rows.length - 1];
+            const sourceItem = sourceRow.querySelector('select[name$="-item"]');
+            const sourceVariant = sourceRow.querySelector('select[name$="-variant"]');
+            const sourceQty = sourceRow.querySelector('input[name$="-quantity"]');
+            const sourceUnitCost = sourceRow.querySelector('input[name$="-unit_cost"]');
+            const sourceSellingPrice = sourceRow.querySelector('input[name$="-selling_price"]');
+
+            const newRow = addLine();
+            if (!newRow) {
+                return;
+            }
+
+            const newItem = newRow.querySelector('select[name$="-item"]');
+            const newVariant = newRow.querySelector('select[name$="-variant"]');
+            const newQty = newRow.querySelector('input[name$="-quantity"]');
+            const newUnitCost = newRow.querySelector('input[name$="-unit_cost"]');
+            const newSellingPrice = newRow.querySelector('input[name$="-selling_price"]');
+
+            if (newItem && sourceItem) {
+                newItem.value = sourceItem.value;
+            }
+
+            syncRowVariantOptions(newRow);
+
+            if (newVariant && sourceVariant) {
+                newVariant.value = sourceVariant.value;
+            }
+            if (newQty && sourceQty) {
+                newQty.value = sourceQty.value;
+            }
+            if (newUnitCost && sourceUnitCost) {
+                newUnitCost.value = sourceUnitCost.value;
+            }
+            if (newSellingPrice && sourceSellingPrice) {
+                newSellingPrice.value = sourceSellingPrice.value;
+            }
+        }
+
+        if (addLineButton) {
+            addLineButton.addEventListener("click", addLine);
+        }
+        if (duplicateLineButton) {
+            duplicateLineButton.addEventListener("click", duplicateLastRow);
+        }
+
+        linesBody.querySelectorAll('tr[data-form-row="1"]').forEach(function (row) {
+            initRow(row);
         });
     }());
 </script>

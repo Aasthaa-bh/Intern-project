@@ -1,8 +1,10 @@
 {% extends "owner/base.html" %}
+{% load i18n %}
+{% load nepali_number %}
 
-{% block title %}Upgrade Plan{% endblock %}
-{% block page_title %}Upgrade your plan{% endblock %}
-{% block page_subtitle %}Choose the plan that fits your restaurant{% endblock %}
+{% block title %}{% trans "Upgrade Plan" %}{% endblock %}
+{% block page_title %}{% trans "Upgrade your plan" %}{% endblock %}
+{% block page_subtitle %}{% trans "Choose the plan that fits your restaurant" %}{% endblock %}
 
 {% block content %}
 
@@ -11,92 +13,97 @@
   {% if current_sub %}
     <div class="mb-6 flex items-center justify-between bg-white border border-gray-200 rounded-2xl p-4">
       <div>
-        <div class="text-xs text-gray-500">Current plan</div>
+        <div class="text-xs text-gray-500">{% trans "Current plan" %}</div>
         <div class="text-lg font-semibold text-gray-900">{{ current_sub.package.name }}</div>
         <div class="text-sm text-gray-600">
           {% if current_sub.end_date %}
-            Valid until {{ current_sub.end_date|date:"M d, Y" }}
+            {% blocktrans with formatted_date=current_sub.end_date|date:"M d, Y"|nepali_number %}
+              Valid until {{ formatted_date }}
+            {% endblocktrans %}
           {% else %}
-            Active
+            {% trans "Active" %}
           {% endif %}
         </div>
       </div>
       <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-        ACTIVE
+        {% trans "ACTIVE" %}
       </span>
     </div>
   {% endif %}
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
-  {% for p in packages %}
+    {% for p in packages %}
 
-  <div class="bg-white border border-gray-200 rounded-3xl p-8 flex flex-col
-            transition duration-300 ease-in-out
-            hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]">
+    <div class="bg-white border border-gray-200 rounded-3xl p-8 flex flex-col
+                transition duration-300 ease-in-out
+                hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]">
 
-    <!-- Plan name -->
-    <h3 class="text-2xl font-semibold text-gray-900">
-        {{ p.name }}
-    </h3>
+      <h3 class="text-2xl font-semibold text-gray-900">
+        {{ p.name|translate_package_name }}
+      </h3>
 
-    <!-- Price -->
-    <div class="mt-6 flex items-end gap-2">
+      <div class="mt-6 flex items-end gap-2">
         <span class="text-5xl font-bold text-gray-900">
-            Rs {{ p.price|floatformat:0 }}
+          {% trans "Rs" %} {{ p.price|floatformat:0|nepali_number }}
         </span>
         <span class="text-sm text-gray-500 pb-2">
-            / {{ p.duration_months }} month{% if p.duration_months > 1 %}s{% endif %}
+          {% blocktrans count counter=p.duration_months with months=p.duration_months|nepali_number %}
+            / {{ months }} month
+          {% plural %}
+            / {{ months }} months
+          {% endblocktrans %}
         </span>
-    </div>
+      </div>
 
-    <!-- Description -->
-    <p class="mt-4 text-sm text-gray-600">
+      <p class="mt-4 text-sm text-gray-600">
         {% if p.max_users <= 5 %}
-            Perfect for small restaurants.
+          {% trans "Perfect for small restaurants." %}
         {% elif p.max_users <= 10 %}
-            Great for growing restaurants.
+          {% trans "Great for growing restaurants." %}
         {% else %}
-            Best for large restaurants.
+          {% trans "Best for large restaurants." %}
         {% endif %}
-    </p>
+      </p>
 
-    <!-- Upgrade button -->
-    <div class="mt-8">
+      <div class="mt-8">
         <a href="{% url 'choose_package' p.id %}"
            class="w-full inline-flex justify-center items-center py-3 rounded-full
            font-semibold bg-black text-white hover:bg-gray-900 transition">
-            Upgrade
+          {% trans "Upgrade" %}
         </a>
-    </div>
+      </div>
 
-    <!-- Info -->
-    <div class="mt-8 space-y-4 text-sm text-gray-700">
+      <div class="mt-8 space-y-4 text-sm text-gray-700">
 
         <div class="flex justify-between">
-            <span>Max users</span>
-            <span class="font-semibold">{{ p.max_users }}</span>
+          <span>{% trans "Max users" %}</span>
+          <span class="font-semibold">{{ p.max_users|nepali_number }}</span>
         </div>
         
         <div class="flex justify-between">
-            <span>Max tables</span>
-            <span class="font-semibold">{{ p.max_tables }}</span>
+          <span>{% trans "Max tables" %}</span>
+          <span class="font-semibold">{{ p.max_tables|nepali_number }}</span>
         </div>
 
         <div class="flex justify-between">
-            <span>Duration</span>
-            <span class="font-semibold">
-                {{ p.duration_months }} month{% if p.duration_months > 1 %}s{% endif %}
-            </span>
+          <span>{% trans "Duration" %}</span>
+          <span class="font-semibold">
+            {% blocktrans count counter=p.duration_months with months=p.duration_months|nepali_number %}
+              {{ months }} month
+            {% plural %}
+              {{ months }} months
+            {% endblocktrans %}
+          </span>
         </div>
+
+      </div>
 
     </div>
 
-</div>
+    {% endfor %}
 
-{% endfor %}
-
-</div>
+  </div>
           
 </div>
 

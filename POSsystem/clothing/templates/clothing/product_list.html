@@ -1,96 +1,20 @@
-{% extends "clothing/cloth_base.html" %}
+{% extends "owner/base.html" %}
 
 {% block title %}Clothing Products{% endblock %}
 {% block page_title %}Product Catalog{% endblock %}
-
-{% block extra_css %}
-<style>
-    .catalog-filters {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr auto;
-        gap: 12px;
-        align-items: end;
-        margin-bottom: 16px;
-    }
-
-    .catalog-filters > div {
-        min-width: 0;
-    }
-
-    .catalog-filters label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-muted);
-        margin-bottom: 6px;
-    }
-
-    .catalog-filters input,
-    .catalog-filters select {
-        width: 100%;
-        margin-right: 0;
-    }
-
-    .catalog-filter-actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        align-self: end;
-        white-space: nowrap;
-    }
-
-    @media (max-width: 1280px) {
-        .catalog-filters {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .catalog-filter-actions {
-            grid-column: 1 / -1;
-            justify-content: flex-start;
-        }
-    }
-
-    .scroll-table {
-        max-height: 60vh;
-        overflow: auto;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-    }
-
-    .scroll-table table {
-        margin: 0;
-    }
-
-    .scroll-table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    @media (max-width: 900px) {
-        .catalog-filters {
-            grid-template-columns: 1fr;
-        }
-
-        .catalog-filter-actions {
-            width: 100%;
-        }
-
-        .catalog-filter-actions .btn {
-            flex: 1;
-            text-align: center;
-        }
-    }
-</style>
-{% endblock %}
+{% block page_subtitle %}Manage clothing products and variants{% endblock %}
 
 {% block header_actions %}
+<a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
 <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
 {% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-header">Products</div>
+    <p style="margin: 0 0 16px 0; color: var(--text-muted);">
+        Manage variants from each product detail page. Use Variant Search only when you need to find a variant across all products.
+    </p>
     <form method="get" class="catalog-filters">
         <div>
             <label for="catalog-search">Search by name, category, or brand</label>
@@ -142,9 +66,9 @@
                     <th>Product</th>
                     <th>SKU</th>
                     <th>Category</th>
+                    <th>Status</th>
                     <th>Variants</th>
                     <th>Total Stock</th>
-                    <th>Price</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -154,14 +78,20 @@
                     <td>{{ product.name }}</td>
                     <td>{{ product.sku|default:"-" }}</td>
                     <td>{{ product.category.name|default:"-" }}</td>
+                    <td>
+                        {% if product.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-warning">Inactive</span>
+                        {% endif %}
+                    </td>
                     <td>{{ product.variant_count }}</td>
                     <td>{{ product.total_stock }}</td>
-                    <td>{{ product.price }}</td>
                     <td>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_product_detail' product.id %}">
                             View
                         </a>
-                        <a class="btn btn-secondary" href="{% url 'clothing_product_edit' product.id %}">
+                        <a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">
                             Edit
                         </a>
                         <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">

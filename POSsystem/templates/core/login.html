@@ -97,7 +97,6 @@
     <div class="login-container">
         <h2>FlexiPOS Login</h2>
 
-        <!-- Messages -->
         {% if messages %}
             <div class="message-box">
                 {% for message in messages %}
@@ -113,22 +112,21 @@
             <!--Business Code-->
             <div class="form-group">
                 <label>Business Code</label>
-                <input type="text" name="business_code" required>
+                <input type="text" name="business_code" placeholder="Enter business code">
             </div>
 
-            <!-- Username -->
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" name="username" required>
             </div>
 
-            <!-- Password -->
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" required>
             </div>
 
-            <!-- Login Button -->
+            
+
             <button type="submit" class="login-btn">Login</button>
         </form>
     </div>
