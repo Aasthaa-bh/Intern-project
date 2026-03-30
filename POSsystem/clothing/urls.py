@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views_offer, views_payment, views
 
+from . import views, views_cashier, esewa as esewa_views
+
 urlpatterns = [
     # Dashboard
     path("offers/dashboard/", views_offer.offer_dashboard, name="clothing_offer_dashboard"),
@@ -47,5 +49,24 @@ urlpatterns = [
     path("suppliers/<int:supplier_id>/edit/", views.supplier_edit, name="clothing_supplier_edit"),
     path("suppliers/<int:supplier_id>/delete/", views.supplier_delete, name="clothing_supplier_delete"),
     path("low-stock/", views.low_stock_alert, name="clothing_low_stock"),
-    
+
+    # Cashier Panel (main pages)
+    path("cashier/dashboard/", views.cashier_dashboard, name="cashier_dashboard"),
+    path("cashier/", views.cashier_dashboard, name="clothing_cashier_dashboard"),
+    path("cashier/products/", views.cashier_products, name="cashier_products"),
+    path("cashier/pos/", views.cashier_pos, name="cashier_pos"),
+    path("cashier/sales/", views.cashier_sales_history, name="cashier_sales_history"),
+    path("cashier/profile/", views.cashier_profile, name="cashier_profile"),
+    path("cashier/receipt/<int:order_id>/", views.cashier_receipt, name="cashier_receipt"),
+
+    # Cashier AJAX / actions
+    path("cashier/api/complete-sale/", views.cashier_complete_sale, name="cashier_complete_sale"),
+    path("cashier/api/lookup-customer/", views.cashier_lookup_customer, name="cashier_lookup_customer"),
+    path("cashier/api/update-profile/", views_cashier.update_profile, name="clothing_cashier_update_profile"),
+    path("cashier/api/change-password/", views_cashier.change_password, name="clothing_cashier_change_password"),
+    # eSewa payment
+    path("cashier/esewa/initiate/", esewa_views.esewa_initiate, name="clothing_esewa_initiate"),
+    path("cashier/esewa/success/",  esewa_views.esewa_success,  name="clothing_esewa_success"),
+    path("cashier/esewa/failure/",  esewa_views.esewa_failure,  name="clothing_esewa_failure"),
 ]
+

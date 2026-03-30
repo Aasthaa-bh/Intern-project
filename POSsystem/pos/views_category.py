@@ -16,6 +16,7 @@ def category_list(request):
     })
 
 
+
 @owner_required
 def category_create(request):
     if request.method == "POST":

@@ -1,0 +1,19 @@
+{% extends "owner/base.html" %}
+{% block page_title %}Payment Failed{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto mt-10 text-center space-y-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-8">
+        <p class="text-5xl mb-4">❌</p>
+        <h2 class="text-xl font-bold text-red-600 dark:text-red-400 mb-2">eSewa Payment Failed</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ reason|default:"Payment was not completed." }}</p>
+        {% if order %}
+        <p class="text-xs text-gray-400 mt-2">Order: {{ order.order_no }}</p>
+        {% endif %}
+    </div>
+    <div class="flex gap-3">
+        <a href="{% url 'cashier_pos' %}" class="flex-1 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition text-center">🛒 Try Again</a>
+        <a href="{% url 'cashier_dashboard' %}" class="flex-1 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition text-center">🏠 Dashboard</a>
+    </div>
+</div>
+{% endblock %}

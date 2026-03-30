@@ -1,0 +1,374 @@
+{% extends "owner/base.html" %}
+{% load static %}
+
+{% block page_title %}POS - Generate Bill{% endblock %}
+{% block page_subtitle %}Select products and complete the sale{% endblock %}
+
+{% block content %}
+<div class="flex gap-6 h-[calc(100vh-160px)]">
+
+    <!-- LEFT: Product Search & Grid -->
+    <div class="flex-1 flex flex-col gap-4 overflow-hidden">
+        <input type="text" id="productSearch" placeholder="Search product by name or SKU..."
+               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+        <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto pr-1">
+            {% for product in products %}
+            <div class="product-card bg-white dark:bg-gray-900 rounded-xl shadow p-3 cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+                 data-id="{{ product.id }}"
+                 data-name="{{ product.name }}"
+                 data-price="{{ product.price }}"
+                 data-stock="{{ product.stock_qty }}"
+                 data-has-variants="{% if product.variants.all %}true{% else %}false{% endif %}">
+
+                <div class="w-full h-24 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-3xl mb-2 overflow-hidden">
+                    {% if product.image %}<img src="{{ product.image.url }}" class="w-full h-full object-cover">
+                    {% else %}👕{% endif %}
+                </div>
+                <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ product.name }}</p>
+                <p class="text-blue-600 dark:text-blue-400 font-bold text-sm">Rs. {{ product.price }}</p>
+                <p class="text-xs {% if product.stock_qty > 0 %}text-green-600{% else %}text-red-500{% endif %}">
+                    Stock: {{ product.stock_qty|floatformat:0 }}
+                </p>
+
+                {% if product.variants.all %}
+                <div class="mt-2 space-y-1 variants-section hidden">
+                    {% for v in product.variants.all %}{% if v.stock_qty > 0 %}
+                    <button class="variant-btn w-full text-left text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900"
+                            data-variant-id="{{ v.id }}"
+                            data-variant-name="{{ v.name }}{% if v.clothing_detail %} ({% if v.clothing_detail.size %}{{ v.clothing_detail.size.name }}{% endif %}{% if v.clothing_detail.color %} / {{ v.clothing_detail.color.name }}{% endif %}){% endif %}"
+                            data-price="{{ v.price|default:product.price }}"
+                            data-stock="{{ v.stock_qty }}">
+                        {{ v.name }}{% if v.clothing_detail %}{% if v.clothing_detail.size %} · {{ v.clothing_detail.size.name }}{% endif %}{% if v.clothing_detail.color %} · {{ v.clothing_detail.color.name }}{% endif %}{% endif %}
+                        <span class="float-right text-gray-400">{{ v.stock_qty|floatformat:0 }}</span>
+                    </button>
+                    {% endif %}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Bill Panel -->
+    <div class="w-80 flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-800 dark:text-white">
+            🧾 Current Bill
+        </div>
+
+        <!-- Cart Items -->
+        <div id="cartItems" class="flex-1 overflow-y-auto p-3 space-y-2">
+            <p class="text-center text-gray-400 text-sm mt-8">No items added yet</p>
+        </div>
+
+        <!-- Totals -->
+        <div class="border-t border-gray-200 dark:border-gray-700 p-4 space-y-1 text-sm">
+            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Subtotal</span><span id="subtotal">Rs. 0.00</span>
+            </div>
+            <div id="discountRow" class="hidden flex justify-between text-green-600 dark:text-green-400">
+                <span id="discountLabel">Discount</span><span id="discountAmt">- Rs. 0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>VAT (13%)</span><span id="vatAmount">Rs. 0.00</span>
+            </div>
+            <div class="flex justify-between font-bold text-gray-900 dark:text-white text-base border-t border-gray-200 dark:border-gray-700 pt-2 mt-1">
+                <span>Total</span><span id="totalAmount">Rs. 0.00</span>
+            </div>
+        </div>
+
+        <!-- Customer + Payment -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+
+            <!-- Customer phone lookup -->
+            <div class="flex gap-2">
+                <input type="text" id="customerPhone" placeholder="Customer phone"
+                       class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <button onclick="lookupCustomer()" class="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700">Find</button>
+            </div>
+
+            <!-- Customer info card (hidden until found) -->
+            <div id="customerCard" class="hidden bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-xs space-y-1">
+                <p class="font-semibold text-blue-800 dark:text-blue-300" id="customerCardName"></p>
+                <div class="flex justify-between text-blue-700 dark:text-blue-400">
+                    <span>🏆 Loyalty points</span><span id="customerPoints" class="font-bold"></span>
+                </div>
+                <div id="customerTierRow" class="hidden flex justify-between text-green-700 dark:text-green-400">
+                    <span>🎁 Regular discount</span><span id="customerTierPct" class="font-bold"></span>
+                </div>
+                <p id="customerPurchaseCount" class="text-gray-500 dark:text-gray-400"></p>
+            </div>
+
+            <!-- New customer name (shown when not found) -->
+            <input type="text" id="customerName" placeholder="Customer name (optional)"
+                   class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+
+            <select id="paymentMethod" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="CASH">Cash</option>
+                <option value="CARD">Card</option>
+                <option value="ESEWA">eSewa</option>
+                <option value="FONEPAY">FonePay</option>
+            </select>
+
+            <div id="cashSection">
+                <input type="number" id="cashReceived" placeholder="Cash received"
+                       class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <p class="text-xs text-green-600 mt-1">Change: Rs. <span id="changeAmount">0.00</span></p>
+            </div>
+
+            <button onclick="completeSale('CASH')"
+                    class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition">
+                ✅ Complete Sale (Cash/Card)
+            </button>
+            <button onclick="completeSale('ESEWA')"
+                    class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                💜 Pay via eSewa
+            </button>
+            <button onclick="clearCart()" class="w-full py-2 text-sm text-red-500 hover:text-red-700 transition">
+                🗑 Clear Cart
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const VAT_RATE = 0.13;
+let cart = [];
+let customerDiscountPct = 0;  // % from regular customer tier
+
+// ── Product card click ──────────────────────────────────────────────────────
+document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        if (e.target.closest('.variant-btn')) return;
+        if (this.dataset.hasVariants === 'true') {
+            const sec = this.querySelector('.variants-section');
+            document.querySelectorAll('.variants-section').forEach(s => { if (s !== sec) s.classList.add('hidden'); });
+            sec.classList.toggle('hidden');
+            return;
+        }
+        addToCart(this.dataset.id, null, this.dataset.name, parseFloat(this.dataset.price), parseInt(this.dataset.stock));
+    });
+});
+
+document.querySelectorAll('.variant-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const card = this.closest('.product-card');
+        addToCart(card.dataset.id, this.dataset.variantId, this.dataset.variantName,
+                  parseFloat(this.dataset.price), parseInt(this.dataset.stock));
+        this.closest('.variants-section').classList.add('hidden');
+    });
+});
+
+document.getElementById('productSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.product-card').forEach(c => {
+        c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+
+// ── Customer lookup ─────────────────────────────────────────────────────────
+function lookupCustomer() {
+    const phone = document.getElementById('customerPhone').value.trim();
+    if (!phone) return;
+
+    fetch(`{% url 'cashier_lookup_customer' %}?phone=${encodeURIComponent(phone)}`)
+        .then(r => r.json())
+        .then(data => {
+            const card = document.getElementById('customerCard');
+            const nameInput = document.getElementById('customerName');
+
+            if (data.found) {
+                document.getElementById('customerCardName').textContent = `${data.name} (${data.phone})`;
+                document.getElementById('customerPoints').textContent = `${data.loyalty_points} pts`;
+                document.getElementById('customerPurchaseCount').textContent = `Total spent: Rs. ${parseFloat(data.total_purchases).toFixed(2)}`;
+
+                const tierRow = document.getElementById('customerTierRow');
+                const pct = parseFloat(data.discount_pct);
+                if (pct > 0) {
+                    document.getElementById('customerTierPct').textContent = `${pct}% off`;
+                    tierRow.classList.remove('hidden');
+                    customerDiscountPct = pct;
+                } else {
+                    tierRow.classList.add('hidden');
+                    customerDiscountPct = 0;
+                }
+
+                card.classList.remove('hidden');
+                nameInput.value = data.name;
+                nameInput.classList.add('hidden');
+            } else {
+                card.classList.add('hidden');
+                nameInput.classList.remove('hidden');
+                customerDiscountPct = 0;
+            }
+            renderCart();
+        });
+}
+
+// allow Enter key on phone field
+document.getElementById('customerPhone').addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookupCustomer();
+});
+
+// ── Cart ────────────────────────────────────────────────────────────────────
+function addToCart(itemId, variantId, name, price, stock) {
+    const key = variantId ? `v${variantId}` : `i${itemId}`;
+    const existing = cart.find(c => c.key === key);
+    if (existing) {
+        if (existing.qty >= existing.stock) { alert(`Only ${existing.stock} in stock`); return; }
+        existing.qty++;
+    } else {
+        if (stock <= 0) { alert('Out of stock'); return; }
+        cart.push({ key, itemId, variantId, name, price, qty: 1, stock });
+    }
+    renderCart();
+}
+
+function updateQty(key, delta) {
+    const item = cart.find(c => c.key === key);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) cart = cart.filter(c => c.key !== key);
+    else if (item.qty > item.stock) { item.qty = item.stock; }
+    renderCart();
+}
+
+function clearCart() {
+    cart = [];
+    customerDiscountPct = 0;
+    document.getElementById('customerCard').classList.add('hidden');
+    document.getElementById('customerPhone').value = '';
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerName').classList.remove('hidden');
+    renderCart();
+}
+
+function renderCart() {
+    const container = document.getElementById('cartItems');
+    if (cart.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 text-sm mt-8">No items added yet</p>';
+        updateTotals(0);
+        return;
+    }
+    container.innerHTML = cart.map(item => `
+        <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-800 dark:text-white truncate">${item.name}</p>
+                <p class="text-xs text-blue-600">Rs. ${(item.price * item.qty).toFixed(2)}</p>
+            </div>
+            <div class="flex items-center gap-1">
+                <button onclick="updateQty('${item.key}',-1)" class="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700 text-sm font-bold hover:bg-red-100">−</button>
+                <span class="text-sm w-5 text-center">${item.qty}</span>
+                <button onclick="updateQty('${item.key}',1)"  class="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700 text-sm font-bold hover:bg-green-100">+</button>
+            </div>
+        </div>
+    `).join('');
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    updateTotals(subtotal);
+}
+
+function updateTotals(subtotal) {
+    const discountAmt = +(subtotal * customerDiscountPct / 100).toFixed(2);
+    const afterDiscount = subtotal - discountAmt;
+    const vat   = +(afterDiscount * VAT_RATE).toFixed(2);
+    const total = +(afterDiscount + vat).toFixed(2);
+
+    document.getElementById('subtotal').textContent    = `Rs. ${subtotal.toFixed(2)}`;
+    document.getElementById('vatAmount').textContent   = `Rs. ${vat.toFixed(2)}`;
+    document.getElementById('totalAmount').textContent = `Rs. ${total.toFixed(2)}`;
+
+    const discountRow = document.getElementById('discountRow');
+    if (discountAmt > 0) {
+        document.getElementById('discountLabel').textContent = `Discount (${customerDiscountPct}%)`;
+        document.getElementById('discountAmt').textContent   = `- Rs. ${discountAmt.toFixed(2)}`;
+        discountRow.classList.remove('hidden');
+    } else {
+        discountRow.classList.add('hidden');
+    }
+    updateChange(total);
+}
+
+document.getElementById('paymentMethod').addEventListener('change', function() {
+    document.getElementById('cashSection').style.display = this.value === 'CASH' ? '' : 'none';
+});
+document.getElementById('cashReceived').addEventListener('input', () => {
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const disc = subtotal * customerDiscountPct / 100;
+    const total = +((subtotal - disc) * (1 + VAT_RATE)).toFixed(2);
+    updateChange(total);
+});
+
+function updateChange(total) {
+    const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
+    document.getElementById('changeAmount').textContent = Math.max(0, cash - total).toFixed(2);
+}
+
+// ── Complete sale ───────────────────────────────────────────────────────────
+function completeSale(forceMethod) {
+    if (cart.length === 0) { alert('Cart is empty'); return; }
+
+    const method = forceMethod || document.getElementById('paymentMethod').value;
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const discountAmt = +(subtotal * customerDiscountPct / 100).toFixed(2);
+    const total = +((subtotal - discountAmt) * (1 + VAT_RATE)).toFixed(2);
+
+    if (method === 'CASH') {
+        const cash = parseFloat(document.getElementById('cashReceived').value) || 0;
+        if (cash < total) { alert('Cash received is less than total'); return; }
+    }
+
+    const phone = document.getElementById('customerPhone').value.trim();
+    const name  = document.getElementById('customerName').value.trim();
+
+    const payload = {
+        customer_phone: phone,
+        customer_name: name || (phone ? `Customer ${phone}` : 'Walk-in'),
+        payment_method: method,
+        discount_pct: customerDiscountPct,
+        items: cart.map(i => ({
+            item_id: i.itemId, variant_id: i.variantId || null,
+            name: i.name, price: i.price, quantity: i.qty,
+        })),
+    };
+
+    if (method === 'ESEWA') {
+        // initiate eSewa — server creates order, returns form fields
+        fetch("{% url 'clothing_esewa_initiate' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(payload),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) { alert('Error: ' + data.error); return; }
+            // build and submit hidden form to eSewa
+            const fd = data.form_data;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = fd.action;
+            Object.entries(fd.fields).forEach(([k, v]) => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = k; inp.value = v;
+                form.appendChild(inp);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        })
+        .catch(() => alert('Network error. Please try again.'));
+    } else {
+        fetch("{% url 'cashier_complete_sale' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(payload),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) window.location.href = data.receipt_url;
+            else alert('Error: ' + data.error);
+        })
+        .catch(() => alert('Network error. Please try again.'));
+    }
+}
+</script>
+{% endblock %}

@@ -186,3 +186,206 @@ class OfferUsage(models.Model):
     
     def __str__(self):
         return f"{self.offer.offer_name} - Rs {self.discount_amount}"
+# Cashier Models for POS System
+
+class CashierCustomer(models.Model):
+    """Customer model for cashier operations"""
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)  # unique per business via unique_together
+    email = models.EmailField(blank=True, null=True)
+
+    loyalty_points = models.PositiveIntegerField(default=0)
+    total_purchases = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    purchase_count = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_purchase_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("business", "phone")
+
+    def __str__(self):
+        return f"{self.name} ({self.phone})"
+
+    def add_loyalty_points(self, purchase_amount):
+        """Add loyalty points based on purchase amount (1 point per Rs. 100)"""
+        points = int(purchase_amount // 100)
+        if points > 0:
+            self.loyalty_points += points
+            self.save()
+        return points
+
+    def redeem_loyalty_points(self, points):
+        """Calculate discount for redeeming loyalty points (1 point = Rs. 1)"""
+        if points > self.loyalty_points:
+            points = self.loyalty_points
+
+        discount = Decimal(points)
+        self.loyalty_points -= points
+        self.save()
+
+        return discount
+
+
+class CashierPromoCode(models.Model):
+    """Promo code model for discounts"""
+    DISCOUNT_TYPE = (
+        ('PERCENTAGE', 'Percentage'),
+        ('FIXED', 'Fixed Amount'),
+    )
+
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    code = models.CharField(max_length=20, unique=True)
+    description = models.CharField(max_length=200)
+
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE, default='PERCENTAGE')
+    discount_value = models.DecimalField(max_digits=8, decimal_places=2)
+
+    minimum_purchase = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    usage_limit = models.PositiveIntegerField(default=0)  # 0 = unlimited
+    usage_count = models.PositiveIntegerField(default=0)
+
+    valid_from = models.DateTimeField()
+    valid_until = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.discount_value}{'%' if self.discount_type == 'PERCENTAGE' else 'Rs.'}"
+
+    def can_apply(self, subtotal):
+        """Check if promo code can be applied"""
+        if not self.is_active:
+            return False
+
+        now = timezone.now()
+        if now < self.valid_from or now > self.valid_until:
+            return False
+
+        if subtotal < self.minimum_purchase:
+            return False
+
+        if self.usage_limit > 0 and self.usage_count >= self.usage_limit:
+            return False
+
+        return True
+
+    def apply_discount(self, subtotal):
+        """Calculate discount amount"""
+        if self.discount_type == 'PERCENTAGE':
+            discount = subtotal * (self.discount_value / 100)
+        else:
+            discount = min(self.discount_value, subtotal)
+
+        return discount
+
+    def mark_used(self):
+        """Increment usage count"""
+        self.usage_count += 1
+        self.save()
+
+
+class CashierLoyaltyTransaction(models.Model):
+    """Transaction log for loyalty points"""
+    TRANSACTION_TYPE = (
+        ('EARNED', 'Earned'),
+        ('REDEEMED', 'Redeemed'),
+    )
+
+    customer = models.ForeignKey(CashierCustomer, on_delete=models.CASCADE, related_name='loyalty_transactions')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE)
+    points = models.IntegerField()  # Positive for earned, negative for redeemed
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Purchase amount for earned, discount for redeemed
+    invoice_number = models.CharField(max_length=50, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.customer.name} - {self.transaction_type} {self.points} points"
+
+    def get_description(self):
+        """Get human-readable description of the transaction"""
+        if self.transaction_type == 'EARNED':
+            return f"Earned {self.points} points for purchase of Rs. {self.amount}"
+        else:
+            return f"Redeemed {abs(self.points)} points for Rs. {self.amount} discount"
+
+
+class ClothingLoyaltySetting(models.Model):
+    """Per-business loyalty & regular customer discount configuration"""
+    business = models.OneToOneField("core.Business", on_delete=models.CASCADE, related_name="clothing_loyalty")
+
+    # Points
+    points_per_100 = models.PositiveIntegerField(default=1, help_text="Points earned per Rs. 100 spent")
+    point_value = models.DecimalField(max_digits=6, decimal_places=2, default=1,
+                                      help_text="Rs. value of 1 loyalty point")
+
+    # Spend-based discount tiers (total_purchases amount in Rs.)
+    tier1_spend    = models.DecimalField(max_digits=10, decimal_places=2, default=5000,
+                                         help_text="Total spend (Rs.) needed for tier-1 discount")
+    tier1_discount = models.DecimalField(max_digits=5, decimal_places=2, default=5,
+                                         help_text="Tier-1 discount %")
+    tier2_spend    = models.DecimalField(max_digits=10, decimal_places=2, default=10000,
+                                         help_text="Total spend (Rs.) needed for tier-2 discount (10%)")
+    tier2_discount = models.DecimalField(max_digits=5, decimal_places=2, default=10,
+                                         help_text="Tier-2 discount %")
+
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Loyalty settings for {self.business}"
+
+    def get_customer_discount(self, total_purchases):
+        """Return discount % based on customer's cumulative spend"""
+        total = Decimal(str(total_purchases))
+        if total >= self.tier2_spend:
+            return self.tier2_discount
+        if total >= self.tier1_spend:
+            return self.tier1_discount
+        return Decimal('0')
+
+    def calc_points(self, amount):
+        return int(amount // 100) * self.points_per_100
+
+
+class ClothingEsewaPayment(models.Model):
+    """Tracks eSewa payment attempts for clothing POS orders."""
+    STATUS = (
+        ("PENDING",   "Pending"),
+        ("COMPLETED", "Completed"),
+        ("FAILED",    "Failed"),
+    )
+
+    business         = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    order            = models.OneToOneField("pos.Order", on_delete=models.CASCADE,
+                                            related_name="esewa_payment")
+    transaction_uuid = models.CharField(max_length=100, unique=True)
+    amount           = models.DecimalField(max_digits=10, decimal_places=2)
+
+    customer_phone   = models.CharField(max_length=20, blank=True)
+    customer_name    = models.CharField(max_length=100, blank=True)
+
+    discount_amt     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_pct     = models.DecimalField(max_digits=5,  decimal_places=2, default=0)
+    points_earned    = models.PositiveIntegerField(default=0)
+
+    status           = models.CharField(max_length=20, choices=STATUS, default="PENDING")
+    esewa_ref_id     = models.CharField(max_length=100, blank=True)
+    failure_reason   = models.CharField(max_length=255, blank=True)
+
+    created_by       = models.ForeignKey("accounts.User", on_delete=models.PROTECT)
+    completed_at     = models.DateTimeField(null=True, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"eSewa {self.transaction_uuid} — {self.status}"

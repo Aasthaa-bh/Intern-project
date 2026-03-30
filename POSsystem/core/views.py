@@ -98,6 +98,7 @@ def superadmin_requests(request):
         "status": status,
     })
 
+
     
 @login_required
 def approve_request(request, request_id):

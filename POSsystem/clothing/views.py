@@ -1752,3 +1752,320 @@ def low_stock_alert(request):
     }
     return render(request, "clothing/low_stock.html", context)
 
+
+
+# ── Cashier stub views (used by cashier/ URL paths in urls.py) ──────────────
+
+@login_required
+def cashier_dashboard(request):
+    from django.db.models import Sum
+    from django.utils import timezone
+    from pos.models import Order, OrderItem
+
+    business = _get_request_business(request)
+    today = timezone.now().date()
+
+    orders_today = Order.objects.filter(
+        business=business,
+        status='COMPLETED',
+        opened_at__date=today,
+    ) if business else Order.objects.none()
+
+    total_sales = orders_today.count()
+    total_revenue = orders_today.aggregate(
+        rev=Sum('items__line_total')
+    )['rev'] or 0
+
+    products_count = Item.objects.filter(
+        business=business, is_active=True
+    ).count() if business else 0
+
+    context = {
+        'total_sales': total_sales,
+        'total_revenue': total_revenue,
+        'products_count': products_count,
+    }
+    return render(request, 'cashier/dashboard.html', context)
+
+
+@login_required
+def cashier_products(request):
+    business = _get_request_business(request)
+    search = (request.GET.get('q') or '').strip()
+
+    products = Item.objects.filter(
+        business=business, is_active=True, item_type='PRODUCT'
+    ).select_related('category') if business else Item.objects.none()
+
+    if search:
+        products = products.filter(
+            Q(name__icontains=search) | Q(sku__icontains=search)
+        )
+
+    context = {'products': products.order_by('name'), 'search': search}
+    return render(request, 'cashier/cashier_products.html', context)
+
+
+@login_required
+def cashier_pos(request):
+    business = _get_request_business(request)
+    products = Item.objects.filter(
+        business=business, is_active=True, item_type='PRODUCT'
+    ).prefetch_related(
+        'variants__clothing_detail__size',
+        'variants__clothing_detail__color',
+    ).order_by('name') if business else Item.objects.none()
+
+    context = {'products': products, 'business': business}
+    return render(request, 'cashier/cashier_pos.html', context)
+
+
+@login_required
+def cashier_sales_history(request):
+    from django.db.models import Sum
+    from pos.models import Order
+
+    business = _get_request_business(request)
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    orders = Order.objects.filter(
+        business=business, status='COMPLETED'
+    ).prefetch_related('items__item').annotate(
+        total=Sum('items__line_total')
+    ) if business else Order.objects.none()
+
+    if date_from:
+        orders = orders.filter(opened_at__date__gte=date_from)
+    if date_to:
+        orders = orders.filter(opened_at__date__lte=date_to)
+
+    orders = orders.order_by('-opened_at')
+
+    context = {
+        'sales': orders,
+        'date_from': date_from,
+        'date_to': date_to,
+    }
+    return render(request, 'cashier/cashier_sales_history.html', context)
+
+
+@login_required
+def cashier_profile(request):
+    from django.db.models import Sum, Count
+    from pos.models import Order
+
+    business = _get_request_business(request)
+
+    stats = Order.objects.filter(
+        business=business,
+        status='COMPLETED',
+        created_by=request.user,
+    ).aggregate(
+        total_sales=Count('id'),
+        total_revenue=Sum('items__line_total'),
+    ) if business else {'total_sales': 0, 'total_revenue': 0}
+
+    context = {'stats': stats}
+    return render(request, 'cashier/cashier_profile.html', context)
+
+
+@login_required
+def cashier_complete_sale(request):
+    """Complete a POS sale with loyalty points + regular customer discount"""
+    if request.method != 'POST':
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    import json, uuid
+    from django.http import JsonResponse
+    from django.utils import timezone
+    from pos.models import Order, OrderItem, ItemVariant as IV
+    from .models import CashierCustomer, CashierLoyaltyTransaction, ClothingLoyaltySetting
+
+    business = _get_request_business(request)
+    if not business:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        with transaction.atomic():
+            data = json.loads(request.body)
+            items_data = data.get('items', [])
+            if not items_data:
+                return JsonResponse({'error': 'Cart is empty'}, status=400)
+
+            customer_phone = (data.get('customer_phone') or '').strip()
+            payment_method = data.get('payment_method', 'CASH')
+
+            # ── loyalty settings ──────────────────────────────────────────
+            try:
+                ls = ClothingLoyaltySetting.objects.get(business=business, is_active=True)
+            except ClothingLoyaltySetting.DoesNotExist:
+                ls = None
+
+            # ── customer lookup ───────────────────────────────────────────
+            customer = None
+            if customer_phone:
+                customer, _ = CashierCustomer.objects.get_or_create(
+                    business=business,
+                    phone=customer_phone,
+                    defaults={'name': data.get('customer_name') or f'Customer {customer_phone}'}
+                )
+
+            # ── subtotal ──────────────────────────────────────────────────
+            subtotal = sum(
+                Decimal(str(r['price'])) * Decimal(str(r['quantity']))
+                for r in items_data
+            )
+
+            # ── regular customer discount (based on cumulative spend) ──────
+            customer_discount_pct = Decimal('0')
+            if customer and ls:
+                customer_discount_pct = ls.get_customer_discount(customer.total_purchases)
+            customer_discount_amt = (subtotal * customer_discount_pct / 100).quantize(Decimal('0.01'))
+
+            after_discount = subtotal - customer_discount_amt
+            vat = (after_discount * Decimal('0.13')).quantize(Decimal('0.01'))
+            total = after_discount + vat
+
+            # ── create order ──────────────────────────────────────────────
+            order_no = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+            order = Order.objects.create(
+                business=business,
+                order_no=order_no,
+                order_type='COUNTER',
+                status='COMPLETED',
+                opened_at=timezone.now(),
+                closed_at=timezone.now(),
+                business_date=timezone.now().date(),
+                created_by=request.user,
+            )
+
+            for row in items_data:
+                item = get_object_or_404(Item, id=row['item_id'], business=business)
+                variant = None
+                if row.get('variant_id'):
+                    variant = get_object_or_404(IV, id=row['variant_id'], item=item)
+
+                qty   = Decimal(str(row['quantity']))
+                price = Decimal(str(row['price']))
+
+                OrderItem.objects.create(
+                    order=order,
+                    item=item,
+                    variant=variant,
+                    item_name_snapshot=item.name,
+                    variant_name_snapshot=variant.name if variant else '',
+                    sku_snapshot=variant.sku if variant else (item.sku or ''),
+                    unit_price=price,
+                    quantity=qty,
+                    line_total=price * qty,
+                )
+
+                # deduct stock
+                if variant:
+                    variant.stock_qty = (variant.stock_qty or 0) - qty
+                    variant.save(update_fields=['stock_qty'])
+                elif item.track_stock:
+                    item.stock_qty = (item.stock_qty or 0) - qty
+                    item.save(update_fields=['stock_qty'])
+
+            # ── loyalty points earned ─────────────────────────────────────
+            points_earned = 0
+            if customer and ls:
+                points_earned = ls.calc_points(subtotal)
+                if points_earned > 0:
+                    customer.loyalty_points += points_earned
+                    CashierLoyaltyTransaction.objects.create(
+                        customer=customer,
+                        transaction_type='EARNED',
+                        points=points_earned,
+                        amount=subtotal,
+                        invoice_number=order_no,
+                    )
+
+            # ── update customer stats ─────────────────────────────────────
+            if customer:
+                customer.total_purchases += total
+                customer.purchase_count  += 1
+                customer.last_purchase_date = timezone.now()
+                customer.save()
+
+            receipt_url = (
+                f'/clothing/cashier/receipt/{order.id}/'
+                f'?method={payment_method}'
+                f'&discount={customer_discount_amt}'
+                f'&discount_pct={customer_discount_pct}'
+                f'&points={points_earned}'
+                f'&customer={customer.name if customer else ""}'
+            )
+
+            return JsonResponse({'success': True, 'receipt_url': receipt_url})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def cashier_lookup_customer(request):
+    """AJAX — look up customer by phone, return loyalty info + tier discount"""
+    from django.http import JsonResponse
+    from .models import CashierCustomer, ClothingLoyaltySetting
+
+    business = _get_request_business(request)
+    phone = request.GET.get('phone', '').strip()
+    if not phone:
+        return JsonResponse({'found': False})
+
+    try:
+        customer = CashierCustomer.objects.get(business=business, phone=phone)
+    except CashierCustomer.DoesNotExist:
+        return JsonResponse({'found': False})
+
+    discount_pct = Decimal('0')
+    try:
+        ls = ClothingLoyaltySetting.objects.get(business=business, is_active=True)
+        discount_pct = ls.get_customer_discount(customer.total_purchases)
+    except ClothingLoyaltySetting.DoesNotExist:
+        pass
+
+    return JsonResponse({
+        'found': True,
+        'name': customer.name,
+        'phone': customer.phone,
+        'loyalty_points': customer.loyalty_points,
+        'total_purchases': str(customer.total_purchases),
+        'discount_pct': str(discount_pct),
+    })
+
+
+@login_required
+def cashier_receipt(request, order_id):
+    from pos.models import Order
+    business = _get_request_business(request)
+    order = get_object_or_404(Order, id=order_id, business=business)
+    items = order.items.select_related('item', 'variant').all()
+
+    subtotal = sum(i.line_total for i in items)
+    discount_amt  = Decimal(request.GET.get('discount', '0') or '0')
+    discount_pct  = Decimal(request.GET.get('discount_pct', '0') or '0')
+    after_discount = subtotal - discount_amt
+    vat   = (after_discount * Decimal('0.13')).quantize(Decimal('0.01'))
+    total = after_discount + vat
+
+    context = {
+        'order': order,
+        'items': items,
+        'subtotal': subtotal,
+        'discount_amt': discount_amt,
+        'discount_pct': discount_pct,
+        'vat': vat,
+        'total': total,
+        'business': business,
+        'payment_method': request.GET.get('method', 'CASH'),
+        'points_earned': int(request.GET.get('points', 0) or 0),
+        'customer_name': request.GET.get('customer', ''),
+    }
+    return render(request, 'cashier/receipt.html', context)
