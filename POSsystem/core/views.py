@@ -415,6 +415,8 @@ def clothing_owner_dashboard(request):
 
     context = {
         "total_staff": total_staff,
+        "current_business": business,
+        "current_business_type": "clothing",
     }
     return render(request, "owner/dashboard_clothing.html", context)
 
@@ -435,3 +437,40 @@ def mart_owner_dashboard(request):
         "total_staff": total_staff,
     }
     return render(request, "owner/dashboard_mart.html", context)
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    try:
+        from clothing.models import Notification
+        notification = Notification.objects.get(
+            id=notification_id,
+            business=request.user.business
+        )
+        notification.is_read = True
+        notification.save()
+        
+        # Redirect to the notification link if it exists
+        if notification.link:
+            return redirect(notification.link)
+        return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))
+    except Notification.DoesNotExist:
+        messages.error(request, 'Notification not found.')
+        return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))
+
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    try:
+        from clothing.models import Notification
+        Notification.objects.filter(
+            business=request.user.business,
+            is_read=False
+        ).update(is_read=True)
+        messages.success(request, 'All notifications marked as read.')
+    except Exception as e:
+        messages.error(request, f'Error marking notifications as read: {str(e)}')
+    
+    return redirect(request.META.get('HTTP_REFERER', 'owner_dashboard'))

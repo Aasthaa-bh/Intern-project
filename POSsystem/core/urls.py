@@ -2,7 +2,7 @@ from django.urls import path
 from .views_staff import staff_delete, staff_list, staff_create, staff_edit, staff_toggle_active, staff_reset_password 
 from .views import (home_view, get_started_view, superadmin_dashboard,  superadmin_requests, approve_request,reject_request, request_detail,  business_dashboard_router)
 from .views import (home_view, get_started_view, superadmin_dashboard,  superadmin_requests, approve_request,reject_request, request_detail, owner_dashboard_redirect,restaurant_owner_dashboard,
-    clothing_owner_dashboard, mart_owner_dashboard)
+    clothing_owner_dashboard, mart_owner_dashboard, mark_notification_read, mark_all_notifications_read)
 
 urlpatterns = [
     path("", home_view, name="home"),
@@ -27,4 +27,8 @@ urlpatterns = [
     path("owner/staff/<int:staff_id>/reset-password/", staff_reset_password, name="staff_reset_password"),
     path("owner/staff/<int:staff_id>/delete/", staff_delete, name="staff_delete"),
     path("dashboard/", business_dashboard_router, name="business_dashboard_router"),
+    
+    # Notifications
+    path("notifications/<int:notification_id>/read/", mark_notification_read, name="mark_notification_read"),
+    path("notifications/mark-all-read/", mark_all_notifications_read, name="mark_all_notifications_read"),
 ]

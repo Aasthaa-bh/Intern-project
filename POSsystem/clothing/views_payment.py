@@ -75,6 +75,21 @@ def payment_success(request):
             # order.payment_status = 'PAID'
             # order.save()
             
+            # Create notification for successful payment
+            from core.models import Business
+            from clothing.models import Notification
+            business = request.user.business if request.user.is_authenticated else Business.objects.first()
+            
+            if business:
+                Notification.objects.create(
+                    business=business,
+                    notification_type='GENERAL',
+                    title='Payment Successful',
+                    message=f'Payment of Rs {callback_data["total_amount"]} completed successfully. Transaction: {callback_data.get("transaction_code", "N/A")}',
+                    link='',
+                    is_read=False
+                )
+            
             context = {
                 'transaction_uuid': callback_data['transaction_uuid'],
                 'total_amount': callback_data['total_amount'],

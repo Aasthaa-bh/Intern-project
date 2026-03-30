@@ -73,6 +73,8 @@ def offer_dashboard(request):
         },
         'top_offers': top_offers,
         'recent_usage': recent_usage,
+        'current_business_type': 'clothing',
+        'hide_extra_menu': True,
     }
     
     return render(request, 'clothing/offer_dashboard.html', context)
@@ -88,6 +90,11 @@ def offer_list(request):
     offer_type_filter = request.GET.get('offer_type', '')
     search = request.GET.get('search', '')
     
+    # Auto-update expired offers FIRST
+    today = timezone.now().date()
+    Offer.objects.filter(business=business, status='ACTIVE', end_date__lt=today).update(status='EXPIRED')
+    
+    # Build filtered queryset
     offers = Offer.objects.filter(business=business)
     
     if status_filter:
@@ -97,22 +104,27 @@ def offer_list(request):
     if search:
         offers = offers.filter(Q(offer_name__icontains=search) | Q(description__icontains=search))
     
-    # Auto-update expired offers
-    today = timezone.now().date()
-    offers.filter(status='ACTIVE', end_date__lt=today).update(status='EXPIRED')
+    # Calculate counts from FRESH queryset (not from filtered offers)
+    base_offers = Offer.objects.filter(business=business)
+    active_count = base_offers.filter(status='ACTIVE').count()
+    inactive_count = base_offers.filter(status='INACTIVE').count()
+    expired_count = base_offers.filter(status='EXPIRED').count()
     
+    # Apply select_related LAST for display
     offers = offers.select_related('product', 'category', 'created_by')
     
     context = {
         'offers': offers,
-        'active_count': offers.filter(status='ACTIVE').count(),
-        'inactive_count': offers.filter(status='INACTIVE').count(),
-        'expired_count': offers.filter(status='EXPIRED').count(),
+        'active_count': active_count,
+        'inactive_count': inactive_count,
+        'expired_count': expired_count,
         'status_filter': status_filter,
         'offer_type_filter': offer_type_filter,
         'search': search,
         'offer_types': Offer.OFFER_TYPE_CHOICES,
         'status_choices': Offer.STATUS_CHOICES,
+        'current_business_type': 'clothing',
+        'hide_extra_menu': True,
     }
     return render(request, 'clothing/offer_list.html', context)
 
@@ -126,13 +138,19 @@ def offer_create(request):
     # Get product from query parameter
     product_id = request.GET.get('product')
     initial_data = {}
+    selected_product = None
+    
+    print(f"DEBUG: product_id from URL = {product_id}")  # Debug
     
     if product_id:
         try:
             product = Item.objects.get(id=product_id, business=business)
-            initial_data['product'] = product
+            initial_data['product'] = product.id  # Pass ID instead of object
             initial_data['offer_type'] = 'PRODUCT'  # Default to product offer
+            selected_product = product
+            print(f"DEBUG: Found product = {product.name}, ID = {product.id}")  # Debug
         except Item.DoesNotExist:
+            print(f"DEBUG: Product not found with ID = {product_id}")  # Debug
             messages.warning(request, 'Product not found.')
     
     if request.method == 'POST':
@@ -151,16 +169,35 @@ def offer_create(request):
             # Save many-to-many relationships
             form.save_m2m()
             
+            # Create notification for offer creation to all clothing businesses
+            from clothing.models import Notification
+            from core.models import Business
+            clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
+            for cb in clothing_businesses:
+                Notification.objects.create(
+                    business=cb,
+                    notification_type='OFFER_CREATED',
+                    title=f'New Offer Created: {offer.offer_name}',
+                    message=f'{offer.get_offer_type_display()} - {offer.get_discount_display()} discount. Valid from {offer.start_date} to {offer.end_date}.',
+                    link=f'/clothing/offers/{offer.id}/',
+                    is_read=False
+                )
+            
             messages.success(request, f'Offer "{offer.offer_name}" created successfully!')
             return redirect('clothing_offer_list')
     else:
         form = OfferForm(business=business, initial=initial_data)
+        print(f"DEBUG: Form initial data = {initial_data}")  # Debug
+        print(f"DEBUG: Form product field value = {form.initial.get('product')}")  # Debug
     
     return render(request, 'clothing/offer_form.html', {
         'form': form,
         'title': 'Create New Offer',
         'button_text': 'Create Offer',
-        'preselected_product': product_id
+        'preselected_product': product_id,
+        'selected_product': selected_product,
+        'current_business_type': 'clothing',
+        'hide_extra_menu': True,
     })
 
 
@@ -174,6 +211,21 @@ def offer_edit(request, offer_id):
         form = OfferForm(request.POST, instance=offer, business=business)
         if form.is_valid():
             form.save()
+            
+            # Create notification for offer update to all clothing businesses
+            from clothing.models import Notification
+            from core.models import Business
+            clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
+            for cb in clothing_businesses:
+                Notification.objects.create(
+                    business=cb,
+                    notification_type='GENERAL',
+                    title=f'Offer Updated: {offer.offer_name}',
+                    message=f'Offer details have been updated. {offer.get_discount_display()} discount.',
+                    link=f'/clothing/offers/{offer.id}/',
+                    is_read=False
+                )
+            
             messages.success(request, f'Offer "{offer.offer_name}" updated successfully!')
             return redirect('clothing_offer_list')
     else:
@@ -183,7 +235,9 @@ def offer_edit(request, offer_id):
         'form': form,
         'offer': offer,
         'title': 'Edit Offer',
-        'button_text': 'Update Offer'
+        'button_text': 'Update Offer',
+        'current_business_type': 'clothing',
+        'hide_extra_menu': True,
     })
 
 
@@ -196,10 +250,28 @@ def offer_delete(request, offer_id):
     if request.method == 'POST':
         offer_name = offer.offer_name
         offer.delete()
+        
+        # Create notification for offer deletion to all clothing businesses
+        from clothing.models import Notification
+        from core.models import Business
+        clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
+        for cb in clothing_businesses:
+            Notification.objects.create(
+                business=cb,
+                notification_type='GENERAL',
+                title=f'Offer Deleted: {offer_name}',
+                message=f'The offer "{offer_name}" has been permanently deleted.',
+                link='',
+                is_read=False
+            )
+        
         messages.success(request, f'Offer "{offer_name}" deleted successfully!')
         return redirect('clothing_offer_list')
     
-    return render(request, 'clothing/offer_confirm_delete.html', {'offer': offer})
+    return render(request, 'clothing/offer_confirm_delete.html', {
+        'offer': offer,
+        'current_business_type': 'clothing',
+    })
 
 
 def offer_detail(request, offer_id):
@@ -215,6 +287,8 @@ def offer_detail(request, offer_id):
         'total_usage': usages.count(),
         'total_discount': usages.aggregate(total=Sum('discount_amount'))['total'] or Decimal('0.00'),
         'recent_usages': usages.order_by('-applied_at')[:10],
+        'current_business_type': 'clothing',
+        'hide_extra_menu': True,
     }
     return render(request, 'clothing/offer_detail_simple.html', context)
 
@@ -228,14 +302,30 @@ def offer_toggle_status(request, offer_id):
     if request.method == 'POST':
         if offer.status == 'ACTIVE':
             offer.status = 'INACTIVE'
+            status_text = 'deactivated'
             messages.success(request, f'Offer "{offer.offer_name}" deactivated.')
         elif offer.status == 'INACTIVE':
             offer.status = 'ACTIVE'
+            status_text = 'activated'
             messages.success(request, f'Offer "{offer.offer_name}" activated.')
         else:
             messages.error(request, 'Cannot toggle expired offer status.')
             return redirect('clothing_offer_list')
         offer.save()
+        
+        # Create notification for status change to all clothing businesses
+        from clothing.models import Notification
+        from core.models import Business
+        clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
+        for cb in clothing_businesses:
+            Notification.objects.create(
+                business=cb,
+                notification_type='GENERAL',
+                title=f'Offer {status_text.title()}: {offer.offer_name}',
+                message=f'The offer "{offer.offer_name}" has been {status_text}.',
+                link=f'/clothing/offers/{offer.id}/',
+                is_read=False
+            )
     
     return redirect('clothing_offer_list')
 

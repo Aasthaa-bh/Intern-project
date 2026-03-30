@@ -67,6 +67,22 @@ class OfferForm(forms.ModelForm):
                     self.fields['variants'].label_from_instance = self._variant_label
                 except (ValueError, TypeError):
                     self.fields['variants'].queryset = ItemVariant.objects.none()
+            elif self.initial.get('product'):
+                # Handle initial product from URL parameter
+                try:
+                    product = self.initial.get('product')
+                    if isinstance(product, Item):
+                        product_id = product.id
+                    else:
+                        product_id = int(product)
+                    variants_qs = ItemVariant.objects.filter(
+                        item_id=product_id,
+                        is_active=True
+                    ).select_related('clothing_detail__size', 'clothing_detail__color')
+                    self.fields['variants'].queryset = variants_qs
+                    self.fields['variants'].label_from_instance = self._variant_label
+                except (ValueError, TypeError, AttributeError):
+                    self.fields['variants'].queryset = ItemVariant.objects.none()
             else:
                 self.fields['variants'].queryset = ItemVariant.objects.none()
         else:
@@ -179,31 +195,11 @@ class OfferForm(forms.ModelForm):
                 self.add_error('discount_value', 'Discount value must be greater than 0')
         
 from django.forms import inlineformset_factory
-from decimal import Decimal
 import re
 
 from pos.models import Brand, Category, Item, ItemVariant, Purchase, PurchaseItem, Supplier
 
 from .models import ClothingItem, ClothingVariantDetail, Color, Size
-
-
-def _variant_descriptor(variant):
-    detail = getattr(variant, "clothing_detail", None)
-    parts = []
-
-    if detail and getattr(detail, "color_id", None):
-        parts.append(detail.color.name)
-    if detail and getattr(detail, "size_id", None):
-        parts.append(detail.size.name)
-
-    if parts:
-        return " / ".join(parts)
-    return (variant.name or "").strip() or f"Variant {variant.pk}"
-
-
-class ClothingVariantChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return f"{obj.item.name} / {_variant_descriptor(obj)}"
 
 
 class ClothingProductForm(forms.ModelForm):
@@ -235,11 +231,6 @@ class ClothingProductForm(forms.ModelForm):
         business = kwargs.pop("business", None)
         super().__init__(*args, **kwargs)
         self.business = business
-        self.has_variants = bool(
-            self.instance
-            and self.instance.pk
-            and self.instance.variants.exists()
-        )
 
         if business:
             self.fields["category"].queryset = Category.objects.filter(
@@ -253,14 +244,6 @@ class ClothingProductForm(forms.ModelForm):
 
         self.fields["category"].required = False
         self.fields["brand"].required = False
-
-        if self.has_variants:
-            self.fields["track_stock"].disabled = True
-            self.fields["stock_qty"].disabled = True
-            self.fields["min_stock_qty"].disabled = True
-            self.fields["track_stock"].help_text = "Parent product stock is disabled because this product uses variants."
-            self.fields["stock_qty"].help_text = "Stock is managed on variants for this product."
-            self.fields["min_stock_qty"].help_text = "Minimum stock is managed on variants for this product."
 
         clothing = getattr(self.instance, "clothing", None) if self.instance and self.instance.pk else None
         if clothing:
@@ -310,11 +293,6 @@ class ClothingProductForm(forms.ModelForm):
         # Keep selected values when no new text is entered.
         cleaned_data["category"] = category
         cleaned_data["brand"] = brand
-
-        if self.has_variants:
-            cleaned_data["track_stock"] = False
-            cleaned_data["stock_qty"] = Decimal("0")
-            cleaned_data["min_stock_qty"] = Decimal("0")
         return cleaned_data
 
 
@@ -340,15 +318,8 @@ class ClothingVariantForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         business = kwargs.pop("business", None)
-        product = kwargs.pop("product", None)
         super().__init__(*args, **kwargs)
         self.business = business
-        self.product = product or getattr(self.instance, "item", None)
-
-        creating = not (self.instance and self.instance.pk)
-        if creating:
-            self.fields["name"].required = False
-            self.fields["sku"].required = False
 
         if business:
             self.fields["size"].queryset = Size.objects.filter(
@@ -365,12 +336,6 @@ class ClothingVariantForm(forms.ModelForm):
             self.fields["size"].initial = detail.size_id
             self.fields["color"].initial = detail.color_id
 
-        if creating and self.product:
-            self.fields["name"].initial = self._build_variant_name(self.product.name)
-            self.fields["sku"].initial = self._build_variant_sku(self.product.sku)
-            self.fields["price"].initial = self.product.price
-            self.fields["cost_price"].initial = self.product.cost_price
-
     def _build_size_code(self, base_name):
         raw = re.sub(r"[^A-Za-z0-9]+", "", (base_name or "").upper())
         base_code = (raw or "SIZE")[:20]
@@ -382,41 +347,6 @@ class ClothingVariantForm(forms.ModelForm):
             code = f"{base_code[:20 - len(suffix)]}{suffix}"
             counter += 1
         return code
-
-    def _build_variant_name(self, base_name):
-        if not self.product:
-            return (base_name or "Variant").strip() or "Variant"
-
-        base = (base_name or self.product.name or "Variant").strip()
-        candidate = base
-        counter = 1
-        while ItemVariant.objects.filter(item=self.product, name__iexact=candidate).exists():
-            counter += 1
-            candidate = f"{base} {counter}"
-        return candidate
-
-    def _build_variant_sku(self, base_sku):
-        base_source = (base_sku or "").strip()
-        if not base_source and self.product:
-            base_source = (self.product.sku or "").strip()
-        if not base_source and self.product:
-            base_source = f"ITEM{self.product.id or ''}"
-        if not base_source:
-            base_source = "SKU"
-
-        candidate = base_source
-        counter = 1
-        business = self.business or (self.product.business if self.product else None)
-        lookup = ItemVariant.objects.filter(sku__iexact=candidate)
-        if business:
-            lookup = lookup.filter(business=business)
-        while lookup.exists():
-            counter += 1
-            candidate = f"{base_source}-{counter}"
-            lookup = ItemVariant.objects.filter(sku__iexact=candidate)
-            if business:
-                lookup = lookup.filter(business=business)
-        return candidate
 
     def clean(self):
         cleaned_data = super().clean()
@@ -463,19 +393,6 @@ class ClothingVariantForm(forms.ModelForm):
 
         cleaned_data["size"] = size
         cleaned_data["color"] = color
-
-        creating = not (self.instance and self.instance.pk)
-        if creating and self.product:
-            if not (cleaned_data.get("name") or "").strip():
-                cleaned_data["name"] = self._build_variant_name(self.product.name)
-            if not (cleaned_data.get("sku") or "").strip():
-                cleaned_data["sku"] = self._build_variant_sku(self.product.sku)
-
-            if cleaned_data.get("price") is None:
-                cleaned_data["price"] = self.product.price
-            if cleaned_data.get("cost_price") is None:
-                cleaned_data["cost_price"] = self.product.cost_price
-
         return cleaned_data
 
 
@@ -489,7 +406,6 @@ class ClothingSupplierForm(forms.ModelForm):
             "email",
             "address",
             "pan_vat_no",
-            "notes",
             "is_active",
         ]
 
@@ -524,8 +440,6 @@ class ClothingPurchaseForm(forms.ModelForm):
 
 
 class ClothingPurchaseItemForm(forms.ModelForm):
-    variant = ClothingVariantChoiceField(queryset=ItemVariant.objects.none(), required=False)
-
     class Meta:
         model = PurchaseItem
         fields = ["item", "variant", "quantity", "unit_cost"]
@@ -544,11 +458,7 @@ class ClothingPurchaseItemForm(forms.ModelForm):
             self.fields["variant"].queryset = ItemVariant.objects.filter(
                 business=business,
                 is_active=True,
-            ).select_related(
-                "item",
-                "clothing_detail__size",
-                "clothing_detail__color",
-            ).order_by("item__name", "name")
+            ).select_related("item").order_by("item__name", "name")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -557,8 +467,6 @@ class ClothingPurchaseItemForm(forms.ModelForm):
 
         if variant and item and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
-        if item and item.variants.exists() and not variant:
-            raise forms.ValidationError("Select a variant for products that manage stock by variant.")
 
         return cleaned_data
 
@@ -581,7 +489,7 @@ class ClothingStockAdjustmentForm(forms.Form):
     ]
 
     item = forms.ModelChoiceField(queryset=Item.objects.none())
-    variant = ClothingVariantChoiceField(queryset=ItemVariant.objects.none(), required=False)
+    variant = forms.ModelChoiceField(queryset=ItemVariant.objects.none(), required=False)
     movement_type = forms.ChoiceField(choices=MOVEMENT_CHOICES)
     quantity = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0.01)
     note = forms.CharField(max_length=255, required=False)
@@ -598,11 +506,7 @@ class ClothingStockAdjustmentForm(forms.Form):
             self.fields["variant"].queryset = ItemVariant.objects.filter(
                 business=business,
                 is_active=True,
-            ).select_related(
-                "item",
-                "clothing_detail__size",
-                "clothing_detail__color",
-            ).order_by("item__name", "name")
+            ).select_related("item").order_by("item__name", "name")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -610,6 +514,4 @@ class ClothingStockAdjustmentForm(forms.Form):
         variant = cleaned_data.get("variant")
         if variant and item and variant.item_id != item.id:
             raise forms.ValidationError("Selected variant does not belong to selected item.")
-        if item and item.variants.exists() and not variant:
-            raise forms.ValidationError("Select a variant for products that manage stock by variant.")
         return cleaned_data

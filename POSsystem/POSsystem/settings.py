@@ -89,10 +89,9 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                 "accounts.context_processors.user_preferences",
-                 "core.context_processors.business_context",
-                  
+                "accounts.context_processors.user_preferences",
                 "clothing.context_processors.sidebar_offers",
+                "core.context_processors.notifications",
             ],
         },
     },
@@ -104,22 +103,28 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": os.getenv("MYSQLDATABASE", "railway"),
+#         "USER": os.getenv("MYSQLUSER", "root"),
+#         "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
+#         "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
+#         "PORT": os.getenv("MYSQLPORT", "38652"),
+#         "OPTIONS": {
+#             "charset": "utf8mb4",
+#         },
+#     }
+# }
 
-
-
-
-import dj_database_url
-
+# Fallback to local SQLite because Railway DB is unreachable
 DATABASES = {
-    "default": dj_database_url.parse(
-        "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
-
-# Connection pooling settings
-DATABASES["default"]["CONN_MAX_AGE"] = 600  # Keep connections open for 10 minutes
-DATABASES["default"]["POOL_SIZE"] = 20  # Maximum number of connections in the
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
