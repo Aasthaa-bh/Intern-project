@@ -28,7 +28,5 @@ urlpatterns = [
     path("owner/staff/<int:staff_id>/delete/", staff_delete, name="staff_delete"),
     path("dashboard/", business_dashboard_router, name="business_dashboard_router"),
 
-    # Notifications
-    path("notifications/<int:notification_id>/read/", mark_notification_read, name="mark_notification_read"),
-    path("notifications/mark-all-read/", mark_all_notifications_read, name="mark_all_notifications_read"),
+  
 ]

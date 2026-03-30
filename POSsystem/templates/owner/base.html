@@ -437,69 +437,6 @@
                     <div class="flex items-center gap-3 flex-wrap justify-end">
                         {% block header_actions %}{% endblock %}
 
-                        {% if not hide_extra_menu %}
-                        <!-- Notification Bell -->
-                        <div class="relative">
-                            <button type="button" onclick="toggleNotificationMenu()"
-                                    class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full dark:text-gray-300 dark:hover:bg-gray-700">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                </svg>
-                                {% if unread_notifications_count > 0 %}
-                                <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                                    {{ unread_notifications_count }}
-                                </span>
-                                {% endif %}
-                            </button>
-
-                            <div id="notificationMenu"
-                                 class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 z-50">
-                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                                        {% if unread_notifications_count > 0 %}
-                                        <a href="{% url 'mark_all_notifications_read' %}" class="text-xs text-blue-600 hover:text-blue-700">Mark all as read</a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="max-h-96 overflow-y-auto">
-                                    {% if recent_notifications %}
-                                        {% for notification in recent_notifications %}
-                                        <a href="{% url 'mark_notification_read' notification.id %}"
-                                           class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 {% if not notification.is_read %}bg-blue-50 dark:bg-blue-900/20{% endif %}">
-                                            <div class="flex items-start gap-3">
-                                                <div class="flex-shrink-0 mt-1">
-                                                    {% if notification.notification_type == 'OFFER_CREATED' %}
-                                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'OFFER_EXPIRING' %}
-                                                        <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'OFFER_EXPIRED' %}
-                                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'LOW_STOCK' %}
-                                                        <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                    {% else %}
-                                                        <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ notification.title }}</p>
-                                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">{{ notification.message|truncatewords:15 }}</p>
-                                                    <p class="text-xs text-gray-400 mt-1">{{ notification.created_at|timesince }} ago</p>
-                                                </div>
-                                            </div>
-                                        </a>
-                                        {% endfor %}
-                                    {% else %}
-                                        <div class="p-8 text-center text-gray-500 text-sm">
-                                            No notifications
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Profile Menu -->
                         <div class="relative">
                             <button type="button"
                                     onclick="toggleProfileMenu()"
@@ -586,26 +523,12 @@
             }
         }
 
-        function toggleNotificationMenu() {
-            const menu = document.getElementById("notificationMenu");
-            if (menu) {
-                menu.classList.toggle("hidden");
-            }
-        }
-
         window.addEventListener("click", function (e) {
             const profileButton = e.target.closest("button[onclick='toggleProfileMenu()']");
             const profileMenu = document.getElementById("profileMenu");
 
-            const notificationButton = e.target.closest("button[onclick='toggleNotificationMenu()']");
-            const notificationMenu = document.getElementById("notificationMenu");
-
             if (!profileButton && profileMenu && !profileMenu.contains(e.target)) {
                 profileMenu.classList.add("hidden");
-            }
-
-            if (!notificationButton && notificationMenu && !notificationMenu.contains(e.target)) {
-                notificationMenu.classList.add("hidden");
             }
         });
     </script>
