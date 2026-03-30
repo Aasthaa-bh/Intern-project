@@ -136,6 +136,8 @@ def approve_request(request, request_id):
                 business_name=business_request.business_name,
                 business_code=business_code,
                 address=business_request.address,
+                pan_image=business_request.pan_image,
+                citizenship_image=business_request.citizenship_image,
                 status="ACTIVE"
             )
 

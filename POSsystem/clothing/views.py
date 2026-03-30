@@ -512,7 +512,7 @@ def product_create(request):
         return HttpResponseForbidden("Business context is required for product creation.")
 
     if request.method == "POST":
-        form = ClothingProductForm(request.POST, business=business)
+        form = ClothingProductForm(request.POST, request.FILES, business=business)
         if form.is_valid():
             product = form.save(commit=False)
             product.business = business
@@ -545,7 +545,7 @@ def product_edit(request, product_id):
     product = get_object_or_404(base_qs, id=product_id)
 
     if request.method == "POST":
-        form = ClothingProductForm(request.POST, instance=product, business=business)
+        form = ClothingProductForm(request.POST, request.FILES, instance=product, business=business)
         if form.is_valid():
             product = form.save()
             if _product_has_variants(product):

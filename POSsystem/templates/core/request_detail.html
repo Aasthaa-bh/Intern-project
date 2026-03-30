@@ -17,10 +17,10 @@
 <hr>
 
 <h3>PAN Image</h3>
-<img src="{{ req.pan_image.url }}" width="300">
+{% if req.pan_image %}<img src="{{ req.pan_image.url }}" width="300">{% else %}No PAN image uploaded{% endif %}
 
 <h3>Citizenship Image</h3>
-<img src="{{ req.citizenship_image.url }}" width="300">
+{% if req.citizenship_image %}<img src="{{ req.citizenship_image.url }}" width="300">{% else %}No Citizenship image uploaded{% endif %}
 
 <hr>
 

@@ -19,7 +19,7 @@ def item_list(request):
 @owner_required
 def item_create(request):
     if request.method == "POST":
-        form = ItemForm(request.POST, business=request.user.business)
+        form = ItemForm(request.POST, request.FILES, business=request.user.business)
         if form.is_valid():
             item = form.save(commit=False)
             item.business = request.user.business
@@ -46,7 +46,7 @@ def item_edit(request, item_id):
     )
 
     if request.method == "POST":
-        form = ItemForm(request.POST, instance=item, business=request.user.business)
+        form = ItemForm(request.POST, request.FILES, instance=item, business=request.user.business)
         if form.is_valid():
             form.save()
             messages.success(request, "Item updated successfully.")

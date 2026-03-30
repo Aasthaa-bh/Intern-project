@@ -19,7 +19,7 @@
 
   <div class="card">
 
-    <form method="POST" class="space-y-6">
+    <form method="POST" class="space-y-6" enctype="multipart/form-data">
       {% csrf_token %}
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -65,6 +65,22 @@
           </p>
           {% endif %}
         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {% trans "Image" %}
+          </label>
+
+          {{ form.image|add_class:"w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+
+          {% if form.image.errors %}
+          <p class="text-sm text-red-600 mt-1">
+            {{ form.image.errors }}
+          </p>
+          {% endif %}
+        </div>
+
+
 
         <div class="flex items-center gap-2 mt-6">
           {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500" }}

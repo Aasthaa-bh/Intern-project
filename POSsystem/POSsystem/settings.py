@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "cloudinary_storage",
     "cloudinary",
-    "clothing",]
+    "clothing",
+]
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -62,16 +63,11 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-
     "django.middleware.locale.LocaleMiddleware",
-
-
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "accounts.middleware.UserLanguageMiddleware",
-
-    
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -89,9 +85,8 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                 "accounts.context_processors.user_preferences",
-                 "core.context_processors.business_context",
-                  
+                "accounts.context_processors.user_preferences",
+                "core.context_processors.business_context",
                 "clothing.context_processors.sidebar_offers",
             ],
         },
@@ -105,16 +100,27 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-
-
-
 import dj_database_url
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
-    )
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQLDATABASE", "railway"),
+        "USER": os.getenv("MYSQLUSER", "root"),
+        "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
+        "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
+        "PORT": os.getenv("MYSQLPORT", "38652"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
 }
+
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         "mysql://root:VuCsRMgyzNlYTyYWIhLnpDwNkXBQSJnF@gondola.proxy.rlwy.net:23995/railway"
+#     )
+# }
 
 
 # Connection pooling settings
@@ -176,7 +182,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-ESEWA_USE_SANDBOX = True   # True for sandbox, False for production
+ESEWA_USE_SANDBOX = True  # True for sandbox, False for production
 ESEWA_PRODUCT_CODE = "EPAYTEST"
 
 # Sandbox
@@ -191,10 +197,18 @@ ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 import cloudinary
+
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": "dt9ia6wgv",
-    "API_KEY": "798442545946723",
-    "API_SECRET": "dAV20NVgUL0f1oa9Fx7Y6B4LMi0",
+    "CLOUD_NAME": "djen6kms0",
+    "API_KEY": "669588372881613",
+    "API_SECRET": "pJsmFjq2qm2hZ5SR5GMe0_Zizx0",
 }
 # MAKING CLOUDNARY THE DEFAULT FILE STORAGE
-DEFAULT_FILE_STORAGE = ("cloudinary_storage.storageMediaCloudinaryStorage",)
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

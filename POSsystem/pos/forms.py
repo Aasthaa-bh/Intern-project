@@ -20,6 +20,7 @@ class ItemForm(forms.ModelForm):
             "name",
             "category",
             "price",
+            "image",  # antim added for cloudinary
             "is_active",
         ]
 

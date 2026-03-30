@@ -1,7 +1,18 @@
+import os
 from django.db import models
 from django.utils import timezone
-from django.db import models
 from .utils_barcode import generate_barcode_image
+
+# antim added for cloudinary
+import cloudinary.uploader
+from core.cloudinary_utils import get_cloudinary_upload_path
+
+def cloudinary_original_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='original')
+
+def cloudinary_thumbnail_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='thumbnail')
+
 
 class Category(models.Model):
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -65,6 +76,16 @@ class Item(models.Model):
     barcode = models.CharField(max_length=100, null=True, blank=True)
     item_type = models.CharField(max_length=20, choices=ITEM_TYPE)
     
+    # antim added for cloudinary
+    image = models.ImageField(upload_to=cloudinary_original_path, null=True, blank=True, max_length=512)
+    
+    @property
+    def thumbnail(self):
+        if self.image:
+            # Predictable physical path for the thumbnail
+            return self.image.url.replace('/original/', '/thumbnail/')
+        return None
+
     description = models.TextField(blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -80,6 +101,80 @@ class Item(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Physical Thumbnail Upload logic
+    def save(self, *args, **kwargs):
+        print(f"--- [THUMBNAIL LOGIC START] Saving Item: {self.name} ---")
+        if self.image and (not hasattr(self.image, 'name') or not self.image.name):
+            self.image.name = 'image.jpg'
+            
+        is_new_image = False
+
+        if self.image:
+            if not self.pk:
+                print("--- [THUMBNAIL LOGIC] New item detected, so image is new! ---")
+                is_new_image = True
+            else:
+                try:
+                    old = Item.objects.get(pk=self.pk)
+                    # Comparing names is the safest way to detect if a new file was swapped!
+                    if not old.image or old.image.name != self.image.name:
+                        print(f"--- [THUMBNAIL LOGIC] Image changed from {old.image} to {self.image.name} ---")
+                        is_new_image = True
+                except Item.DoesNotExist:
+                    is_new_image = True
+                    print("--- [THUMBNAIL LOGIC] Old item not found, treating as new ---")
+        
+        # Save first to ensure self.image.url securely resolves to the Cloudinary CDN!
+        super().save(*args, **kwargs)
+
+        print(f"--- [THUMBNAIL LOGIC] is_new_image: {is_new_image}, self.image: {bool(self.image)} ---")
+
+        if is_new_image and self.image:
+            try:
+                from django.conf import settings
+                import cloudinary.uploader
+                
+                cloudinary.config(
+                    cloud_name=settings.CLOUDINARY_STORAGE["CLOUD_NAME"],
+                    api_key=settings.CLOUDINARY_STORAGE["API_KEY"],
+                    api_secret=settings.CLOUDINARY_STORAGE["API_SECRET"],
+                )
+                
+                safe_filename = os.path.basename(self.image.name)
+                thumb_path = get_cloudinary_upload_path(self, safe_filename, image_type='thumbnail')
+                
+                # Cloudinary storage automatically prepends 'media/' based on MEDIA_URL
+                media_prefix = getattr(settings, 'MEDIA_URL', '/media/').strip('/')
+                if media_prefix:
+                    thumb_path = f"{media_prefix}/{thumb_path}"
+                    
+                public_id = thumb_path.rsplit('.', 1)[0]
+                
+                # Cloudinary UI strictly requires the 'folder' parameter to visually browse assets
+                # Otherwise, it assigns folder: None and hides them from the dashboard UI!
+                folder_path = os.path.dirname(public_id)
+                filename_only = os.path.basename(public_id)
+                
+                print(f"--- [THUMBNAIL LOGIC] Asking Cloudinary to upload URL: {self.image.url} into folder: {folder_path} As: {filename_only} ---")
+
+                # Pull directly from Cloudinary URL instead of managing memory chunks which occasionally crash!
+                result = cloudinary.uploader.upload(
+                    self.image.url,
+                    public_id=filename_only,
+                    folder=folder_path,
+                    transformation=[{'width': 400, 'height': 400, 'crop': 'fill', 'quality': 'auto'}],
+                    overwrite=True,
+                    resource_type="image"
+                )
+                
+                print(f"--- [THUMBNAIL LOGIC SUCCESS] Thumbnail generated: {result.get('secure_url')} ---")
+
+            except Exception as e:
+                import traceback
+                error_msg = f"Item thumbnail upload error for {self.id}: {e}\n{traceback.format_exc()}"
+                print(f"--- [THUMBNAIL LOGIC EXCEPTION] {error_msg} ---")
+
 
     def __str__(self):
         if self.sku:

@@ -12,7 +12,7 @@ env/
 .env/
 venv/
 .vscode/
-
+migartions/
 
 # Database
 db.sqlite3
@@ -28,6 +28,9 @@ db.sqlite3
 # Static & Media compiled files
 staticfiles/
 media/
+*.jpg
+*.png
+*.jpeg
 
 
 

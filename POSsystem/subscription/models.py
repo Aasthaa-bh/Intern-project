@@ -2,6 +2,13 @@
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from core.cloudinary_utils import get_cloudinary_upload_path
+
+def cloudinary_original_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='original')
+
+def cloudinary_thumbnail_path(instance, filename):
+    return get_cloudinary_upload_path(instance, filename, image_type='thumbnail')
 
 class Package(models.Model):
     name = models.CharField(max_length=50)
@@ -69,7 +76,7 @@ class SubscriptionPayment(models.Model):
     method = models.CharField(max_length=20)  # e.g. "KHALTI", "ESEWA", "BANK"
     transaction_ref = models.CharField(max_length=255, blank=True)
 
-    payment_proof = models.ImageField(upload_to="payments/proofs/", null=True, blank=True)
+    payment_proof = models.ImageField(upload_to=cloudinary_original_path, null=True, blank=True, max_length=512)
 
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
     paid_at = models.DateTimeField(auto_now_add=True)
