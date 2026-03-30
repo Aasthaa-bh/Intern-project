@@ -434,3 +434,66 @@ class ClothingStockAdjustmentForm(forms.Form):
         if item and item.variants.exists() and not variant:
             raise forms.ValidationError("Select a variant for products that manage stock by variant.")
         return cleaned_data
+
+
+# ── Cashier Forms ─────────────────────────────────────────────────────────────
+
+from django.contrib.auth import get_user_model, authenticate
+
+User = get_user_model()
+
+
+class CashierProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "username"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = field.name in ("username",)
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username", "").strip()
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        qs = User.objects.filter(username=username)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email", "").strip()
+        if email:
+            qs = User.objects.filter(email=email)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("This email is already in use.")
+        return email
+
+
+class CashierChangePasswordForm(forms.Form):
+    current_password = forms.CharField(widget=forms.PasswordInput)
+    new_password = forms.CharField(widget=forms.PasswordInput, min_length=8)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_current_password(self):
+        pwd = self.cleaned_data.get("current_password")
+        if self.user and not self.user.check_password(pwd):
+            raise forms.ValidationError("Current password is incorrect.")
+        return pwd
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new = cleaned_data.get("new_password")
+        confirm = cleaned_data.get("confirm_password")
+        if new and confirm and new != confirm:
+            raise forms.ValidationError("New passwords do not match.")
+        return cleaned_data

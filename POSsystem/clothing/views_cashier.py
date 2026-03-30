@@ -25,7 +25,7 @@ def cashier_dashboard(request):
     """Cashier dashboard with today's sales summary"""
     business = _get_cashier_business(request)
     if not business:
-        return redirect('accounts:login')
+        return redirect('clothing/cashier/dashboard')
 
     today = timezone.now().date()
     today_start = timezone.datetime.combine(today, timezone.datetime.min.time())
@@ -894,25 +894,22 @@ def update_profile(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    try:
-        user = request.user
-        user.first_name = request.POST.get('first_name', '').strip()
-        user.last_name = request.POST.get('last_name', '').strip()
-        user.email = request.POST.get('email', '').strip()
-        user.username = request.POST.get('username', '').strip()
-        user.save()
-
+    from .forms import CashierProfileForm
+    form = CashierProfileForm(request.POST, instance=request.user)
+    if form.is_valid():
+        user = form.save()
         return JsonResponse({
             'success': True,
             'user': {
-                'full_name': user.get_full_name(),
+                'full_name': user.get_full_name() or user.username,
                 'username': user.username,
                 'first_name': user.first_name,
             }
         })
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    errors = '; '.join(
+        f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()
+    )
+    return JsonResponse({'error': errors}, status=400)
 
 
 @login_required
@@ -921,50 +918,27 @@ def change_password(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    try:
-        from django.contrib.auth import authenticate
+    from .forms import CashierChangePasswordForm
+    from django.contrib.auth import update_session_auth_hash
 
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
+    form = CashierChangePasswordForm(request.POST, user=request.user)
+    if form.is_valid():
+        request.user.set_password(form.cleaned_data['new_password'])
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+        return JsonResponse({'success': True, 'message': 'Password changed successfully'})
 
-        # Validate current password
-        user = authenticate(username=request.user.username, password=current_password)
-        if not user:
-            return JsonResponse({'error': 'Current password is incorrect'}, status=400)
-
-        # Validate new passwords match
-        if new_password != confirm_password:
-            return JsonResponse({'error': 'New passwords do not match'}, status=400)
-
-        # Validate password strength
-        if len(new_password) < 8:
-            return JsonResponse({'error': 'Password must be at least 8 characters long'}, status=400)
-
-        # Change password
-        user.set_password(new_password)
-        user.save()
-
-        # Update session to prevent logout
-        from django.contrib.auth import update_session_auth_hash
-        update_session_auth_hash(request, user)
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Password changed successfully'
-        })
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    errors = '; '.join(
+        f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()
+    )
+    return JsonResponse({'error': errors}, status=400)
 
 
 # Helper functions
 
 def _get_cashier_business(request):
     """Get business for cashier user"""
-    if hasattr(request.user, 'business_users'):
-        return request.user.business_users.first().business
-    return None
+    return getattr(request.user, 'business', None)
 
 
 def _update_order_totals(order):

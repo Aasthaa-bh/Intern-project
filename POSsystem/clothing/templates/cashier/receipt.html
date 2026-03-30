@@ -1,0 +1,113 @@
+{% extends "owner/base.html" %}
+{% load static %}
+
+{% block page_title %}Receipt - {{ order.order_no }}{% endblock %}
+{% block page_subtitle %}Transaction completed{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow overflow-hidden">
+
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-6 px-4">
+            <p class="text-xl font-bold uppercase tracking-widest">{{ business.business_name|default:"POS System" }}</p>
+            <p class="text-xs opacity-80 mt-1">{{ business.address|default:"Kathmandu, Nepal" }}</p>
+            <p class="text-sm font-semibold mt-3">SALES RECEIPT</p>
+        </div>
+
+        <div class="p-5 font-mono text-sm space-y-4">
+
+            <!-- Info -->
+            <div class="space-y-1 text-gray-700 dark:text-gray-300">
+                <div class="flex justify-between">
+                    <span class="font-semibold">Order #</span><span>{{ order.order_no }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-semibold">Date</span><span>{{ order.opened_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% if customer_name %}
+                <div class="flex justify-between">
+                    <span class="font-semibold">Customer</span><span>{{ customer_name }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <span class="font-semibold">Cashier</span><span>{{ request.user.full_name|default:request.user.username }}</span>
+                </div>
+            </div>
+
+            <hr class="border-dashed border-gray-300 dark:border-gray-700">
+
+            <!-- Items -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <span class="flex-1">Item</span><span class="w-8 text-center">Qty</span><span class="w-20 text-right">Amount</span>
+                </div>
+                {% for item in items %}
+                <div class="flex justify-between text-gray-800 dark:text-gray-200">
+                    <span class="flex-1 pr-2">
+                        {{ item.item_name_snapshot }}
+                        {% if item.variant_name_snapshot %}<br><span class="text-xs text-gray-400">{{ item.variant_name_snapshot }}</span>{% endif %}
+                    </span>
+                    <span class="w-8 text-center">{{ item.quantity|floatformat:0 }}</span>
+                    <span class="w-20 text-right">Rs. {{ item.line_total|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <hr class="border-dashed border-gray-300 dark:border-gray-700">
+
+            <!-- Totals -->
+            <div class="space-y-1 text-gray-700 dark:text-gray-300">
+                <div class="flex justify-between">
+                    <span>Subtotal</span><span>Rs. {{ subtotal|floatformat:2 }}</span>
+                </div>
+                {% if discount_amt %}
+                <div class="flex justify-between text-green-600 dark:text-green-400">
+                    <span>Discount ({{ discount_pct }}% regular)</span><span>- Rs. {{ discount_amt|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <span>VAT (13%)</span><span>Rs. {{ vat|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between font-bold text-base text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-700 pt-2 mt-1">
+                    <span>TOTAL</span><span>Rs. {{ total|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 pt-1">
+                    <span>Payment</span><span>{{ payment_method|title }}</span>
+                </div>
+            </div>
+
+            {% if points_earned %}
+            <div class="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
+                <p class="text-yellow-700 dark:text-yellow-300 font-semibold text-sm">
+                    🏆 +{{ points_earned }} loyalty points earned!
+                </p>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 dark:bg-gray-800 text-center py-4 px-4 text-xs text-gray-500 space-y-1">
+            <p class="font-semibold text-gray-700 dark:text-gray-300">Thank you for your purchase!</p>
+            <p>Please keep this receipt for your records.</p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 mt-5">
+        <button onclick="window.print()" class="flex-1 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">🖨 Print</button>
+        <a href="{% url 'cashier_pos' %}" class="flex-1 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition text-center">🛒 New Sale</a>
+        <a href="{% url 'cashier_dashboard' %}" class="flex-1 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition text-center">🏠 Home</a>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * { visibility: hidden; }
+    .max-w-sm, .max-w-sm * { visibility: visible; }
+    .max-w-sm { position: absolute; left: 0; top: 0; width: 100%; }
+    .flex.gap-3.mt-5 { display: none; }
+}
+</style>
+{% endblock %}

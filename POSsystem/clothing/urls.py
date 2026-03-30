@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_cashier
+from . import views, views_cashier, esewa as esewa_views
 
 urlpatterns = [
     path("", views.inventory_dashboard, name="clothing_inventory_dashboard"),
@@ -30,27 +30,23 @@ urlpatterns = [
     path("suppliers/<int:supplier_id>/delete/", views.supplier_delete, name="clothing_supplier_delete"),
     path("low-stock/", views.low_stock_alert, name="clothing_low_stock"),
 
-    # Cashier Panel URLs
-    path("cashier/", views_cashier.cashier_dashboard, name="clothing_cashier_dashboard"),
-    path("cashier/pos/", views_cashier.pos_new_sale, name="clothing_cashier_pos"),
-    path("cashier/sales-history/", views_cashier.sales_history, name="clothing_cashier_sales_history"),
-    path("cashier/customers/", views_cashier.customers, name="clothing_cashier_customers"),
-    path("cashier/receipt/<int:invoice_id>/", views_cashier.receipt, name="clothing_cashier_receipt"),
-    path("cashier/profile/", views_cashier.profile, name="clothing_cashier_profile"),
+    # Cashier Panel (main pages)
+    path("cashier/dashboard/", views.cashier_dashboard, name="cashier_dashboard"),
+    path("cashier/", views.cashier_dashboard, name="clothing_cashier_dashboard"),
+    path("cashier/products/", views.cashier_products, name="cashier_products"),
+    path("cashier/pos/", views.cashier_pos, name="cashier_pos"),
+    path("cashier/sales/", views.cashier_sales_history, name="cashier_sales_history"),
+    path("cashier/profile/", views.cashier_profile, name="cashier_profile"),
+    path("cashier/receipt/<int:order_id>/", views.cashier_receipt, name="cashier_receipt"),
 
-    # AJAX endpoints for cashier
-    path("cashier/api/search-products/", views_cashier.search_products, name="clothing_cashier_search_products"),
-    path("cashier/api/add-to-cart/", views_cashier.add_to_cart, name="clothing_cashier_add_to_cart"),
-    path("cashier/api/update-cart/", views_cashier.update_cart_item, name="clothing_cashier_update_cart"),
-    path("cashier/api/remove-cart/", views_cashier.remove_cart_item, name="clothing_cashier_remove_cart"),
-    path("cashier/api/get-cart/<int:order_id>/", views_cashier.get_cart, name="clothing_cashier_get_cart"),
-    path("cashier/api/apply-promo/", views_cashier.apply_promo_code, name="clothing_cashier_apply_promo"),
-    path("cashier/api/apply-loyalty/", views_cashier.apply_loyalty_points, name="clothing_cashier_apply_loyalty"),
-    path("cashier/api/select-customer/", views_cashier.select_customer, name="clothing_cashier_select_customer"),
-    path("cashier/api/complete-sale/", views_cashier.complete_sale, name="clothing_cashier_complete_sale"),
-    path("cashier/api/update-customer/", views_cashier.update_customer, name="clothing_cashier_update_customer"),
-    path("cashier/api/loyalty-history/", views_cashier.loyalty_history, name="clothing_cashier_loyalty_history"),
-    path("cashier/api/sale-details/", views_cashier.sale_details, name="clothing_cashier_sale_details"),
+    # Cashier AJAX / actions
+    path("cashier/api/complete-sale/", views.cashier_complete_sale, name="cashier_complete_sale"),
+    path("cashier/api/lookup-customer/", views.cashier_lookup_customer, name="cashier_lookup_customer"),
     path("cashier/api/update-profile/", views_cashier.update_profile, name="clothing_cashier_update_profile"),
     path("cashier/api/change-password/", views_cashier.change_password, name="clothing_cashier_change_password"),
+    # eSewa payment
+    path("cashier/esewa/initiate/", esewa_views.esewa_initiate, name="clothing_esewa_initiate"),
+    path("cashier/esewa/success/",  esewa_views.esewa_success,  name="clothing_esewa_success"),
+    path("cashier/esewa/failure/",  esewa_views.esewa_failure,  name="clothing_esewa_failure"),
 ]
+

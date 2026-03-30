@@ -1,0 +1,50 @@
+{% extends "owner/base.html" %}
+{% load static %}
+
+{% block page_title %}Products{% endblock %}
+{% block page_subtitle %}Browse available products{% endblock %}
+
+{% block content %}
+<!-- Search -->
+<form method="GET" class="mb-6 flex gap-3">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search by name or SKU..."
+           class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Search</button>
+    {% if search %}
+    <a href="{% url 'cashier_products' %}" class="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">Clear</a>
+    {% endif %}
+</form>
+
+{% if products %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for product in products %}
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-4 flex flex-col gap-2">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-32 object-cover rounded-lg">
+        {% else %}
+        <div class="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-4xl">👕</div>
+        {% endif %}
+
+        <h3 class="font-semibold text-gray-800 dark:text-white text-sm">{{ product.name }}</h3>
+        {% if product.category %}
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ product.category.name }}</p>
+        {% endif %}
+        <p class="text-blue-600 dark:text-blue-400 font-bold">Rs. {{ product.price }}</p>
+
+        <div class="flex items-center justify-between text-xs">
+            <span class="{% if product.stock_qty > 0 %}text-green-600{% else %}text-red-500{% endif %}">
+                Stock: {{ product.stock_qty|floatformat:0 }}
+            </span>
+            {% if product.sku %}<span class="text-gray-400">{{ product.sku }}</span>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 text-gray-500 dark:text-gray-400">
+    <p class="text-5xl mb-4">📦</p>
+    <p class="text-lg font-medium">No products found</p>
+    {% if search %}<p class="text-sm">Try a different search term</p>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

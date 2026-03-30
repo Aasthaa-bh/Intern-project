@@ -40,7 +40,8 @@
 
             <nav class="flex-1 px-3 py-4 space-y-1">
 
-                <!-- Common -->
+                <!-- Common (owner/admin only) -->
+                {% if request.user.role != "CASHIER" %}
                 <a href="{% url 'owner_dashboard' %}"
                    class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/dashboard/' in request.path %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
@@ -50,6 +51,7 @@
                    class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/staff/' in request.path %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Staff Management" %}</span>
                 </a>
+                {% endif %}
 
                 <!-- RESTAURANT SIDEBAR -->
                 {% if current_business_type == "restaurant" %}
@@ -104,7 +106,35 @@
                         <span class="text-sm font-medium">{% trans "Reports" %}</span>
                     </a>
 
-                <!-- CLOTHING SIDEBAR -->
+                    <!-- CASHIER SIDEBAR (clothing cashier role) -->
+                {% elif request.user.role == "CASHIER" %}
+
+                    <a href="{% url 'cashier_dashboard' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_dashboard' or request.resolver_match.url_name == 'clothing_cashier_dashboard' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+
+                    <a href="{% url 'cashier_products' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_products' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">Products</span>
+                    </a>
+
+                    <a href="{% url 'cashier_pos' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_pos' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">Generate Bill (POS)</span>
+                    </a>
+
+                    <a href="{% url 'cashier_sales_history' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_sales_history' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">Sales History</span>
+                    </a>
+
+                    <a href="{% url 'cashier_profile' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_profile' %}bg-gray-800{% endif %}">
+                        <span class="text-sm font-medium">Profile</span>
+                    </a>
+
+                <!-- CLOTHING OWNER SIDEBAR -->
                 {% elif current_business_type == "clothing" %}
 
                     <a href="{% url 'clothing_inventory_dashboard' %}"

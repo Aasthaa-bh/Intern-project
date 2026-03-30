@@ -1,0 +1,53 @@
+{% extends "owner/base.html" %}
+{% load static %}
+
+{% block page_title %}Cashier Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ request.user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-2xl">🛒</div>
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Today's Sales</p>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ total_sales }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-2xl">💰</div>
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Today's Revenue</p>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">Rs. {{ total_revenue|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-2xl">📦</div>
+        <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Products Available</p>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ products_count }}</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="{% url 'cashier_pos' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-6 flex items-center gap-4 transition">
+        <span class="text-3xl">🧾</span>
+        <div>
+            <p class="text-lg font-semibold">New Sale</p>
+            <p class="text-sm opacity-80">Open POS and generate a bill</p>
+        </div>
+    </a>
+
+    <a href="{% url 'cashier_sales_history' %}" class="bg-gray-700 hover:bg-gray-800 text-white rounded-xl p-6 flex items-center gap-4 transition">
+        <span class="text-3xl">📊</span>
+        <div>
+            <p class="text-lg font-semibold">Sales History</p>
+            <p class="text-sm opacity-80">View past transactions</p>
+        </div>
+    </a>
+</div>
+{% endblock %}
