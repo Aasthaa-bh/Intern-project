@@ -32,6 +32,7 @@ class Command(BaseCommand):
                 Notification.objects.create(
                     business=offer.business,
                     notification_type='OFFER_EXPIRING',
+                    target_role='ADMIN',
                     title=f'Offer Expiring Soon: {offer.offer_name}',
                     message=f'This offer will expire in {days_left} day(s) on {offer.end_date}. {offer.get_discount_display()} discount.',
                     link=f'/clothing/offers/{offer.id}/',
@@ -66,6 +67,7 @@ class Command(BaseCommand):
                 Notification.objects.create(
                     business=offer.business,
                     notification_type='OFFER_EXPIRED',
+                    target_role='ADMIN',
                     title=f'Offer Expired: {offer.offer_name}',
                     message=f'This offer has expired on {offer.end_date}.',
                     link=f'/clothing/offers/{offer.id}/',

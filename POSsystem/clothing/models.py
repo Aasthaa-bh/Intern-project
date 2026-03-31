@@ -398,11 +398,20 @@ class Notification(models.Model):
         ('OFFER_EXPIRED', 'Offer Expired'),
         ('LOW_STOCK', 'Low Stock Alert'),
         ('PURCHASE_RECEIVED', 'Purchase Received'),
+        ('PAYMENT_COMPLETED', 'Payment Completed'),
+        ('PAYMENT_FAILED', 'Payment Failed'),
         ('GENERAL', 'General'),
+    )
+    
+    TARGET_ROLES = (
+        ('ADMIN', 'Admin (Owner/SuperAdmin)'),
+        ('CASHIER', 'Cashier'),
+        ('ALL', 'All Users'),
     )
     
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
+    target_role = models.CharField(max_length=20, choices=TARGET_ROLES, default='ADMIN')
     title = models.CharField(max_length=200)
     message = models.TextField()
     link = models.CharField(max_length=500, blank=True)
@@ -413,6 +422,7 @@ class Notification(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['business', 'is_read', 'created_at']),
+            models.Index(fields=['business', 'target_role', 'is_read']),
         ]
     
     def __str__(self):

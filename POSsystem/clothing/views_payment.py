@@ -75,17 +75,30 @@ def payment_success(request):
             # order.payment_status = 'PAID'
             # order.save()
             
-            # Create notification for successful payment
+            # Create notifications for successful payment
             from core.models import Business
             from clothing.models import Notification
             business = request.user.business if request.user.is_authenticated else Business.objects.first()
             
             if business:
+                # Notification for Admin (Owner/SuperAdmin)
                 Notification.objects.create(
                     business=business,
-                    notification_type='GENERAL',
-                    title='Payment Successful',
+                    notification_type='PAYMENT_COMPLETED',
+                    target_role='ADMIN',
+                    title='Payment Received',
                     message=f'Payment of Rs {callback_data["total_amount"]} completed successfully. Transaction: {callback_data.get("transaction_code", "N/A")}',
+                    link='',
+                    is_read=False
+                )
+                
+                # Notification for Cashier
+                Notification.objects.create(
+                    business=business,
+                    notification_type='PAYMENT_COMPLETED',
+                    target_role='CASHIER',
+                    title='Payment Confirmed',
+                    message=f'Customer payment of Rs {callback_data["total_amount"]} has been confirmed. Transaction: {callback_data.get("transaction_code", "N/A")}',
                     link='',
                     is_read=False
                 )
@@ -111,18 +124,109 @@ def payment_success(request):
 @csrf_exempt
 def payment_failure(request):
     """Handle eSewa failure callback"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     encoded_data = request.GET.get('data')
     
     error_message = 'Payment was cancelled or failed'
     transaction_uuid = None
+    amount = None
+    
+    logger.info(f"Payment failure callback received. Encoded data: {bool(encoded_data)}")
     
     if encoded_data:
         try:
             callback_data = decode_esewa_callback_data(encoded_data)
             transaction_uuid = callback_data.get('transaction_uuid')
+            amount = callback_data.get('total_amount')
             error_message = callback_data.get('message', error_message)
-        except:
+            logger.info(f"Decoded payment failure: UUID={transaction_uuid}, Amount={amount}")
+        except Exception as e:
+            logger.error(f"Error decoding payment failure data: {e}")
             pass
+    
+    # Create notifications for payment failure/cancellation
+    from core.models import Business
+    from clothing.models import Notification, ClothingEsewaPayment
+    
+    business = None
+    
+    # Try to get business from authenticated user
+    if request.user.is_authenticated and hasattr(request.user, 'business'):
+        business = request.user.business
+        logger.info(f"Got business from authenticated user: {business}")
+    
+    # If no business from user, try to get from ClothingEsewaPayment record
+    if not business and transaction_uuid:
+        try:
+            esewa_payment = ClothingEsewaPayment.objects.get(transaction_uuid=transaction_uuid)
+            business = esewa_payment.business
+            logger.info(f"Got business from ClothingEsewaPayment: {business}")
+        except ClothingEsewaPayment.DoesNotExist:
+            logger.warning(f"No ClothingEsewaPayment found for UUID: {transaction_uuid}")
+            pass
+    
+    # If still no business, get the first clothing business (fallback)
+    if not business:
+        business = Business.objects.filter(business_type__name__iexact='clothing').first()
+        logger.info(f"Using fallback business: {business}")
+    
+    # ALWAYS create a notification if we have a business (for debugging)
+    if business:
+        logger.info(f"Payment failure view called - creating notification for {business}")
+        if transaction_uuid:
+            logger.info(f"Creating payment failure notifications for business: {business}")
+            # Notification for Admin
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='ADMIN',
+                title='Payment Failed',
+                message=f'Payment cancelled or failed. {f"Amount: Rs {amount}. " if amount else ""}Transaction: {transaction_uuid}',
+                link='',
+                is_read=False
+            )
+            logger.info("Created ADMIN notification")
+            
+            # Notification for Cashier
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='CASHIER',
+                title='Payment Cancelled',
+                message=f'Customer payment was cancelled or failed. {f"Amount: Rs {amount}. " if amount else ""}Transaction: {transaction_uuid}',
+                link='',
+                is_read=False
+            )
+            logger.info("Created CASHIER notification")
+        else:
+            # No transaction UUID - user probably cancelled before payment
+            logger.info(f"Creating generic payment cancellation notification for business: {business}")
+            # Notification for Admin
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='ADMIN',
+                title='Payment Cancelled',
+                message='A payment attempt was cancelled by the customer.',
+                link='',
+                is_read=False
+            )
+            
+            # Notification for Cashier
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='CASHIER',
+                title='Payment Cancelled',
+                message='Customer cancelled the payment.',
+                link='',
+                is_read=False
+            )
+            logger.info("Created generic cancellation notifications")
+    else:
+        logger.error(f"CRITICAL: Cannot create notifications. Business is None!")
     
     context = {
         'error_message': error_message,

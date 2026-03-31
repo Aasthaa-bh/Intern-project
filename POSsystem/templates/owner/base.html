@@ -485,6 +485,7 @@
 
                     <div class="flex items-center gap-3">
                         {% if not hide_extra_menu %}
+                        <!-- DEBUG: unread_count={{ unread_notifications_count }}, recent_count={{ recent_notifications|length }} -->
                         <!-- Notification Bell -->
                         <div class="relative">
                             <button type="button" onclick="toggleNotificationMenu()"
@@ -503,13 +504,14 @@
                                  class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 z-50">
                                 <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications ({{ unread_notifications_count }})</h3>
                                         {% if unread_notifications_count > 0 %}
                                         <a href="{% url 'mark_all_notifications_read' %}" class="text-xs text-blue-600 hover:text-blue-700">Mark all as read</a>
                                         {% endif %}
                                     </div>
                                 </div>
                                 <div class="max-h-96 overflow-y-auto">
+                                    <!-- DEBUG: business_type={{ current_business_type }}, count={{ recent_notifications|length }}, unread={{ unread_notifications_count }} -->
                                     {% if recent_notifications %}
                                         {% for notification in recent_notifications %}
                                         <a href="{% url 'mark_notification_read' notification.id %}" 
@@ -524,6 +526,10 @@
                                                         <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                                                     {% elif notification.notification_type == 'LOW_STOCK' %}
                                                         <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                    {% elif notification.notification_type == 'PAYMENT_COMPLETED' %}
+                                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                    {% elif notification.notification_type == 'PAYMENT_FAILED' %}
+                                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                                                     {% else %}
                                                         <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
                                                     {% endif %}
@@ -537,8 +543,10 @@
                                         </a>
                                         {% endfor %}
                                     {% else %}
-                                        <div class="p-8 text-center text-gray-500 text-sm">
-                                            No notifications
+                                        <div class="p-8 text-center">
+                                            <p class="text-gray-500 text-sm">No notifications</p>
+                                            <p class="text-xs text-gray-400 mt-2">Debug: Type={{ current_business_type }}, Count={{ recent_notifications|length }}</p>
+                                            <p class="text-xs text-red-500 mt-1">Cache issue? Press Ctrl+Shift+R</p>
                                         </div>
                                     {% endif %}
                                 </div>

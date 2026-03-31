@@ -44,6 +44,7 @@ class Command(BaseCommand):
                     Notification.objects.create(
                         business=business,
                         notification_type='LOW_STOCK',
+                        target_role='ADMIN',
                         title=f'Low Stock Alert: {low_stock_count} items',
                         message=f'The following items are running low: {low_stock_items}',
                         link='/clothing/low-stock/',

@@ -174,6 +174,7 @@ def offer_create(request):
             Notification.objects.create(
                 business=business,
                 notification_type='OFFER_CREATED',
+                target_role='ADMIN',
                 title=f'New Offer Created: {offer.offer_name}',
                 message=f'{offer.get_offer_type_display()} - {offer.get_discount_display()} discount. Valid from {offer.start_date} to {offer.end_date}.',
                 link=f'/clothing/offers/{offer.id}/',
@@ -214,6 +215,7 @@ def offer_edit(request, offer_id):
             Notification.objects.create(
                 business=business,
                 notification_type='GENERAL',
+                target_role='ADMIN',
                 title=f'Offer Updated: {offer.offer_name}',
                 message=f'Offer details have been updated. {offer.get_discount_display()} discount.',
                 link=f'/clothing/offers/{offer.id}/',
@@ -250,6 +252,7 @@ def offer_delete(request, offer_id):
         Notification.objects.create(
             business=business,
             notification_type='GENERAL',
+            target_role='ADMIN',
             title=f'Offer Deleted: {offer_name}',
             message=f'The offer "{offer_name}" has been permanently deleted.',
             link='',
@@ -312,6 +315,7 @@ def offer_toggle_status(request, offer_id):
             Notification.objects.create(
                 business=cb,
                 notification_type='GENERAL',
+                target_role='ADMIN',
                 title=f'Offer {status_text.title()}: {offer.offer_name}',
                 message=f'The offer "{offer.offer_name}" has been {status_text}.',
                 link=f'/clothing/offers/{offer.id}/',

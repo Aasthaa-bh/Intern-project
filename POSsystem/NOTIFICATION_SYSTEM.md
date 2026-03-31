@@ -8,17 +8,20 @@ The notification system automatically alerts clothing business owners about impo
 ### 1. OFFER_CREATED
 - **Trigger**: When a new offer is created
 - **Auto-generated**: Yes (on offer creation)
+- **Target**: Admin (Owner/SuperAdmin)
 - **Message**: Shows offer details, discount amount, and validity period
 
 ### 2. OFFER_EXPIRING
 - **Trigger**: When an offer is about to expire (within 3 days)
 - **Auto-generated**: Via management command
+- **Target**: Admin (Owner/SuperAdmin)
 - **Command**: `python manage.py check_expiring_offers`
 - **Message**: Shows days remaining and offer details
 
 ### 3. OFFER_EXPIRED
 - **Trigger**: When an offer has expired
 - **Auto-generated**: Via management command
+- **Target**: Admin (Owner/SuperAdmin)
 - **Command**: `python manage.py check_expiring_offers`
 - **Message**: Notifies that offer has expired
 - **Action**: Automatically updates offer status to 'EXPIRED'
@@ -26,6 +29,7 @@ The notification system automatically alerts clothing business owners about impo
 ### 4. LOW_STOCK
 - **Trigger**: When item stock falls below reorder level
 - **Auto-generated**: Via management command
+- **Target**: Admin (Owner/SuperAdmin)
 - **Command**: `python manage.py check_low_stock`
 - **Message**: Lists items running low on stock
 - **Frequency**: Once per day per business
@@ -33,14 +37,38 @@ The notification system automatically alerts clothing business owners about impo
 ### 5. PURCHASE_RECEIVED
 - **Trigger**: When a purchase order is received (full or partial)
 - **Auto-generated**: Yes (on purchase receive)
+- **Target**: Admin (Owner/SuperAdmin)
 - **Message**: Shows supplier name and total amount
 
-### 6. GENERAL
+### 6. PAYMENT_COMPLETED
+- **Trigger**: When a payment is successfully completed via eSewa
+- **Auto-generated**: Yes (on payment verification)
+- **Target**: Admin (Owner/SuperAdmin) AND Cashier
+- **Message**: Shows payment amount and transaction code
+- **Note**: Creates separate notifications for both Admin and Cashier roles
+
+### 7. PAYMENT_FAILED
+- **Trigger**: When a payment is cancelled or fails
+- **Auto-generated**: Yes (on payment failure/cancellation)
+- **Target**: Admin (Owner/SuperAdmin) AND Cashier
+- **Message**: Shows payment amount and transaction UUID
+- **Note**: Creates separate notifications for both Admin and Cashier roles
+
+### 8. GENERAL
 - **Trigger**: For general updates (offer updates, deletions, etc.)
 - **Auto-generated**: Yes (on various actions)
+- **Target**: Admin (Owner/SuperAdmin)
 - **Message**: Varies based on action
 
 ## How Notifications Work
+
+### Role-Based Notification Targeting
+Notifications are now targeted to specific user roles:
+- **Admin (Owner/SuperAdmin)**: Receives business management notifications (offers, low stock, purchases, payments)
+- **Cashier**: Receives operational notifications (payment confirmations)
+- **All Users**: Can receive broadcast notifications when needed
+
+The system automatically filters notifications based on the logged-in user's role, ensuring each user only sees relevant notifications.
 
 ### Automatic Notifications
 These are created automatically when certain actions occur:
@@ -126,12 +154,18 @@ This script shows:
 class Notification(models.Model):
     business = ForeignKey(Business)
     notification_type = CharField(choices=NOTIFICATION_TYPES)
+    target_role = CharField(choices=TARGET_ROLES, default='ADMIN')
     title = CharField(max_length=200)
     message = TextField()
     link = CharField(max_length=500, blank=True)
     is_read = BooleanField(default=False)
     created_at = DateTimeField(auto_now_add=True)
 ```
+
+### Target Roles
+- **ADMIN**: For Owner and SuperAdmin users
+- **CASHIER**: For Cashier users
+- **ALL**: For all users in the business
 
 ## API Endpoints
 
@@ -152,10 +186,15 @@ GET /notifications/mark-all-read/
 ## Context Processor
 
 The `notifications` context processor in `core/context_processors.py` provides:
-- `recent_notifications`: Last 3 notifications (from last 30 days)
-- `unread_notifications_count`: Count of unread notifications
+- `recent_notifications`: Last 3 notifications (from last 30 days) filtered by user role
+- `unread_notifications_count`: Count of unread notifications for the user's role
 - `current_business`: Current user's business
 - `current_business_type`: Business type (e.g., 'clothing')
+
+The context processor automatically filters notifications based on the user's role:
+- **Owner/SuperAdmin**: See ADMIN and ALL notifications
+- **Cashier**: See CASHIER and ALL notifications
+- **Other roles**: See only ALL notifications
 
 Available in all templates automatically.
 
