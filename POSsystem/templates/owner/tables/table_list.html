@@ -5,68 +5,138 @@
 {% block page_title %}{% trans "Dining Tables" %}{% endblock %}
 {% block page_subtitle %}{% trans "Manage your restaurant seating layout" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-shell { width: 100%; max-width: none; }
+    .section-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        width: 100%;
+    }
+    .section-head {
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+    }
+    .section-subtitle {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .table-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .btn-soft {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .btn-danger-solid {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #ef4444;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .table th:last-child,
+    .table td:last-child {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-
-  <div class="p-5 flex items-center justify-between">
-    <div>
-      <div class="text-base font-semibold text-gray-900">{% trans "Tables" %}</div>
-      <div class="text-sm text-gray-500">{% trans "Capacity and status management" %}</div>
-    </div>
-    <a href="{% url 'table_create' %}"
-       class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-      + {% trans "Add Table" %}
-    </a>
-  </div>
-
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 text-gray-600">
-        <tr>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Table Name" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Table Number" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Category" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Capacity" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Status" %}</th>
-          <th class="text-right px-5 py-3 font-medium">{% trans "Actions" %}</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for t in tables %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-5 py-3">{{ t.name }}</td>
-          <td class="px-5 py-3">{{ t.number|nepali_number }}</td>
-          <td class="px-5 py-3">{{ t.category.name|translate_category  }}</td>
-          <td class="px-5 py-3">{{ t.capacity|nepali_number }}</td>
-          <td class="px-5 py-3">
-            <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
-              {{ t.status|translate_table_status  }}
-            </span>
-          </td>
-          <td class="px-5 py-3">
-            <div class="flex items-center justify-end gap-2">
-              <a href="{% url 'table_edit' t.id %}"
-                 class="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">
-                {% trans "Edit" %}
-              </a>
-
-              <a href="{% url 'table_delete' t.id %}"
-                 class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
-                {% trans "Delete" %}
-              </a>
+<div class="page-shell">
+    <div class="section-card">
+        <div class="section-head">
+            <div>
+                <div class="section-title">{% trans "Tables" %}</div>
+                <div class="section-subtitle">{% trans "Capacity and status management" %}</div>
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="px-5 py-10 text-center text-gray-500">
-            {% trans "No tables created yet." %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+            <a href="{% url 'table_create' %}" class="btn-primary">+ {% trans "Add Table" %}</a>
+        </div>
 
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Table Name" %}</th>
+                        <th>{% trans "Table Number" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "Capacity" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tables %}
+                    <tr>
+                        <td>{{ t.name }}</td>
+                        <td>{{ t.number|nepali_number }}</td>
+                        <td>{{ t.category.name|translate_category }}</td>
+                        <td>{{ t.capacity|nepali_number }}</td>
+                        <td>
+                            <span class="status-pill">{{ t.status|translate_table_status }}</span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'table_edit' t.id %}" class="btn-soft">{% trans "Edit" %}</a>
+                                <a href="{% url 'table_delete' t.id %}" class="btn-danger-solid">{% trans "Delete" %}</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; color:var(--text-muted); padding:40px 20px;">
+                            {% trans "No tables created yet." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

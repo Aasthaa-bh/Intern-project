@@ -1,16 +1,13 @@
 {% extends "owner/base.html" %}
-{% load static i18n %}
+{% load i18n nepali_number %}
 
-{% block title %}{% trans "Menu Categories" %}{% endblock %}
-{% block page_title %}{% trans "Menu Categories" %}{% endblock %}
-{% block page_subtitle %}{% trans "Organize your menu into categories" %}{% endblock %}
+{% block title %}{% trans "Table Categories" %}{% endblock %}
+{% block page_title %}{% trans "Table Categories" %}{% endblock %}
+{% block page_subtitle %}{% trans "Organize your restaurant seating" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .page-shell {
-        width: 100%;
-    }
-
+    .page-shell { width: 100%; max-width: none; }
     .section-card {
         background: #fff;
         border: 1px solid var(--border);
@@ -19,41 +16,29 @@
         overflow: hidden;
         width: 100%;
     }
-
     .section-head {
-        padding: 24px 24px 18px;
+        padding: 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
         flex-wrap: wrap;
     }
-
     .section-title {
         font-size: 16px;
         font-weight: 800;
         color: var(--text);
     }
-
-    .section-subtitle {
-        margin-top: 4px;
-        font-size: 13px;
-        color: var(--text-muted);
-    }
-
     .table-wrap {
         width: 100%;
         overflow-x: auto;
-        padding: 0 0 6px;
     }
-
     .table-actions {
         display: flex;
         justify-content: flex-end;
         gap: 10px;
         flex-wrap: wrap;
     }
-
     .btn-soft {
         display: inline-flex;
         align-items: center;
@@ -67,11 +52,6 @@
         font-weight: 700;
         font-size: 13px;
     }
-
-    .btn-soft:hover {
-        background: var(--surface-raised);
-    }
-
     .btn-danger-solid {
         display: inline-flex;
         align-items: center;
@@ -84,31 +64,6 @@
         font-weight: 700;
         font-size: 13px;
     }
-
-    .btn-danger-solid:hover {
-        background: #dc2626;
-    }
-
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        border: 1px solid transparent;
-    }
-
-    .status-pill.active {
-        background: #dcfce7;
-        color: #15803d;
-    }
-
-    .status-pill.inactive {
-        background: #f1f5f9;
-        color: #475569;
-    }
-
     .table th:last-child,
     .table td:last-child {
         text-align: right;
@@ -120,14 +75,8 @@
 <div class="page-shell">
     <div class="section-card">
         <div class="section-head">
-            <div>
-                <div class="section-title">{% trans "Categories" %}</div>
-                <div class="section-subtitle">{% trans "Active categories are shown to staff" %}</div>
-            </div>
-
-            <a href="{% url 'category_create' %}" class="btn-primary">
-                + {% trans "Add Category" %}
-            </a>
+            <div class="section-title">{% trans "Categories" %}</div>
+            <a href="{% url 'table_category_create' %}" class="btn-primary">+ {% trans "Add Category" %}</a>
         </div>
 
         <div class="table-wrap">
@@ -135,32 +84,26 @@
                 <thead>
                     <tr>
                         <th>{% trans "Name" %}</th>
-                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Code Prefix" %}</th>
                         <th>{% trans "Actions" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for c in categories %}
                     <tr>
-                        <td>{{ c.name }}</td>
-                        <td>
-                            {% if c.is_active %}
-                                <span class="status-pill active">{% trans "Active" %}</span>
-                            {% else %}
-                                <span class="status-pill inactive">{% trans "Inactive" %}</span>
-                            {% endif %}
-                        </td>
+                        <td>{{ c.name|translate_category }}</td>
+                        <td>{{ c.code_prefix }}</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{% url 'category_edit' c.id %}" class="btn-soft">{% trans "Edit" %}</a>
-                                <a href="{% url 'category_delete' c.id %}" class="btn-danger-solid">{% trans "Delete" %}</a>
+                                <a href="{% url 'table_category_edit' c.id %}" class="btn-soft">{% trans "Edit" %}</a>
+                                <a href="{% url 'table_category_delete' c.id %}" class="btn-danger-solid">{% trans "Delete" %}</a>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="3" style="text-align:center; color:var(--text-muted); padding:40px 20px;">
-                            {% trans "No categories found." %}
+                            {% trans "No table categories created yet." %}
                         </td>
                     </tr>
                     {% endfor %}
