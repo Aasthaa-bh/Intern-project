@@ -9,84 +9,89 @@
 {% endblock %}
 
 {% block content %}
-
-<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-    {% trans "Dashboard" %}
-</h1>
+<div class="fp-page-header mb-8">
+    <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{% trans "Clothing Dashboard" %}</h1>
+        <p class="text-sm text-slate-500 font-medium mt-1">{% trans "Overview of your business, staff, and package usage" %}</p>
+    </div>
+</div>
 
 <!-- Top Row: Package Info -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="text-sm text-gray-500 dark:text-gray-300">
-            {% trans "Active Package" %}
-        </p>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon purple">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+        </div>
+        <div class="stat-label">{% trans "Active Package" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if active_subscription %}
                 {{ active_subscription.package.name }}
             {% else %}
-                {% trans "Free / No Package" %}
+                {% trans "Free Class" %}
             {% endif %}
-        </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        </div>
+        <div class="stat-sub font-medium">
             {% if active_subscription and active_subscription.end_date %}
-                {% trans "Valid until" %} {{ active_subscription.end_date|date:"M d, Y" }}
+                {% trans "Valid until" %} <span class="text-indigo-600 dark:text-indigo-400">{{ active_subscription.end_date|date:"M d, Y" }}</span>
             {% else %}
-                {% trans "Upgrade to unlock more users and products" %}
+                {% trans "Upgrade to unlock more users" %}
             {% endif %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="text-sm text-gray-500 dark:text-gray-300">
-            {% trans "User Limit" %}
-        </p>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+    <!-- User Limit -->
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon blue">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </div>
+        <div class="stat-label">{% trans "User Limit" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
-                {{ current_users|default:0|nepali_number }} / {{ max_users|default:0|nepali_number }}
+                {{ current_users|default:0|nepali_number }} / <span class="text-indigo-600">{{ max_users|default:0|nepali_number }}</span>
             {% else %}
-                {{ current_users|default:0 }} / {{ max_users|default:0 }}
+                {{ current_users|default:0 }} / <span class="text-indigo-600">{{ max_users|default:0 }}</span>
             {% endif %}
-        </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            {% trans "Users currently used" %}
-        </p>
+        </div>
+        <div class="stat-sub font-medium">{% trans "Users currently used" %}</div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="text-sm text-gray-500 dark:text-gray-300">
-            {% trans "Product Limit" %}
-        </p>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+    <!-- Product Limit -->
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon indigo">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
+        <div class="stat-label">{% trans "Product Limit" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
-                {{ current_products|default:0|nepali_number }} / {{ max_products|default:0|nepali_number }}
+                {{ current_products|default:0|nepali_number }} / <span class="text-indigo-600">{{ max_products|default:0|nepali_number }}</span>
             {% else %}
-                {{ current_products|default:0 }} / {{ max_products|default:0 }}
+                {{ current_products|default:0 }} / <span class="text-indigo-600">{{ max_products|default:0 }}</span>
             {% endif %}
-        </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            {% trans "Products currently used" %}
-        </p>
+        </div>
+        <div class="stat-sub font-medium">{% trans "Products currently used" %}</div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="text-sm text-gray-500 dark:text-gray-300">
-            {% trans "Remaining Users" %}
-        </p>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+    <!-- Remaining Users -->
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon green">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="stat-label">{% trans "Remaining Users" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ remaining_users|default:0|nepali_number }}
             {% else %}
                 {{ remaining_users|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        </div>
+        <div class="stat-sub font-medium">
             {% if active_subscription %}
                 {% trans "Available user slots" %}
             {% else %}
                 {% trans "No active subscription" %}
             {% endif %}
-        </p>
+        </div>
     </div>
 
 </div>
@@ -94,84 +99,77 @@
 <!-- Bottom Row: Clothing Stats -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon blue"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <div class="stat-label">{% trans "Total Staff" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ total_staff|default:0|nepali_number }}
             {% else %}
                 {{ total_staff|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Total Staff" %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon indigo"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></div>
+        <div class="stat-label">{% trans "Categories" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ total_categories|default:0|nepali_number }}
             {% else %}
                 {{ total_categories|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Categories" %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon amber"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+        <div class="stat-label">{% trans "Products" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ total_products|default:0|nepali_number }}
             {% else %}
                 {{ total_products|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Products" %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon green"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></div>
+        <div class="stat-label">{% trans "Variants" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ total_variants|default:0|nepali_number }}
             {% else %}
                 {{ total_variants|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Variants" %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group border-red-200">
+        <div class="stat-icon red"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+        <div class="stat-label text-red-600">{% trans "Low Stock Items" %}</div>
+        <div class="stat-value text-red-600 tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ low_stock_count|default:0|nepali_number }}
             {% else %}
                 {{ low_stock_count|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Low Stock Items" %}
-        </p>
+        </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="stat-card relative overflow-hidden group">
+        <div class="stat-icon blue"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div class="stat-label">{% trans "Active Products" %}</div>
+        <div class="stat-value text-slate-800 dark:text-white tracking-tight">
             {% if request.LANGUAGE_CODE == "ne" %}
                 {{ active_products|default:0|nepali_number }}
             {% else %}
                 {{ active_products|default:0 }}
             {% endif %}
-        </h2>
-        <p class="text-gray-500 dark:text-gray-300 mt-2">
-            {% trans "Active Products" %}
-        </p>
+        </div>
     </div>
 
 </div>
-
 {% endblock %}

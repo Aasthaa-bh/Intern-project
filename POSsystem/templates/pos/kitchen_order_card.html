@@ -1,75 +1,111 @@
-<div class="kitchen-order-card {{ kitchen_order.status|lower|cut:'_' }}" style="cursor: pointer; margin-bottom: 20px;" onclick="window.location.href='/pos/order/{{ kitchen_order.order.id }}/';">
-    <div class="order-header">
-        <div>
-            <div class="order-number">{{ kitchen_order.order.order_no }}</div>
-            <div class="order-time">
-                {{ kitchen_order.sent_at|date:"d M Y" }} 
-                {{ kitchen_order.sent_at|time:"h:i A" }}
-            </div>
-        </div>
-        <span class="status-badge status-{{ kitchen_order.status|lower|cut:'_' }}">
-            {{ kitchen_order.get_status_display }}
-        </span>
-    </div>
-
-    <div class="order-meta">
-        {% if kitchen_order.order.table %}
-        <div class="meta-item">
-            <div class="meta-label">Table</div>
-            <div class="meta-value">{{ kitchen_order.order.table.name }}</div>
-        </div>
-        {% endif %}
-        <div class="meta-item">
-            <div class="meta-label">Waiter</div>
-            <div class="meta-value">{{ kitchen_order.order.created_by.get_full_name|default:kitchen_order.order.created_by.username }}</div>
-        </div>
-    </div>
-
-    <div class="items-list">
-        {% for item in kitchen_order.order.items.all %}
-        <div class="item-row">
-            <span class="item-name">{{ item.item_name_snapshot }}</span>
-            <span class="item-qty">{{ item.quantity }}x</span>
-        </div>
-        {% endfor %}
-    </div>
-
-    {% if kitchen_order.order.notes %}
-    <div style="padding: 12px; background: #fef5e7; border-radius: 8px; margin-bottom: 15px;">
-        <strong>Notes:</strong> {{ kitchen_order.order.notes }}
-    </div>
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer group" onclick="window.location.href='/pos/order/{{ kitchen_order.order.id }}/';">
+    
+    <!-- Top accent bar based on status -->
+    {% if kitchen_order.status == 'SENT_TO_KITCHEN' %}
+        <div class="absolute top-0 left-0 right-0 h-2 bg-amber-500"></div>
+    {% elif kitchen_order.status == 'PREPARING' %}
+        <div class="absolute top-0 left-0 right-0 h-2 bg-blue-500"></div>
+    {% elif kitchen_order.status == 'READY' %}
+        <div class="absolute top-0 left-0 right-0 h-2 bg-emerald-500"></div>
+    {% elif kitchen_order.status == 'SENT_TO_CASHIER' %}
+        <div class="absolute top-0 left-0 right-0 h-2 bg-red-500"></div>
     {% endif %}
 
-    <div class="action-buttons" style="display: flex; flex-direction: column; gap: 10px;">
-        {% if kitchen_order.status == 'SENT_TO_KITCHEN' %}
-        <button class="action-btn btn-preparing" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'PREPARING')">
-            Preparing
-        </button>
-        {% elif kitchen_order.status == 'PREPARING' %}
-        <button class="action-btn btn-ready" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'READY')">
-            Done/Ready
-        </button>
-        {% elif kitchen_order.status == 'READY' %}
-        <div style="text-align: center; padding: 15px; background: #c6f6d5; color: #22543d; border-radius: 8px; font-weight: bold;">
-            READY FOR PICKUP
+    <div class="p-5 flex flex-col h-full">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+            <div>
+                <div class="text-xl font-black text-slate-800 tracking-tight">#{{ kitchen_order.order.order_no }}</div>
+                <div class="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                    {{ kitchen_order.sent_at|date:"d M Y" }} • <span class="text-slate-500">{{ kitchen_order.sent_at|time:"h:i A" }}</span>
+                </div>
+            </div>
+            
+            {% if kitchen_order.status == 'SENT_TO_KITCHEN' %}
+                <span class="bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ kitchen_order.get_status_display }}</span>
+            {% elif kitchen_order.status == 'PREPARING' %}
+                <span class="bg-blue-100 text-blue-800 border border-blue-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ kitchen_order.get_status_display }}</span>
+            {% elif kitchen_order.status == 'READY' %}
+                <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ kitchen_order.get_status_display }}</span>
+            {% elif kitchen_order.status == 'SENT_TO_CASHIER' %}
+                <span class="bg-red-100 text-red-800 border border-red-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ kitchen_order.get_status_display }}</span>
+            {% else %}
+                <span class="bg-slate-100 text-slate-800 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ kitchen_order.get_status_display }}</span>
+            {% endif %}
         </div>
-        {% elif kitchen_order.status == 'SENT_TO_CASHIER' %}
-        <div style="text-align: center; padding: 15px; background: #fed7d7; color: #742a2a; border-radius: 8px; font-weight: bold;">
-            SENT TO CASHIER
+
+        <!-- Meta -->
+        <div class="grid grid-cols-2 gap-3 mb-5">
+            {% if kitchen_order.order.table %}
+            <div class="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Table</div>
+                <div class="text-sm font-bold text-slate-800">{{ kitchen_order.order.table.name }}</div>
+            </div>
+            {% endif %}
+            <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 {% if not kitchen_order.order.table %}col-span-2{% endif %}">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Waiter</div>
+                <div class="text-sm font-bold text-slate-800 truncate" title="{{ kitchen_order.order.created_by.get_full_name|default:kitchen_order.order.created_by.username }}">{{ kitchen_order.order.created_by.get_full_name|default:kitchen_order.order.created_by.username }}</div>
+            </div>
+        </div>
+
+        <!-- Items -->
+        <div class="mb-5 flex-grow">
+            <div class="space-y-2">
+                {% for item in kitchen_order.order.items.all %}
+                <div class="flex justify-between items-center py-2 px-3 bg-slate-50/50 rounded-lg border border-slate-100/50">
+                    <span class="font-bold text-slate-700 text-sm">{{ item.item_name_snapshot }}</span>
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold">{{ item.quantity }}x</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if kitchen_order.order.notes %}
+        <div class="p-3 bg-amber-50 border border-amber-100 rounded-lg mb-5 text-sm">
+            <strong class="text-amber-900 block mb-1 text-xs uppercase tracking-wider">Notes</strong> 
+            <span class="text-amber-800 font-medium">{{ kitchen_order.order.notes }}</span>
         </div>
         {% endif %}
-        
-        {% if kitchen_order.status != 'SENT_TO_CASHIER' %}
-        <button class="action-btn" onclick="event.stopPropagation(); window.location.href='/pos/order/{{ kitchen_order.order.id }}/';" style="background: #667eea; color: white;">
-            Add Items
-        </button>
-        <button class="action-btn" onclick="event.stopPropagation(); sendToCashier({{ kitchen_order.order.id }})" style="background: #ed8936; color: white;">
-            Send to Cashier
-        </button>
-        {% else %}
-        <div style="text-align: center; margin-top: 10px; color: #e53e3e; font-size: 14px; font-weight: bold;">
-            Bill Locked - No Editing
+
+        <!-- Actions -->
+        <div class="mt-auto space-y-2">
+            {% if kitchen_order.status == 'SENT_TO_KITCHEN' %}
+                <button class="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm shadow-blue-200 flex justify-center items-center gap-2 transform hover:-translate-y-0.5" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'PREPARING')">
+                    Start Preparing
+                </button>
+            {% elif kitchen_order.status == 'PREPARING' %}
+                <button class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm shadow-emerald-200 flex justify-center items-center gap-2 transform hover:-translate-y-0.5" onclick="event.stopPropagation(); updateStatus({{ kitchen_order.id }}, 'READY')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    Mark as Done / Ready
+                </button>
+            {% elif kitchen_order.status == 'READY' %}
+                <div class="text-center py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-bold flex items-center justify-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    READY FOR PICKUP
+                </div>
+            {% elif kitchen_order.status == 'SENT_TO_CASHIER' %}
+                <div class="text-center py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-bold">
+                    SENT TO CASHIER
+                </div>
+            {% endif %}
+            
+            {% if kitchen_order.status != 'SENT_TO_CASHIER' %}
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-3 rounded-lg transition-all border border-slate-200 text-sm flex justify-center items-center gap-1" onclick="event.stopPropagation(); window.location.href='/pos/order/{{ kitchen_order.order.id }}/';">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Items
+                </button>
+                <button class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-3 rounded-lg transition-all shadow-sm shadow-amber-200 text-sm flex justify-center items-center gap-1" onclick="event.stopPropagation(); sendToCashier({{ kitchen_order.order.id }})">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    To Cashier
+                </button>
+            </div>
+            {% else %}
+            <div class="text-center mt-3 text-red-500 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Bill Locked - No Editing
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>

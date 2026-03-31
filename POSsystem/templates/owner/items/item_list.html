@@ -5,120 +5,164 @@
 {% block page_title %}{% trans "Menu Items" %}{% endblock %}
 {% block page_subtitle %}{% trans "Create and manage your restaurant menu" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-shell {
+        max-width: 1320px;
+    }
+
+    .section-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .section-head {
+        padding: 24px 24px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .section-subtitle {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    .table-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-soft {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .btn-soft:hover {
+        background: var(--surface-raised);
+    }
+
+    .btn-danger-outline {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #fca5a5;
+        background: #fff;
+        color: #dc2626;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .btn-danger-outline:hover {
+        background: #fef2f2;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-pill.active {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-pill.inactive {
+        background: #f1f5f9;
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="page-shell">
+    <div class="section-card">
+        <div class="section-head">
+            <div>
+                <div class="section-title">{% trans "Items" %}</div>
+                <div class="section-subtitle">{% trans "Items are shown to cashier/waiter" %}</div>
+            </div>
 
-<div class="card">
+            <a href="{% url 'item_create' %}" class="btn-primary">
+                + {% trans "Add Item" %}
+            </a>
+        </div>
 
-  <div class="p-5 flex items-center justify-between">
-    
-    <div>
-      <div class="text-base font-semibold text-gray-900 dark:text-white">
-        {% trans "Items" %}
-      </div>
-
-      <div class="text-sm text-gray-500 dark:text-gray-300">
-        {% trans "Items are shown to cashier/waiter" %}
-      </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "Price" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th style="text-align:right;">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.category.name }}</td>
+                        <td>{% trans "Rs" %} {{ item.price }}</td>
+                        <td>
+                            {% if item.is_active %}
+                                <span class="status-pill active">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="status-pill inactive">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'item_delete' item.id %}" class="btn-danger-outline">{% trans "Delete" %}</a>
+                                <a href="{% url 'item_edit' item.id %}" class="btn-soft">{% trans "Edit" %}</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:var(--text-muted); padding:40px 20px;">
+                            {% trans "No items found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <a href="{% url 'item_create' %}"
-       class="btn-primary">
-       + {% trans "Add Item" %}
-    </a>
-
-  </div>
-
-  <div class="overflow-x-auto">
-
-    <table class="table">
-
-      <thead class="bg-gray-50 dark:bg-gray-800">
-
-        <tr>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Name" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Category" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Price" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Status" %}</th>
-          <th class="text-right px-5 py-3 font-medium">{% trans "Actions" %}</th>
-        </tr>
-
-      </thead>
-
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-
-        {% for item in items %}
-
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-
-          <td class="px-5 py-3 text-gray-900 dark:text-gray-200">
-            {{ item.name }}
-          </td>
-
-          <td class="px-5 py-3 text-gray-700 dark:text-gray-300">
-            {{ item.category.name }}
-          </td>
-
-          <td class="px-5 py-3 text-gray-700 dark:text-gray-300">
-            {% trans "Rs" %} {{ item.price }}
-          </td>
-
-          <td class="px-5 py-3">
-
-            {% if item.is_active %}
-
-            <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-              {% trans "Active" %}
-            </span>
-
-            {% else %}
-
-            <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-              {% trans "Inactive" %}
-            </span>
-
-            {% endif %}
-
-          </td>
-
-          <td class="px-5 py-3 text-right">
-
-
-            <a href="{% url 'item_delete' item.id %}"
-               class="px-3 py-1.5 rounded-md border border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-700">
-              {% trans "Delete" %}
-            </a>
-
-            
-            <a href="{% url 'item_edit' item.id %}"
-               class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-              {% trans "Edit" %}
-            </a>
-
-            
-
-
-          </td>
-
-        </tr>
-
-        {% empty %}
-
-        <tr>
-
-          <td colspan="5" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
-            {% trans "No items found." %}
-          </td>
-
-        </tr>
-
-        {% endfor %}
-
-      </tbody>
-
-    </table>
-
-  </div>
-
 </div>
-
 {% endblock %}

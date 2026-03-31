@@ -1,449 +1,90 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_waiter.html' %}
 
 {% block title %}Done Orders - FlexiPOS Waiter{% endblock %}
+{% block mobile_title %}Waiter Panel{% endblock %}
 
-{% block extra_css %}
-<style>
-    body {
-        background: #f5f5f5;
-        min-height: 100vh;
-        margin: 0;
-        padding: 0;
-    }
-
-    .main-container {
-        display: flex;
-        min-height: 100vh;
-    }
-
-    /* Sidebar Navigation - Same as dashboard */
-    .sidebar {
-        width: 250px;
-        background: #1a1a1a;
-        color: white;
-        padding: 0;
-        position: fixed;
-        height: 100vh;
-        left: 0;
-        top: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .sidebar-header {
-        padding: 30px 20px;
-        border-bottom: 1px solid #333;
-    }
-
-    .sidebar-title {
-        font-size: 22px;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 5px;
-    }
-
-    .sidebar-subtitle {
-        font-size: 12px;
-        color: #999;
-    }
-
-    .sidebar-nav {
-        flex: 1;
-        padding: 20px 0;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        padding: 15px 25px;
-        color: #ccc;
-        text-decoration: none;
-        transition: all 0.3s;
-        cursor: pointer;
-        border-left: 4px solid transparent;
-        position: relative;
-    }
-
-    .nav-item:hover {
-        background: #2a2a2a;
-        color: white;
-        border-left-color: white;
-    }
-
-    .nav-item.active {
-        background: #2a2a2a;
-        color: white;
-        border-left-color: white;
-    }
-
-    .nav-item-icon {
-        font-size: 20px;
-        margin-right: 15px;
-        width: 25px;
-        text-align: center;
-    }
-
-    .nav-item-text {
-        font-size: 15px;
-        font-weight: 500;
-    }
-
-    .nav-badge {
-        position: absolute;
-        right: 20px;
-        background: #e53e3e;
-        color: white;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: bold;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .sidebar-footer {
-        padding: 20px;
-        border-top: 1px solid #333;
-    }
-
-    .profile-section {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 15px;
-    }
-
-    .profile-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: white;
-        color: #1a1a1a;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    .profile-info {
-        flex: 1;
-    }
-
-    .profile-name {
-        font-weight: bold;
-        color: white;
-        font-size: 14px;
-    }
-
-    .profile-role {
-        font-size: 12px;
-        color: #999;
-    }
-
-    .logout-btn {
-        width: 100%;
-        background: white;
-        color: #1a1a1a;
-        border: none;
-        padding: 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
-
-    .logout-btn:hover {
-        background: #e5e5e5;
-    }
-
-    /* Main Content Area */
-    .content-area {
-        margin-left: 250px;
-        flex: 1;
-        padding: 30px;
-        background: #f5f5f5;
-    }
-
-    .page-header {
-        background: white;
-        padding: 25px 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .page-title {
-        font-size: 28px;
-        font-weight: bold;
-        color: #1a1a1a;
-        margin-bottom: 5px;
-    }
-
-    .page-subtitle {
-        color: #666;
-        font-size: 14px;
-    }
-
-    /* Orders Grid */
-    .orders-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
-    }
-
-    .order-card {
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        cursor: pointer;
-        transition: all 0.3s;
-        border-left: 5px solid #48bb78;
-        animation: glow 2s infinite;
-    }
-
-    @keyframes glow {
-        0%, 100% { box-shadow: 0 0 10px rgba(72, 187, 120, 0.3); }
-        50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.6); }
-    }
-
-    .order-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 20px rgba(72, 187, 120, 0.5);
-    }
-
-    .order-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f5f5f5;
-    }
-
-    .order-number {
-        font-size: 24px;
-        font-weight: bold;
-        color: #1a1a1a;
-    }
-
-    .ready-badge {
-        background: #48bb78;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .order-info {
-        margin-bottom: 20px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
-        color: #666;
-        font-size: 14px;
-    }
-
-    .info-label {
-        font-weight: 600;
-        color: #1a1a1a;
-    }
-
-    .items-list {
-        background: #f5f5f5;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-
-    .items-title {
-        font-weight: bold;
-        color: #1a1a1a;
-        margin-bottom: 10px;
-    }
-
-    .item-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #e5e5e5;
-    }
-
-    .item-row:last-child {
-        border-bottom: none;
-    }
-
-    .action-btn {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-        background: #1a1a1a;
-        color: white;
-    }
-
-    .action-btn:hover {
-        background: #2a2a2a;
-    }
-
-    .empty-state {
-        background: white;
-        border-radius: 12px;
-        padding: 60px 30px;
-        text-align: center;
-        color: #666;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
-</style>
+{% block sidebar %}
+{% include 'pos/waiter_sidebar.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="main-container">
-    <!-- Sidebar Navigation -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">FlexiPOS</div>
-            <div class="sidebar-subtitle">Waiter Dashboard</div>
-        </div>
-        
-        <div class="sidebar-nav">
-            <a href="{% url 'waiter_dashboard' %}" class="nav-item">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Dashboard</span>
-            </a>
-            <a href="{% url 'waiter_tables' %}" class="nav-item">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Tables</span>
-            </a>
-            <a href="{% url 'waiter_done_orders' %}" class="nav-item active">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Done Orders</span>
-                {% if ready_orders_count > 0 %}
-                <span class="nav-badge">{{ ready_orders_count }}</span>
-                {% endif %}
-            </a>
-            
-            <div style="padding: 15px 25px; color: #999; font-size: 12px; text-transform: uppercase; margin-top: 20px;">
-                Create New Order
-            </div>
-            
-            <a href="{% url 'create_order_by_type' 'DINE_IN' %}" class="nav-item">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Dine In</span>
-            </a>
-            <a href="{% url 'create_order_by_type' 'TAKEAWAY' %}" class="nav-item">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Takeaway</span>
-            </a>
-            <a href="{% url 'create_order_by_type' 'DELIVERY' %}" class="nav-item">
-                <span class="nav-item-icon"></span>
-                <span class="nav-item-text">Delivery</span>
-            </a>
-        </div>
-        
-        <div class="sidebar-footer">
-            <div class="profile-section">
-                <div class="profile-icon">
-                    {{ user.get_full_name|default:user.username|slice:":1"|upper }}
-                </div>
-                <div class="profile-info">
-                    <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
-                    <div class="profile-role">Waiter</div>
-                </div>
-            </div>
-            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="content-area">
-        <div class="page-header">
-            <div class="page-title">Orders Ready from Kitchen ({{ ready_orders_count }})</div>
-            <div class="page-subtitle">Orders completed by kitchen and ready to serve</div>
-        </div>
-
-        {% if ready_orders %}
-        <div class="orders-grid">
-            {% for kitchen_order in ready_orders %}
-            <div class="order-card" onclick="window.location.href='{% url 'order_detail' kitchen_order.order.id %}'">
-                <div class="order-header">
-                    <div class="order-number">{{ kitchen_order.order.order_no }}</div>
-                    <span class="ready-badge">READY</span>
-                </div>
-                
-                <div class="order-info">
-                    {% if kitchen_order.order.table %}
-                    <div class="info-row">
-                        <span class="info-label">Table:</span>
-                        <span>{{ kitchen_order.order.table.name }}</span>
-                    </div>
-                    {% endif %}
-                    <div class="info-row">
-                        <span class="info-label">Order Type:</span>
-                        <span>{{ kitchen_order.order.get_order_type_display }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Ready At:</span>
-                        <span>{{ kitchen_order.ready_at|date:"h:i A" }}</span>
-                    </div>
-                </div>
-                
-                <div class="items-list">
-                    <div class="items-title">Items ({{ kitchen_order.order.items.count }})</div>
-                    {% for item in kitchen_order.order.items.all %}
-                    <div class="item-row">
-                        <span>{{ item.item_name_snapshot }}</span>
-                        <span style="font-weight: bold;">{{ item.quantity }}x</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <button class="action-btn" onclick="event.stopPropagation(); window.location.href='{% url 'order_detail' kitchen_order.order.id %}'">
-                    View Order Details
-                </button>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-icon"></div>
-            <h3>No Orders Ready</h3>
-            <p>All caught up! No orders waiting from kitchen.</p>
-        </div>
-        {% endif %}
-    </div>
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8">
+    <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight mb-1 flex items-center gap-3">
+        Ready from Kitchen
+        <span class="bg-emerald-100 text-emerald-800 text-sm px-3 py-1 rounded-full font-bold shadow-sm">{{ ready_orders_count }}</span>
+    </h1>
+    <p class="text-slate-500 font-medium text-sm md:text-base">Orders completed by kitchen and ready to serve</p>
 </div>
+
+{% if ready_orders %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for kitchen_order in ready_orders %}
+    <div class="bg-white rounded-2xl shadow-sm border-2 border-emerald-400 p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden"
+         onclick="window.location.href='{% url 'order_detail' kitchen_order.order.id %}'">
+
+        <div class="absolute inset-x-0 bottom-0 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider py-2 text-center transform translate-y-full group-hover:translate-y-0 transition-transform">
+            View Details
+        </div>
+
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Order</div>
+                <div class="text-3xl font-black text-slate-800 tracking-tight leading-none mb-1">#{{ kitchen_order.order.order_no }}</div>
+            </div>
+            <span class="bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-black tracking-widest shadow-sm animate-pulse">
+                READY
+            </span>
+        </div>
+
+        <div class="space-y-3 mb-6 bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+            {% if kitchen_order.order.table %}
+            <div class="flex justify-between items-center text-sm">
+                <span class="font-bold text-slate-500">Table</span>
+                <span class="font-black text-slate-800">{{ kitchen_order.order.table.name }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between items-center text-sm">
+                <span class="font-bold text-slate-500">Type</span>
+                <span class="font-bold text-slate-700">{{ kitchen_order.order.get_order_type_display }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm border-t border-slate-200/60 pt-3">
+                <span class="font-bold text-slate-500">Ready At</span>
+                <span class="font-bold text-slate-700">{{ kitchen_order.ready_at|date:"h:i A" }}</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-2">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span>Items List</span>
+                <span class="bg-slate-200 text-slate-600 px-2 rounded-full">{{ kitchen_order.order.items.count }}</span>
+            </div>
+            <div class="space-y-2 max-h-32 overflow-y-auto pr-1">
+                {% for item in kitchen_order.order.items.all %}
+                <div class="flex justify-between items-start text-sm border-b border-slate-200/50 pb-2 last:border-0 last:pb-0">
+                    <span class="font-bold text-slate-700 leading-tight pr-2">{{ item.item_name_snapshot }}</span>
+                    <span class="font-black text-indigo-600 flex-shrink-0">{{ item.quantity }}x</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-3xl border border-slate-200 border-dashed p-12 text-center shadow-sm max-w-2xl mx-auto mt-10">
+    <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-400">
+        <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    </div>
+    <h3 class="text-2xl font-bold text-slate-800 mb-2">No Orders Ready</h3>
+    <p class="text-slate-500 font-medium text-lg">All caught up! The kitchen is still working on active orders.</p>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Auto-refresh every 15 seconds for done orders
-    setTimeout(() => {
-        location.reload();
-    }, 15000);
+    setTimeout(() => { location.reload(); }, 15000);
 </script>
 {% endblock %}

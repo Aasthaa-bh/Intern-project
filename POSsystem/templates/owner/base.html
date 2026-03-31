@@ -6,13 +6,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Owner Panel{% endblock %}</title>
+    <title>{% block title %}FlexiPOS{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class'
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
 
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -20,834 +22,678 @@
 
     <style>
         :root {
-            --bg-soft: #f4f7fb;
-            --bg-deep: #e6ecf5;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --surface-soft: #f7f9fc;
-            --surface-strong: #eef3fb;
-            --border: #d8e1ee;
-            --border-strong: #c0cbdd;
-            --text-main: #132033;
-            --text-muted: #5f6f87;
-            --brand-dark: #0f1728;
-            --brand-mid: #1d2b40;
-            --primary: #2b6df8;
-            --primary-dark: #1f57cd;
-            --primary-soft: #e8f0ff;
-            --success: #1f9d63;
-            --success-dark: #15784a;
-            --success-soft: #e7f8f0;
-            --warning: #d9822b;
-            --warning-dark: #b8681d;
-            --warning-soft: #fff2e4;
-            --danger: #d84c63;
-            --danger-dark: #b93d53;
-            --danger-soft: #ffe9ee;
-            --info: #4c7df0;
-            --info-dark: #345dc0;
-            --info-soft: #edf2ff;
-            --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
-            --shadow-strong: 0 14px 30px rgba(43, 109, 248, 0.2);
+            --surface-raised: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text: #0f172a;
+            --text-muted: #475569;
+            --text-subtle: #94a3b8;
+            --sidebar-bg: #0f172a;
+            --sidebar-border: rgba(255,255,255,0.05);
+            --sidebar-text: #94a3b8;
+            --sidebar-text-active: #ffffff;
+            --sidebar-hover: rgba(255,255,255,0.05);
+            --sidebar-active: rgba(99,102,241,0.15);
+            --sidebar-active-border: #818cf8;
+            --accent: #4f46e5;
+            --accent-dark: #4338ca;
+            --accent-soft: #e0e7ff;
+            --success: #10b981;
+            --success-soft: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --info: #3b82f6;
+            --info-soft: #eff6ff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --radius-lg: 20px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            color: var(--text-main);
-            font-family: "Segoe UI Variable", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 14.5px;
+            line-height: 1.5;
+            color: var(--text);
+            background: var(--bg);
         }
 
-        .inventory-compact {
-            font-size: 14px;
+        .fp-sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 272px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            border-right: 1px solid var(--sidebar-border);
         }
 
-        .inventory-compact .btn {
-            gap: 5px;
-            padding: 6px 9px;
-            border-radius: 8px;
-            font-size: 11px;
-        }
-
-        .inventory-compact .card {
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-        }
-
-        .inventory-compact .card-header {
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .inventory-compact table th,
-        .inventory-compact table td {
-            padding: 7px 8px;
-            font-size: 11.5px;
-            line-height: 1.3;
-        }
-
-        .inventory-compact table th {
-            font-size: 11px;
-        }
-
-        .inventory-compact input,
-        .inventory-compact select,
-        .inventory-compact textarea {
-            padding: 6px 8px;
-            font-size: 12px;
-            border-radius: 7px;
-        }
-
-        .inventory-compact label {
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
-
-        .inventory-compact .badge {
-            padding: 2px 7px;
-            font-size: 10px;
-        }
-
-        .inventory-sidebar {
-            width: 14rem;
-        }
-
-        .inventory-compact .inventory-sidebar .inventory-shell-title {
-            font-size: 1rem;
-        }
-
-        .inventory-compact .inventory-sidebar .inventory-shell-subtitle,
-        .inventory-compact .inventory-sidebar .inventory-business-copy {
-            font-size: 11px;
-        }
-
-        .inventory-compact .inventory-sidebar nav a,
-        .inventory-compact .inventory-sidebar nav button {
-            padding-top: 0.45rem;
-            padding-bottom: 0.45rem;
-        }
-
-        .inventory-compact .inventory-sidebar nav .text-sm {
-            font-size: 0.84rem;
-        }
-
-        .btn {
-            display: inline-flex;
+        .fp-sidebar-logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 7px 12px;
+            gap: 10px;
+        }
+
+        .fp-logo-mark {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             border-radius: 9px;
-            border: 1px solid transparent;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            white-space: nowrap;
-            line-height: 1.2;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 15px; color: white;
+            letter-spacing: -0.5px; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.35);
         }
 
-        .btn-primary {
-            background: #2563eb;
-            color: #fff;
-        }
+        .fp-logo-text { line-height: 1.2; }
+        .fp-logo-title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+        .fp-logo-sub { font-size: 11px; color: var(--sidebar-text); margin-top: 1px; }
 
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-success {
-            background: #059669;
-            color: #fff;
-        }
-
-        .btn-success:hover {
-            background: #047857;
-        }
-
-        .btn-info {
-            background: #2563eb;
-            color: #fff;
-        }
-
-        .btn-info:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-warning {
-            background: #d97706;
-            color: #fff;
-        }
-
-        .btn-warning:hover {
-            background: #b45309;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: #fff;
-        }
-
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-secondary {
-            background: #fff;
-            color: #111827;
-            border-color: #d1d5db;
-        }
-
-        .btn-secondary:hover {
-            background: #f9fafb;
-        }
-
-        .card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-
-        .card-header {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #111827;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #e5e7eb;
-        }
-
-        .badge-success {
-            background: #ecfdf5;
-            color: #047857;
-            border-color: #a7f3d0;
-        }
-
-        .badge-warning {
-            background: #fff7ed;
-            color: #b45309;
-            border-color: #fed7aa;
-        }
-
-        .alert {
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            margin-bottom: 10px;
-        }
-
-        .alert-error {
-            color: #b91c1c;
-            background: #fef2f2;
-            border-color: #fecaca;
-        }
-
-        .alert-success {
-            color: #14532d;
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-        }
-
-        .alert-info {
-            color: #1e3a8a;
-            background: #eff6ff;
-            border-color: #bfdbfe;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        table th,
-        table td {
-            padding: 9px 10px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            font-size: 13px;
-            line-height: 1.45;
-        }
-
-        table th {
-            background: #111827;
-            color: #fff;
-            font-weight: 600;
-            font-size: 12.5px;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 7px 10px;
-            border: 1px solid #d1d5db;
+        .fp-biz-badge {
+            margin: 12px 16px;
+            padding: 8px 12px;
+            background: rgba(99,102,241,0.08);
+            border: 1px solid rgba(99,102,241,0.15);
             border-radius: 8px;
-            background: #fff;
-            font-size: 13px;
+        }
+        .fp-biz-badge .biz-name { font-size: 12px; font-weight: 600; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fp-biz-badge .biz-type { font-size: 10px; color: rgba(165,180,252,0.6); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .fp-nav { flex: 1; padding: 10px; overflow-y: auto; }
+
+        .fp-nav-section-label {
+            font-size: 10px; font-weight: 700;
+            color: rgba(255,255,255,0.25);
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 12px 12px 4px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 700;
-            color: #1f2937;
-            font-size: 13px;
+        .fp-nav-item {
+            display: flex; align-items: center; gap: 9px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 13.5px; font-weight: 500;
+            transition: all 0.15s ease;
+            cursor: pointer; border: none;
+            background: transparent; width: 100%;
+            text-align: left; margin-bottom: 1px;
+            position: relative;
         }
+        .fp-nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+        .fp-nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 600; }
+        .fp-nav-item.active::before {
+            content: '';
+            position: absolute; left: 0; top: 4px; bottom: 4px;
+            width: 3px; background: var(--sidebar-active-border);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .fp-nav-icon { width: 18px; height: 18px; opacity: 0.75; flex-shrink: 0; }
+        .fp-nav-item.active .fp-nav-icon, .fp-nav-item:hover .fp-nav-icon { opacity: 1; }
+
+        .fp-nav-chevron { margin-left: auto; width: 14px; height: 14px; opacity: 0.4; transition: transform 0.2s; }
+        .fp-nav-chevron.open { transform: rotate(90deg); }
+
+        .fp-sub-menu { margin-left: 28px; margin-top: 2px; margin-bottom: 4px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.08); }
+        .fp-sub-menu a { display: block; padding: 6px 8px; font-size: 12.5px; color: rgba(255,255,255,0.5); text-decoration: none; border-radius: 6px; font-weight: 500; transition: all 0.15s; }
+        .fp-sub-menu a:hover, .fp-sub-menu a.active { color: #fff; background: rgba(255,255,255,0.05); }
+
+        .fp-sidebar-footer { padding: 12px 14px; border-top: 1px solid var(--sidebar-border); font-size: 11.5px; color: rgba(255,255,255,0.3); }
+        .fp-sidebar-footer span { color: rgba(255,255,255,0.6); font-weight: 600; }
+
+        .fp-main { margin-left: 272px; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .fp-topbar {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px; height: 58px;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+
+        .fp-page-info { flex: 1; min-width: 0; }
+        .fp-page-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
+        .fp-page-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+        .fp-topbar-right { display: flex; align-items: center; gap: 6px; }
+        .fp-topbar-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+        .fp-icon-btn {
+            width: 36px; height: 36px; border-radius: 9px;
+            border: 1px solid var(--border); background: var(--surface);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted); transition: all 0.15s; position: relative;
+        }
+        .fp-icon-btn:hover { background: var(--surface-raised); color: var(--text); border-color: var(--border-strong); }
+        .fp-icon-btn svg { width: 16px; height: 16px; }
+
+        .fp-noti-count {
+            position: absolute; top: 4px; right: 4px;
+            min-width: 16px; height: 16px;
+            background: var(--danger); border-radius: 99px;
+            font-size: 9px; font-weight: 800; color: white;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px; border: 2px solid white;
+        }
+
+        .fp-avatar-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 4px 10px 4px 4px;
+            border-radius: 99px; border: 1px solid var(--border);
+            background: var(--surface); cursor: pointer;
+            transition: all 0.15s; font-size: 13px; font-weight: 600; color: var(--text);
+        }
+        .fp-avatar-btn:hover { background: var(--surface-raised); border-color: var(--border-strong); }
+        .fp-avatar {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: white; flex-shrink: 0;
+        }
+
+        .fp-dropdown {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow-lg);
+            z-index: 200; overflow: hidden;
+            animation: dropIn 0.15s ease;
+        }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .fp-dropdown-header { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-raised); }
+        .fp-dropdown-header .fp-dh-title { font-size: 13px; font-weight: 700; color: var(--text); }
+        .fp-dropdown-header .fp-dh-email { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+        .fp-dropdown a, .fp-dropdown button {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 16px; font-size: 13px; color: var(--text);
+            text-decoration: none; background: none; border: none;
+            width: 100%; text-align: left; cursor: pointer; transition: background 0.1s;
+        }
+        .fp-dropdown a:hover, .fp-dropdown button:hover { background: var(--surface-raised); }
+        .fp-dropdown a.danger, .fp-dropdown button.danger { color: var(--danger); }
+        .fp-dropdown a.danger:hover { background: var(--danger-soft); }
+        .fp-dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+        .fp-noti-dropdown { width: 320px; }
+        .fp-profile-dropdown { width: 220px; }
+
+        .fp-noti-item { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+        .fp-noti-item:hover { background: var(--surface-raised); }
+        .fp-noti-item.unread { background: #f5f7ff; }
+        .fp-noti-dot-sm { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+        .fp-noti-dot-sm.read { background: var(--border-strong); }
+        .fp-noti-msg { font-size: 12.5px; color: var(--text); line-height: 1.4; }
+        .fp-noti-time { font-size: 11px; color: var(--text-subtle); margin-top: 3px; }
+
+        .fp-content { padding: 24px; flex: 1; }
+
+        .fp-flash {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: var(--radius-sm);
+            font-size: 13px; margin-bottom: 8px; border: 1px solid transparent;
+        }
+        .fp-flash.success { background: var(--success-soft); color: #065f46; border-color: #a7f3d0; }
+        .fp-flash.error   { background: var(--danger-soft);  color: #991b1b; border-color: #fecaca; }
+        .fp-flash.info    { background: var(--info-soft);    color: #1e40af; border-color: #bfdbfe; }
+        .fp-flash.warning { background: var(--warning-soft); color: #92400e; border-color: #fde68a; }
+        .fp-flash svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+        .card-header { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, transform 0.2s; }
+        .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .stat-card .stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .stat-card .stat-value { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1.1; }
+        .stat-card .stat-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; }
+        .stat-card .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .stat-card .stat-icon svg { width: 22px; height: 22px; }
+        .stat-icon.indigo  { background: #eef2ff; color: #4f46e5; }
+        .stat-icon.green   { background: #ecfdf5; color: #10b981; }
+        .stat-icon.amber   { background: #fffbeb; color: #f59e0b; }
+        .stat-icon.red     { background: #fef2f2; color: #ef4444; }
+        .stat-icon.blue    { background: #eff6ff; color: #3b82f6; }
+        .stat-icon.purple  { background: #faf5ff; color: #a855f7; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid transparent; font-size: 13.5px; font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; line-height: 1.25; transition: all 0.2s; font-family: inherit; }
+        .btn svg { width: 16px; height: 16px; }
+        .btn-primary   { background: var(--accent);   color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-primary:hover { background: var(--accent-dark); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .btn-success   { background: var(--success);  color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-success:hover { background: #059669; box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .btn-danger    { background: var(--danger);   color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-danger:hover { background: #dc2626; box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .btn-warning   { background: var(--warning);  color: white; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-1px); }
+        .btn-secondary { background: var(--surface);  color: var(--text); border-color: var(--border-strong); }
+        .btn-secondary:hover { background: var(--surface-raised); border-color: #94a3b8; transform: translateY(-1px); }
+        .btn-info      { background: var(--info);     color: white; }
+        .btn-info:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-ghost     { background: transparent; color: var(--text-muted); border-color: transparent; }
+        .btn-ghost:hover { background: var(--surface-raised); color: var(--text); }
+        .btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 8px; }
+        .btn-xs { padding: 4px 8px; font-size: 11.5px; border-radius: 6px; }
+
+        .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 700; border: 1px solid; }
+        .badge-default  { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .badge-success  { background: var(--success-soft); color: #065f46; border-color: #6ee7b7; }
+        .badge-warning  { background: var(--warning-soft); color: #92400e; border-color: #fcd34d; }
+        .badge-danger   { background: var(--danger-soft);  color: #991b1b; border-color: #fca5a5; }
+        .badge-info     { background: var(--info-soft);    color: #1e40af; border-color: #93c5fd; }
+        .badge-accent   { background: var(--accent-soft);  color: #4338ca; border-color: #a5b4fc; }
+
+        .fp-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        table thead tr { background: #f8fafc; border-bottom: 1px solid var(--border); }
+        table th { padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
+        table td { padding: 14px 16px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--border); vertical-align: middle; }
+        table tbody tr:last-child td { border-bottom: none; }
+        table tbody tr:hover { background: #f8fafc; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 13.5px; }
+        input, select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: #f8fafc; font-size: 14px; color: var(--text); font-family: inherit; transition: all 0.2s; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 10px; border: 1px solid transparent; }
+        .alert-success { background: var(--success-soft); color: #065f46; border-color: #a7f3d0; }
+        .alert-error   { background: var(--danger-soft);  color: #991b1b; border-color: #fecaca; }
+        .alert-info    { background: var(--info-soft);    color: #1e40af; border-color: #bfdbfe; }
+        .alert-warning { background: var(--warning-soft); color: #92400e; border-color: #fde68a; }
+
+        .fp-page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+        .fp-page-header h1 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
+        .fp-page-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+        .fp-page-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        .inventory-compact { font-size: 13px; }
+        .inventory-compact .btn { padding: 5px 9px; font-size: 11.5px; }
+        .inventory-compact .card { padding: 12px; margin-bottom: 12px; }
+        .inventory-compact table th, .inventory-compact table td { padding: 7px 10px; font-size: 12px; }
+        .inventory-compact input, .inventory-compact select, .inventory-compact textarea { padding: 6px 9px; font-size: 12px; }
+        .inventory-compact label { font-size: 11.5px; }
+        .inventory-compact .badge { font-size: 10.5px; padding: 1px 7px; }
+
+        .dark body { background: #0a0d14; color: #e2e8f0; }
+        .dark .fp-topbar { background: rgba(15,20,30,0.92); border-color: rgba(255,255,255,0.06); }
+        .dark .fp-page-title { color: #f1f5f9; }
+        .dark .fp-icon-btn { background: #1a2030; border-color: rgba(255,255,255,0.08); color: #94a3b8; }
+        .dark .fp-avatar-btn { background: #1a2030; border-color: rgba(255,255,255,0.08); color: #f1f5f9; }
+        .dark .card { background: #141b2a; border-color: rgba(255,255,255,0.07); }
+        .dark .stat-card { background: #141b2a; border-color: rgba(255,255,255,0.07); }
+        .dark .stat-card .stat-value { color: #f1f5f9; }
+        .dark table thead tr { background: #1a2030; }
+        .dark table th { color: #64748b; }
+        .dark table td { color: #cbd5e1; border-color: rgba(255,255,255,0.05); }
+        .dark table tbody tr:hover { background: #1a2030; }
+        .dark .fp-table-wrap { background: #141b2a; border-color: rgba(255,255,255,0.07); }
+        .dark input, .dark select, .dark textarea { background: #1a2030; border-color: rgba(255,255,255,0.1); color: #f1f5f9; }
+        .dark label { color: #cbd5e1; }
+        .dark .fp-dropdown { background: #141b2a; border-color: rgba(255,255,255,0.08); }
+        .dark .fp-dropdown a, .dark .fp-dropdown button { color: #e2e8f0; }
+        .dark .fp-dropdown a:hover, .dark .fp-dropdown button:hover { background: #1a2030; }
+        .dark .btn-secondary { background: #1a2030; border-color: rgba(255,255,255,0.1); color: #e2e8f0; }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
     </style>
 </head>
 
-<body class="bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-white {% if current_business_type == 'clothing' %}inventory-compact{% endif %}">
-    <div class="min-h-screen flex items-start">
+<body class="{% if current_business_type == 'clothing' %}inventory-compact{% endif %}">
+<div style="display:flex; min-height:100vh;">
 
-        <!-- SIDEBAR -->
-        <aside class="inventory-sidebar sticky top-0 h-screen w-[15.25rem] shrink-0 bg-gray-900 text-white dark:bg-black flex flex-col">
-            <div class="px-6 py-5 border-b border-gray-800 dark:border-gray-700">
-                {% if current_business_type == "clothing" %}
-                    <div class="inventory-shell-title text-xl font-bold">FlexiPOS</div>
-                    <div class="inventory-shell-subtitle text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Clothing Inventory" %}</div>
-                {% else %}
-                    <div class="inventory-shell-title text-xl font-bold">FlexiPOS</div>
-                    <div class="inventory-shell-subtitle text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Owner Panel" %}</div>
-                {% endif %}
-
-                {% if current_business %}
-                    <div class="inventory-business-copy mt-3 text-xs text-gray-300">
-                        <div class="font-semibold">{{ current_business.business_name }}</div>
-                    </div>
-                {% endif %}
-            </div>
-
-            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-
-                <!-- COMMON -->
-                {% if request.user.role != "CASHIER" and current_business_type != "clothing" %}
-                <a href="{% url 'owner_dashboard' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.path == '/owner/dashboard/' %}bg-gray-800{% endif %}">
-                    <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                </a>
-
-                <a href="{% url 'staff_list' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if '/owner/staff/' in request.path %}bg-gray-800{% endif %}">
-                    <span class="text-sm font-medium">{% trans "Staff Management" %}</span>
-                </a>
-                {% endif %}
-
-                <!-- RESTAURANT SIDEBAR -->
-                {% if current_business_type == "restaurant" %}
-
-                    <a href="{% url 'restaurant_owner_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_owner_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                    </a>
-
-                    <div class="mt-2">
-                        <button type="button"
-                                onclick="toggleSection('menuSubmenu', 'menuArrow')"
-                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
-                            <span class="text-sm font-medium">{% trans "Menu" %}</span>
-                            <span id="menuArrow">{% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}▾{% else %}▸{% endif %}</span>
-                        </button>
-
-                        <div id="menuSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'category_list' and request.resolver_match.url_name != 'item_list' %}hidden{% endif %}">
-                            <a href="{% url 'category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'category_list' %}bg-gray-800{% endif %}">
-                                {% trans "Categories" %}
-                            </a>
-
-                            <a href="{% url 'item_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'item_list' %}bg-gray-800{% endif %}">
-                                {% trans "Menu Items" %}
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="mt-2">
-                        <button type="button"
-                                onclick="toggleSection('tableSubmenu', 'tableArrow')"
-                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
-                            <span class="text-sm font-medium">{% trans "Tables" %}</span>
-                            <span id="tableArrow">{% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}▾{% else %}▸{% endif %}</span>
-                        </button>
-
-                        <div id="tableSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'table_category_list' and request.resolver_match.url_name != 'table_list' %}hidden{% endif %}">
-                            <a href="{% url 'table_category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_category_list' %}bg-gray-800{% endif %}">
-                                {% trans "Table Categories" %}
-                            </a>
-
-                            <a href="{% url 'table_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_list' %}bg-gray-800{% endif %}">
-                                {% trans "Dining Tables" %}
-                            </a>
-                        </div>
-                    </div>
-
-                    <a href="{% url 'loyalty_settings' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'loyalty_settings' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Loyalty Settings" %}</span>
-                    </a>
-
-                    <a href="{% url 'restaurant_reports' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_reports' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
-                    </a>
-
-                <!-- CASHIER SIDEBAR (clothing cashier role) -->
-                {% elif request.user.role == "CASHIER" %}
-
-                    <a href="{% url 'cashier_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_dashboard' or request.resolver_match.url_name == 'clothing_cashier_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">Dashboard</span>
-                    </a>
-
-                    <a href="{% url 'cashier_products' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_products' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">Products</span>
-                    </a>
-
-                    <a href="{% url 'cashier_pos' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_pos' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">Generate Bill (POS)</span>
-                    </a>
-
-                    <a href="{% url 'cashier_sales_history' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_sales_history' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">Sales History</span>
-                    </a>
-
-                    <a href="{% url 'cashier_profile' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'cashier_profile' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">Profile</span>
-                    </a>
-
-                <!-- CLOTHING OWNER SIDEBAR -->
-                {% elif current_business_type == "clothing" %}
-
-                    <a href="{% url 'clothing_inventory_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_inventory_dashboard' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory' or request.resolver_match.url_name == 'clothing_inventory_dashboard_inventory_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                    </a>
-
-                    <a href="{% url 'clothing_product_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_product_list' or request.resolver_match.url_name == 'clothing_product_detail' or request.resolver_match.url_name == 'clothing_product_create' or request.resolver_match.url_name == 'clothing_product_edit' or request.resolver_match.url_name == 'clothing_product_delete' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Products" %}</span>
-                    </a>
-
-                    {% if not hide_extra_menu %}
-                    <a href="{% url 'clothing_variant_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_variant_list' or request.resolver_match.url_name == 'clothing_variant_create' or request.resolver_match.url_name == 'clothing_variant_edit' or request.resolver_match.url_name == 'clothing_variant_delete' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Variants" %}</span>
-                    </a>
-
-                    <a href="{% url 'clothing_purchase_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_purchase_list' or request.resolver_match.url_name == 'clothing_purchase_create' or request.resolver_match.url_name == 'clothing_purchase_detail' or request.resolver_match.url_name == 'clothing_purchase_edit' or request.resolver_match.url_name == 'clothing_purchase_receive' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Purchases" %}</span>
-                    </a>
-
-                    <a href="{% url 'clothing_supplier_list' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_supplier_list' or request.resolver_match.url_name == 'clothing_supplier_create' or request.resolver_match.url_name == 'clothing_supplier_edit' or request.resolver_match.url_name == 'clothing_supplier_delete' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Suppliers" %}</span>
-                    </a>
-
-                    <a href="{% url 'clothing_current_stock' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_current_stock' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Current Stock" %}</span>
-                    </a>
-
-                    <a href="{% url 'clothing_stock_movements' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_stock_movements' or request.resolver_match.url_name == 'clothing_stock_adjustment_create' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Stock Movements" %}</span>
-                    </a>
-                    {% endif %}
-
-                    <a href="{% url 'clothing_low_stock' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'clothing_low_stock' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Low Stock" %}</span>
-                    </a>
-
-                    <div class="mt-2">
-                        <button type="button"
-                                onclick="toggleSection('offerSubmenu', 'offerArrow')"
-                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800 {% if '/clothing/offers/' in request.path %}bg-gray-800{% endif %}">
-                            <span class="text-sm font-medium">{% trans "Offers" %}</span>
-                            <span id="offerArrow">{% if '/clothing/offers/' in request.path %}▾{% else %}▸{% endif %}</span>
-                        </button>
-
-                        <div id="offerSubmenu" class="ml-4 mt-1 space-y-1 {% if '/clothing/offers/' not in request.path %}hidden{% endif %}">
-                            <a href="{% url 'clothing_offer_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'clothing_offer_list' %}bg-gray-700{% endif %}">
-                                {% trans "All Offers" %}
-                            </a>
-
-                            <a href="{% url 'clothing_offer_create' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'clothing_offer_create' %}bg-gray-700{% endif %}">
-                                {% trans "Create Offer" %}
-                            </a>
-                        </div>
-                    </div>
-
-                <!-- MART SIDEBAR -->
-                {% elif current_business_type == "mart" %}
-
-                    <a href="{% url 'mart_owner_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'mart_owner_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Products" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Categories" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Inventory" %}</span>
-                    </a>
-
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800">
-                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
-                    </a>
-
-                {% endif %}
-            </nav>
-
-            <div class="p-4 border-t border-gray-800 text-xs text-gray-400">
-                {% trans "Logged in as" %} <span class="text-gray-200">{{ request.user.username }}</span>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <div class="flex-1 min-w-0 flex flex-col">
-
-            <header class="bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-700">
-                <div class="flex items-start justify-between gap-4 px-3 py-2.5 md:px-4">
-
-                    <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
-                        <div class="min-w-0">
-                            <div class="text-[0.95rem] font-semibold text-gray-900 dark:text-white md:text-base">
-                                {% block page_title %}{% endblock %}
-                            </div>
-
-                            <div class="text-xs text-gray-500 dark:text-gray-300">
-                                {% block page_subtitle %}{% endblock %}
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 flex-wrap justify-end">
-                            {% block header_actions %}{% endblock %}
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        {% if not hide_extra_menu %}
-                        <div class="relative mr-2">
-                            <button type="button" onclick="toggleNotifications()"
-                                    class="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                {% if unread_notifications_count > 0 %}
-                                    <span id="notificationBadge" class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
-                                        {{ unread_notifications_count|nepali_number }}
-                                    </span>
-                                {% endif %}
-                            </button>
-
-                            <div id="notificationDropdown"
-                                 class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-[60] overflow-hidden transform origin-top-right transition-all">
-                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
-                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white">{% trans "Notifications" %}</h3>
-                                    {% if unread_notifications_count > 0 %}
-                                        <button onclick="markAllAsRead()" class="text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                                            {% trans "Mark all as read" %}
-                                        </button>
-                                    {% endif %}
-                                </div>
-
-                                <div class="max-h-[400px] overflow-y-auto" id="notificationList">
-                                    {% if recent_notifications %}
-                                        {% for noti in recent_notifications %}
-                                            <div id="noti-{{ noti.id }}"
-                                                 onclick="markAsRead(this.dataset.id)"
-                                                 data-id="{{ noti.id }}"
-                                                 class="px-4 py-3.5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors {% if not noti.is_read %}bg-blue-50/30 dark:bg-blue-900/10{% endif %}">
-                                                <div class="flex gap-3">
-                                                    <div class="mt-1 flex-shrink-0">
-                                                        <div class="w-2 h-2 rounded-full {% if not noti.is_read %}bg-blue-500 animate-pulse{% else %}bg-gray-300{% endif %}"></div>
-                                                    </div>
-                                                    <div class="flex-1">
-                                                        <p class="text-sm {% if not noti.is_read %}text-gray-900 dark:text-white font-semibold{% else %}text-gray-600 dark:text-gray-400{% endif %} leading-snug">
-                                                            {{ noti.message }}
-                                                        </p>
-                                                        <p class="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                            {{ noti.created_at|timesince }} {% trans "ago" %}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <div class="py-12 px-6 text-center">
-                                            <div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                                </svg>
-                                            </div>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No notifications yet" %}</p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-
-                                <div class="p-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
-                                    <a href="#" class="block text-center text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-gray-900 transition-colors">
-                                        {% trans "View Activity Log" %}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Profile Menu -->
-                        <div class="relative">
-                            <button type="button"
-                                    onclick="toggleProfileMenu()"
-                                    class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white">
-                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-black">
-                                    {{ request.user.full_name|default:request.user.username|first }}
-                                </div>
-                                <span class="hidden sm:inline">{{ request.user.full_name|default:request.user.username }}</span>
-                            </button>
-
-                            <div id="profileMenu"
-                                 class="hidden absolute right-0 mt-2 w-52 rounded-lg shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white z-50">
-
-                                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                                    <p class="text-sm font-semibold">{{ request.user.full_name|default:request.user.username }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-300">{{ request.user.email }}</p>
-                                </div>
-
-                                <div class="py-1">
-                                    {% if not hide_extra_menu %}
-                                    <a href="{% url 'business_package_list' %}"
-                                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        {% trans "Upgrade Plan" %}
-                                    </a>
-
-                                    <a href="{% url 'user_settings' %}"
-                                       class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        {% trans "Settings" %}
-                                    </a>
-
-                                    <div class="border-t border-gray-200 dark:border-gray-700"></div>
-                                    {% endif %}
-
-                                    <a href="{% url 'logout' %}"
-                                       class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                        {% trans "Log out" %}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+    <aside class="fp-sidebar">
+        <div class="fp-sidebar-logo">
+            <div class="fp-logo-mark">F</div>
+            <div class="fp-logo-text">
+                <div class="fp-logo-title">FlexiPOS</div>
+                <div class="fp-logo-sub">
+                    {% if current_business_type == "clothing" %}{% trans "Clothing Inventory" %}
+                    {% elif current_business_type == "restaurant" %}{% trans "Restaurant" %}
+                    {% elif current_business_type == "mart" %}{% trans "Mart" %}
+                    {% else %}{% trans "Owner Panel" %}{% endif %}
                 </div>
-            </header>
-
-            <main class="p-3 md:p-4">
-                {% if messages %}
-                    <div class="mb-4 space-y-2">
-                        {% for message in messages %}
-                            <div class="px-4 py-3 rounded-md border
-                                {% if message.tags == 'error' %}
-                                    bg-red-50 text-red-700 border-red-200
-                                {% elif message.tags == 'success' %}
-                                    bg-green-50 text-green-700 border-green-200
-                                {% elif message.tags == 'info' %}
-                                    bg-blue-50 text-blue-700 border-blue-200
-                                {% else %}
-                                    bg-gray-50 text-gray-700 border-gray-200
-                                {% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                {% block content %}{% endblock %}
-            </main>
+            </div>
         </div>
-    </div>
 
-    <script>
-        function toggleSection(sectionId, arrowId) {
-            const section = document.getElementById(sectionId);
-            const arrow = document.getElementById(arrowId);
+        {% if current_business %}
+        <div class="fp-biz-badge">
+            <div class="biz-name">{{ current_business.business_name }}</div>
+            <div class="biz-type">{{ current_business_type|upper }}</div>
+        </div>
+        {% endif %}
 
-            if (section && arrow) {
-                section.classList.toggle("hidden");
-                arrow.textContent = section.classList.contains("hidden") ? "▸" : "▾";
-            }
-        }
+        <nav class="fp-nav">
 
-        function toggleProfileMenu() {
-            const menu = document.getElementById("profileMenu");
-            const notiMenu = document.getElementById("notificationDropdown");
-            if (menu) {
-                menu.classList.toggle("hidden");
-                if (notiMenu) notiMenu.classList.add("hidden");
-            }
-        }
+            {% if request.user.role != "CASHIER" and current_business_type != "clothing" %}
+            <a href="{% url 'owner_dashboard' %}" class="fp-nav-item {% if request.path == '/owner/dashboard/' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                {% trans "Dashboard" %}
+            </a>
+            <a href="{% url 'staff_list' %}" class="fp-nav-item {% if '/owner/staff/' in request.path %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {% trans "Staff Management" %}
+            </a>
+            {% endif %}
 
-        function toggleNotifications() {
-            const menu = document.getElementById("notificationDropdown");
-            const profileMenu = document.getElementById("profileMenu");
-            if (menu) {
-                menu.classList.toggle("hidden");
-                if (profileMenu) profileMenu.classList.add("hidden");
-            }
-        }
+            {% if current_business_type == "restaurant" %}
+            <div class="fp-nav-section-label">{% trans "Restaurant" %}</div>
+            <a href="{% url 'restaurant_owner_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_owner_dashboard' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                {% trans "Dashboard" %}
+            </a>
 
-        function markAsRead(id) {
-            fetch(`/restaurant/owner/notifications/${id}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    const item = document.getElementById(`noti-${id}`);
-                    if (!item) return;
+            <button type="button" onclick="toggleSection('menuSub','menuChev')" class="fp-nav-item {% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                {% trans "Menu" %}
+                <svg id="menuChev" class="fp-nav-chevron {% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}open{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div id="menuSub" class="fp-sub-menu {% if request.resolver_match.url_name != 'category_list' and request.resolver_match.url_name != 'item_list' %}hidden{% endif %}">
+                <a href="{% url 'category_list' %}" class="{% if request.resolver_match.url_name == 'category_list' %}active{% endif %}">{% trans "Categories" %}</a>
+                <a href="{% url 'item_list' %}" class="{% if request.resolver_match.url_name == 'item_list' %}active{% endif %}">{% trans "Menu Items" %}</a>
+            </div>
 
-                    const dot = item.querySelector('.bg-blue-500');
-                    const text = item.querySelector('p.text-gray-900');
-                    if (dot) dot.className = 'w-2 h-2 rounded-full bg-gray-300';
-                    if (text) text.className = 'text-sm text-gray-600 dark:text-gray-400 leading-snug';
-                    item.classList.remove('bg-blue-50/30', 'dark:bg-blue-900/10');
+            <button type="button" onclick="toggleSection('tableSub','tableChev')" class="fp-nav-item {% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M10 4v16M14 4v16"/></svg>
+                {% trans "Tables" %}
+                <svg id="tableChev" class="fp-nav-chevron {% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}open{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div id="tableSub" class="fp-sub-menu {% if request.resolver_match.url_name != 'table_category_list' and request.resolver_match.url_name != 'table_list' %}hidden{% endif %}">
+                <a href="{% url 'table_category_list' %}" class="{% if request.resolver_match.url_name == 'table_category_list' %}active{% endif %}">{% trans "Table Categories" %}</a>
+                <a href="{% url 'table_list' %}" class="{% if request.resolver_match.url_name == 'table_list' %}active{% endif %}">{% trans "Dining Tables" %}</a>
+            </div>
 
-                    const badge = document.getElementById('notificationBadge');
-                    if (badge) {
-                        let count = parseInt(badge.textContent.trim()) || 0;
-                        if (count > 1) {
-                            badge.textContent = count - 1;
-                        } else {
-                            badge.remove();
-                        }
-                    }
-                }
-            });
-        }
+            <a href="{% url 'loyalty_settings' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'loyalty_settings' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                {% trans "Loyalty Settings" %}
+            </a>
+            <a href="{% url 'restaurant_reports' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_reports' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {% trans "Reports" %}
+            </a>
 
-        function markAllAsRead() {
-            fetch(`/restaurant/owner/notifications/read-all/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    location.reload();
-                }
-            });
-        }
+            {% elif request.user.role == "CASHIER" %}
+            <div class="fp-nav-section-label">Cashier</div>
+            <a href="{% url 'cashier_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'cashier_dashboard' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <a href="{% url 'cashier_products' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'cashier_products' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Products
+            </a>
+            <a href="{% url 'cashier_pos' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'cashier_pos' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                Generate Bill (POS)
+            </a>
+            <a href="{% url 'cashier_sales_history' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'cashier_sales_history' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Sales History
+            </a>
+            <a href="{% url 'cashier_profile' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'cashier_profile' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                Profile
+            </a>
 
-        function updateNotificationsUI() {
-            fetch("/restaurant/owner/notifications/fetch/")
-                .then(response => response.json())
-                .then(data => {
-                    let badge = document.getElementById('notificationBadge');
-                    if (data.unread_count > 0) {
-                        if (!badge) {
-                            const btn = document.querySelector("button[onclick='toggleNotifications()']");
-                            if (btn) {
-                                btn.insertAdjacentHTML(
-                                    "beforeend",
-                                    `<span id="notificationBadge" class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900">${data.unread_count}</span>`
-                                );
-                            }
-                        } else {
-                            badge.textContent = data.unread_count;
-                        }
-                    } else if (badge) {
-                        badge.remove();
-                    }
+            {% elif current_business_type == "clothing" %}
+            <div class="fp-nav-section-label">{% trans "Inventory" %}</div>
+            <a href="{% url 'clothing_inventory_dashboard' %}" class="fp-nav-item {% if 'clothing_inventory_dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                {% trans "Dashboard" %}
+            </a>
+            <a href="{% url 'clothing_product_list' %}" class="fp-nav-item {% if 'clothing_product' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                {% trans "Products" %}
+            </a>
+            {% if not hide_extra_menu %}
+            <a href="{% url 'clothing_variant_list' %}" class="fp-nav-item {% if 'clothing_variant' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                {% trans "Variants" %}
+            </a>
+            <a href="{% url 'clothing_purchase_list' %}" class="fp-nav-item {% if 'clothing_purchase' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                {% trans "Purchases" %}
+            </a>
+            <a href="{% url 'clothing_supplier_list' %}" class="fp-nav-item {% if 'clothing_supplier' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                {% trans "Suppliers" %}
+            </a>
+            <a href="{% url 'clothing_current_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'clothing_current_stock' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                {% trans "Current Stock" %}
+            </a>
+            <a href="{% url 'clothing_stock_movements' %}" class="fp-nav-item {% if 'clothing_stock' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                {% trans "Stock Movements" %}
+            </a>
+            {% endif %}
+            <a href="{% url 'clothing_low_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'clothing_low_stock' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% trans "Low Stock" %}
+            </a>
+            <button type="button" onclick="toggleSection('offerSub','offerChev')" class="fp-nav-item {% if '/clothing/offers/' in request.path %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                {% trans "Offers" %}
+                <svg id="offerChev" class="fp-nav-chevron {% if '/clothing/offers/' in request.path %}open{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div id="offerSub" class="fp-sub-menu {% if '/clothing/offers/' not in request.path %}hidden{% endif %}">
+                <a href="{% url 'clothing_offer_list' %}" class="{% if request.resolver_match.url_name == 'clothing_offer_list' %}active{% endif %}">{% trans "All Offers" %}</a>
+                <a href="{% url 'clothing_offer_create' %}" class="{% if request.resolver_match.url_name == 'clothing_offer_create' %}active{% endif %}">{% trans "Create Offer" %}</a>
+            </div>
 
-                    const listContainer = document.getElementById('notificationList');
-                    if (data.notifications && data.notifications.length > 0 && listContainer) {
-                        let html = "";
-                        data.notifications.forEach(noti => {
-                            const isReadClass = noti.is_read ? 'bg-gray-300' : 'bg-blue-500 animate-pulse';
-                            const isReadTextClass = noti.is_read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white font-semibold';
-                            const bgClass = noti.is_read ? '' : 'bg-blue-50/30 dark:bg-blue-900/10';
+            {% elif current_business_type == "mart" %}
+            <div class="fp-nav-section-label">{% trans "Mart" %}</div>
+            <a href="{% url 'mart_owner_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'mart_owner_dashboard' %}active{% endif %}">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                {% trans "Dashboard" %}
+            </a>
+            <a href="#" class="fp-nav-item">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                {% trans "Products" %}
+            </a>
+            <a href="#" class="fp-nav-item">
+                <svg class="fp-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {% trans "Reports" %}
+            </a>
+            {% endif %}
 
-                            html += `
-                                <div id="noti-${noti.id}" onclick="markAsRead(this.dataset.id)" data-id="${noti.id}" class="px-4 py-3.5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors ${bgClass}">
-                                    <div class="flex gap-3">
-                                        <div class="mt-1 flex-shrink-0">
-                                            <div class="w-2 h-2 rounded-full ${isReadClass}"></div>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm ${isReadTextClass} leading-snug">
-                                                ${noti.message}
-                                            </p>
-                                            <p class="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                ${noti.time_ago}
-                                            </p>
-                                        </div>
+        </nav>
+
+        <div class="fp-sidebar-footer">
+            {% trans "Signed in as" %} <span>{{ request.user.username }}</span>
+        </div>
+    </aside>
+
+    <div class="fp-main">
+        <header class="fp-topbar">
+            <div class="fp-page-info">
+                <div class="fp-page-title">{% block page_title %}{% endblock %}</div>
+                <div class="fp-page-subtitle">{% block page_subtitle %}{% endblock %}</div>
+            </div>
+
+            <div class="fp-topbar-right">
+                <div class="fp-topbar-actions">
+                    {% block header_actions %}{% endblock %}
+                </div>
+
+                {% if not hide_extra_menu %}
+                <div style="position:relative;">
+                    <button type="button" class="fp-icon-btn" onclick="toggleDropdown('notiDrop')" title="Notifications">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        {% if unread_notifications_count > 0 %}
+                        <span id="notificationBadge" class="fp-noti-count">{{ unread_notifications_count|nepali_number }}</span>
+                        {% endif %}
+                    </button>
+                    <div id="notiDrop" class="fp-dropdown fp-noti-dropdown hidden" style="top:calc(100% + 8px); right:0;">
+                        <div class="fp-dropdown-header" style="display:flex; align-items:center; justify-content:space-between;">
+                            <span class="fp-dh-title">{% trans "Notifications" %}</span>
+                            {% if unread_notifications_count > 0 %}
+                            <button onclick="markAllAsRead()" style="font-size:11px; color:var(--accent); font-weight:600; background:none; border:none; cursor:pointer;">{% trans "Mark all read" %}</button>
+                            {% endif %}
+                        </div>
+                        <div id="notificationList" style="max-height:360px; overflow-y:auto;">
+                            {% if recent_notifications %}
+                                {% for noti in recent_notifications %}
+                                <div id="noti-{{ noti.id }}" class="fp-noti-item {% if not noti.is_read %}unread{% endif %}" onclick="markAsRead('{{ noti.id }}')" data-id="{{ noti.id }}">
+                                    <div class="fp-noti-dot-sm {% if noti.is_read %}read{% endif %}"></div>
+                                    <div>
+                                        <div class="fp-noti-msg">{{ noti.message }}</div>
+                                        <div class="fp-noti-time">{{ noti.created_at|timesince }} {% trans "ago" %}</div>
                                     </div>
                                 </div>
-                            `;
-                        });
-                        listContainer.innerHTML = html;
-                    }
-                })
-                .catch(err => console.error("Notification poll error:", err));
+                                {% endfor %}
+                            {% else %}
+                                <div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:13px;">
+                                    {% trans "No notifications" %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="position:relative;">
+                    <button type="button" class="fp-avatar-btn" onclick="toggleDropdown('profileDrop')">
+                        <div class="fp-avatar">{{ request.user.full_name|default:request.user.username|first|upper }}</div>
+                        <span style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ request.user.full_name|default:request.user.username }}</span>
+                        <svg style="width:12px;height:12px; opacity:0.5; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id="profileDrop" class="fp-dropdown fp-profile-dropdown hidden" style="top:calc(100% + 8px); right:0;">
+                        <div class="fp-dropdown-header">
+                            <div class="fp-dh-title">{{ request.user.full_name|default:request.user.username }}</div>
+                            <div class="fp-dh-email">{{ request.user.email }}</div>
+                        </div>
+                        {% if not hide_extra_menu %}
+                        <a href="{% url 'business_package_list' %}">
+                            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                            {% trans "Upgrade Plan" %}
+                        </a>
+                        <a href="{% url 'user_settings' %}">
+                            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            {% trans "Settings" %}
+                        </a>
+                        <div class="fp-dropdown-divider"></div>
+                        {% endif %}
+                        <a href="{% url 'logout' %}" class="danger">
+                            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            {% trans "Log out" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="fp-content">
+            {% if messages %}
+            <div style="margin-bottom:16px;">
+                {% for message in messages %}
+                <div class="fp-flash {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'info' %}info{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        {% if message.tags == 'error' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        {% elif message.tags == 'success' %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        {% else %}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>{% endif %}
+                    </svg>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+    function toggleSection(sectionId, chevId) {
+        const sec = document.getElementById(sectionId);
+        const chev = document.getElementById(chevId);
+        if (sec) sec.classList.toggle('hidden');
+        if (chev) chev.classList.toggle('open');
+    }
+
+    function toggleDropdown(id) {
+        ['notiDrop','profileDrop'].forEach(d => {
+            const el = document.getElementById(d);
+            if (el && d !== id) el.classList.add('hidden');
+        });
+        const t = document.getElementById(id);
+        if (t) t.classList.toggle('hidden');
+    }
+
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('[onclick]')) {
+            ['notiDrop','profileDrop'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
         }
+    });
 
-        setInterval(updateNotificationsUI, 15000);
-
-        window.addEventListener("click", function(e) {
-            const profileButton = e.target.closest("button[onclick='toggleProfileMenu()']");
-            const profileMenu = document.getElementById("profileMenu");
-            const notiButton = e.target.closest("button[onclick='toggleNotifications()']");
-            const notiMenu = document.getElementById("notificationDropdown");
-
-            if (!profileButton && profileMenu && !profileMenu.contains(e.target)) {
-                profileMenu.classList.add("hidden");
-            }
-
-            if (!notiButton && notiMenu && !notiMenu.contains(e.target)) {
-                notiMenu.classList.add("hidden");
+    function markAsRead(id) {
+        fetch(`/restaurant/owner/notifications/${id}/read/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+        }).then(r => {
+            if (r.ok) {
+                const item = document.getElementById(`noti-${id}`);
+                if (!item) return;
+                item.classList.remove('unread');
+                const dot = item.querySelector('.fp-noti-dot-sm');
+                if (dot) dot.classList.add('read');
+                const badge = document.getElementById('notificationBadge');
+                if (badge) {
+                    let c = parseInt(badge.textContent) || 0;
+                    if (c > 1) badge.textContent = c - 1;
+                    else badge.remove();
+                }
             }
         });
-    </script>
+    }
 
-    {% block extra_js %}{% endblock %}
+    function markAllAsRead() {
+        fetch(`/restaurant/owner/notifications/read-all/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+        }).then(r => { if (r.ok) location.reload(); });
+    }
+
+    function updateNotificationsUI() {
+        fetch("/restaurant/owner/notifications/fetch/")
+            .then(r => r.json())
+            .then(data => {
+                let badge = document.getElementById('notificationBadge');
+                if (data.unread_count > 0) {
+                    if (!badge) {
+                        const btn = document.querySelector("button[onclick=\"toggleDropdown('notiDrop')\"]");
+                        if (btn) btn.insertAdjacentHTML('beforeend',`<span id="notificationBadge" class="fp-noti-count">${data.unread_count}</span>`);
+                    } else badge.textContent = data.unread_count;
+                } else if (badge) badge.remove();
+            }).catch(() => {});
+    }
+    setInterval(updateNotificationsUI, 15000);
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

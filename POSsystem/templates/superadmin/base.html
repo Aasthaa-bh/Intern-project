@@ -1,108 +1,543 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}SuperAdmin Panel{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FlexiPOS{% endblock %}</title>
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f0f2f7;
+            --surface: #ffffff;
+            --surface-raised: #f8faff;
+            --border: #e2e8f4;
+            --border-strong: #c8d4e8;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+
+            --sidebar-bg: #0d1117;
+            --sidebar-border: rgba(255,255,255,0.06);
+            --sidebar-text: rgba(255,255,255,0.7);
+            --sidebar-text-active: #ffffff;
+            --sidebar-hover: rgba(255,255,255,0.05);
+            --sidebar-active: rgba(99,102,241,0.18);
+            --sidebar-active-border: #6366f1;
+
+            --accent: #6366f1;
+            --accent-dark: #4f46e5;
+            --accent-soft: #eef2ff;
+
+            --success: #10b981;
+            --success-soft: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --info: #3b82f6;
+            --info-soft: #eff6ff;
+
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+            --shadow-md: 0 4px 16px rgba(15,23,42,0.08), 0 1px 4px rgba(15,23,42,0.04);
+            --shadow-lg: 0 12px 32px rgba(15,23,42,0.12), 0 4px 8px rgba(15,23,42,0.06);
+
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .fp-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 236px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            border-right: 1px solid var(--sidebar-border);
+        }
+
+        .fp-sidebar-logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fp-logo-mark {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: white;
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+        }
+
+        .fp-logo-text { line-height: 1.2; }
+        .fp-logo-title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+        .fp-logo-sub { font-size: 11px; color: var(--sidebar-text); margin-top: 1px; }
+
+        .fp-biz-badge {
+            margin: 12px 16px;
+            padding: 8px 12px;
+            background: rgba(99,102,241,0.08);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 8px;
+        }
+
+        .fp-biz-badge .biz-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a5b4fc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fp-biz-badge .biz-type {
+            font-size: 10px;
+            color: rgba(165,180,252,0.6);
+            margin-top: 1px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fp-nav {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .fp-nav-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.25);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 12px 4px;
+        }
+
+        .fp-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            margin-bottom: 1px;
+            position: relative;
+        }
+
+        .fp-nav-item:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .fp-nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--sidebar-text-active);
+            font-weight: 600;
+        }
+
+        .fp-nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            background: var(--sidebar-active-border);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .fp-nav-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.8;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fp-sidebar-footer {
+            padding: 12px 14px;
+            border-top: 1px solid var(--sidebar-border);
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .fp-sidebar-footer span {
+            color: rgba(255,255,255,0.6);
+            font-weight: 600;
+        }
+
+        .fp-main {
+            margin-left: 236px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fp-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .fp-page-info { flex: 1; min-width: 0; }
+        .fp-page-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
+        .fp-page-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+        .fp-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fp-avatar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 4px 4px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .fp-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .fp-content {
+            padding: 24px;
+        }
+
+        .fp-alerts {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .fp-alert {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .fp-alert.success { background: var(--success-soft); color: #065f46; border-color: #a7f3d0; }
+        .fp-alert.error { background: var(--danger-soft); color: #991b1b; border-color: #fecaca; }
+        .fp-alert.warning { background: var(--warning-soft); color: #92400e; border-color: #fde68a; }
+        .fp-alert.info { background: var(--info-soft); color: #1d4ed8; border-color: #bfdbfe; }
+        .fp-alert.default { background: #f8fafc; color: #334155; border-color: #e2e8f0; }
+
+        .card,
+        .fp-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .card-body,
+        .fp-card-body {
+            padding: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 14px;
+            border-radius: 9px;
+            border: 1px solid transparent;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(99,102,241,0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dark);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-raised);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        th {
+            background: #f8faff;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        tbody tr:hover {
+            background: var(--surface-raised);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: #fff;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.10);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .badge-success { background: var(--success-soft); color: #065f46; border-color: #a7f3d0; }
+        .badge-warning { background: var(--warning-soft); color: #92400e; border-color: #fde68a; }
+        .badge-danger { background: var(--danger-soft); color: #991b1b; border-color: #fecaca; }
+        .badge-info { background: var(--info-soft); color: #1d4ed8; border-color: #bfdbfe; }
+
+        @media (max-width: 991px) {
+            .fp-sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .fp-main {
+                margin-left: 0;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
 </head>
+<body>
 
-<body class="bg-gray-100">
-  <div class="min-h-screen flex">
+    <aside class="fp-sidebar">
+        <div class="fp-sidebar-logo">
+            <div class="fp-logo-mark">F</div>
+            <div class="fp-logo-text">
+                <div class="fp-logo-title">FlexiPOS</div>
+                <div class="fp-logo-sub">SuperAdmin Panel</div>
+            </div>
+        </div>
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col">
-      <div class="px-6 py-5 border-b border-gray-800">
-        <div class="text-xl font-bold">SuperAdmin</div>
-        <div class="text-xs text-gray-400 mt-1">FlexiPOS Panel</div>
-      </div>
+        <div class="fp-biz-badge">
+            <div class="biz-name">System Control</div>
+            <div class="biz-type">Administration</div>
+        </div>
 
-      <nav class="flex-1 px-3 py-4 space-y-1">
-        <a href="{% url 'superadmin_dashboard' %}"
-           class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition
-           {% if request.resolver_match.url_name == 'superadmin_dashboard' %} bg-gray-800 {% endif %}">
-          Dashboard
-        </a>
+        <nav class="fp-nav">
+            <div class="fp-nav-section-label">Management</div>
 
-        <a href="{% url 'superadmin_requests' %}"
-           class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition
-           {% if request.resolver_match.url_name == 'superadmin_requests' %} bg-gray-800 {% endif %}">
-          Business Requests
-        </a>
+            <a href="{% url 'superadmin_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'superadmin_dashboard' %}active{% endif %}">
+                <span class="fp-nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
 
-        <a href="{% url 'package_list' %}"
-           class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition
-           {% if request.resolver_match.url_name == 'package_list' %} bg-gray-800 {% endif %}">
-          Packages
-        </a>
+            <a href="{% url 'superadmin_requests' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'superadmin_requests' %}active{% endif %}">
+                <span class="fp-nav-icon">📝</span>
+                <span>Business Requests</span>
+            </a>
 
-        <a href="{% url 'subscription_list' %}"
-           class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition
-           {% if request.resolver_match.url_name == 'subscription_list' %} bg-gray-800 {% endif %}">
-          Subscriptions
-        </a>
+            <a href="{% url 'package_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'package_list' %}active{% endif %}">
+                <span class="fp-nav-icon">📦</span>
+                <span>Packages</span>
+            </a>
 
-        <a href="{% url 'payment_list' %}"
-           class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition
-           {% if request.resolver_match.url_name == 'payment_list' %} bg-gray-800 {% endif %}">
-          Payments
-        </a>
-      </nav>
+            <a href="{% url 'subscription_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'subscription_list' %}active{% endif %}">
+                <span class="fp-nav-icon">💼</span>
+                <span>Subscriptions</span>
+            </a>
 
-      <div class="px-4 py-4 border-t border-gray-800">
-        <a href="{% url 'logout' %}"
-           class="w-full inline-flex justify-center items-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition font-semibold">
-          Logout
-        </a>
-      </div>
+            <a href="{% url 'payment_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}">
+                <span class="fp-nav-icon">💳</span>
+                <span>Payments</span>
+            </a>
+
+            <div class="fp-nav-section-label">Account</div>
+
+            <a href="{% url 'logout' %}" class="fp-nav-item">
+                <span class="fp-nav-icon">🚪</span>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+        <div class="fp-sidebar-footer">
+            Logged in as
+            <span>{% if request.user.is_authenticated %}{{ request.user.full_name|default:request.user.username }}{% endif %}</span>
+        </div>
     </aside>
 
-    <!-- MAIN -->
-    <div class="flex-1 flex flex-col">
+    <div class="fp-main">
+        <header class="fp-topbar">
+            <div class="fp-page-info">
+                <div class="fp-page-title">{% block page_title %}Dashboard{% endblock %}</div>
+                <div class="fp-page-subtitle">{% block page_subtitle %}Professional admin workspace{% endblock %}</div>
+            </div>
 
-      <!-- TOPBAR -->
-      <header class="bg-white border-b border-gray-200">
-        <div class="flex items-center justify-between px-6 py-4">
-          <div>
-            <div class="text-lg font-semibold text-gray-900">{% block page_title %}{% endblock %}</div>
-            <div class="text-xs text-gray-500">{% block page_subtitle %}{% endblock %}</div>
-          </div>
-
-          <div class="text-sm text-gray-700">
-            {% if request.user.is_authenticated %}
-              {{ request.user.full_name|default:request.user.username }}
-            {% endif %}
-          </div>
-        </div>
-      </header>
-
-      <!-- CONTENT -->
-      <main class="p-6">
-        <!-- Messages -->
-        {% if messages %}
-          <div class="space-y-2 mb-6">
-            {% for message in messages %}
-              <div class="rounded-xl px-4 py-3 text-sm
-                {% if message.tags == 'success' %}
-                  bg-green-100 text-green-800 border border-green-200
-                {% elif message.tags == 'error' %}
-                  bg-red-100 text-red-800 border border-red-200
-                {% else %}
-                  bg-gray-100 text-gray-800 border border-gray-200
+            <div class="fp-topbar-right">
+                {% if request.user.is_authenticated %}
+                <div class="fp-avatar-btn">
+                    <div class="fp-avatar">
+                        {{ request.user.username|default:"A"|slice:":1"|upper }}
+                    </div>
+                    <span>{{ request.user.full_name|default:request.user.username }}</span>
+                </div>
                 {% endif %}
-              ">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
+            </div>
+        </header>
 
-        {% block content %}{% endblock %}
-      </main>
+        <main class="fp-content">
+            {% if messages %}
+                <div class="fp-alerts">
+                    {% for message in messages %}
+                        <div class="fp-alert {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}default{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
+            {% block content %}{% endblock %}
+        </main>
     </div>
-  </div>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

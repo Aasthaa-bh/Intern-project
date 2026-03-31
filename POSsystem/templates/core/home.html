@@ -1,100 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>FlexiPOS | Smart POS System</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>FlexiPOS | Smart POS System</title>
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Global Font System (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
         body {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #305eb2, #2a5298);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
         }
-
-        .container {
-            background: white;
-            padding: 50px;
-            border-radius: 12px;
-            text-align: center;
-            width: 400px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-        }
-
-        .container h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            color: #2a5298;
-        }
-
-        .container p {
-            color: #555;
-            margin-bottom: 30px;
-        }
-
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s ease;
-        }
-
-        .login-btn {
-            background-color: #2a5298;
-            color: white;
-        }
-
-        .login-btn:hover {
-            background-color: #1e3c72;
-        }
-
-        .start-btn {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .start-btn:hover {
-            background-color: #1e7e34;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                width: 90%;
-                padding: 30px;
-            }
-
-            .btn-group {
-                flex-direction: column;
-            }
+        .bg-pattern {
+            background-image: radial-gradient(circle, rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+            background-size: 24px 24px;
         }
     </style>
 </head>
-<body>
+<body class="bg-pattern flex flex-col items-center justify-center p-6 relative">
 
-    <div class="container">
-        <h1>FlexiPOS</h1>
-        <p>Smart & Customizable Point of Sale System</p>
-
-        <div class="btn-group">
-            <a href="{% url 'login' %}" class="btn login-btn">Login</a>
-            <a href="{% url 'get_started' %}" class="btn start-btn">Get Started</a>
+    <div class="max-w-5xl w-full flex flex-col md:flex-row bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white relative z-10">
+        <!-- Left Banner -->
+        <div class="md:w-5/12 bg-indigo-600 p-10 flex flex-col justify-between text-white relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-800 opacity-90 z-0"></div>
+            <div class="relative z-10 hidden md:block">
+                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-700 font-extrabold text-3xl shadow-lg mb-6 shadow-indigo-900/20">F</div>
+            </div>
+            <div class="relative z-10 mt-auto pb-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/40 rounded-full text-xs font-semibold tracking-wide text-indigo-50 mb-6 border border-indigo-400/30">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span> System Online
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-5 tracking-tight leading-tight">Run your business with absolute clarity.</h2>
+                <p class="text-indigo-100/90 text-sm md:text-base leading-relaxed font-medium">FlexiPOS gives you the complete toolset you need to streamline restaurant dining, clothing retail, and fast-paced cashier environments from one platform.</p>
+            </div>
         </div>
+
+        <!-- Right Content -->
+        <div class="md:w-7/12 p-10 md:p-14 lg:p-16 flex flex-col justify-center relative bg-white relative z-10">
+            <div class="flex items-center gap-3 mb-10 md:hidden">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-200">F</div>
+                <span class="text-2xl font-extrabold text-slate-800 tracking-tight">FlexiPOS</span>
+            </div>
+            
+            <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5">
+                Smart & Customizable <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">Point of Sale.</span>
+            </h1>
+            <p class="text-slate-500 text-lg mb-12 leading-relaxed font-medium">
+                Take full control of your inventory, menus, loyalty points, and daily reports from a beautiful single dashboard.
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 w-full">
+                <a href="{% url 'login' %}" class="flex-1 group relative inline-flex items-center justify-center px-8 py-4 text-sm md:text-base font-bold text-white transition-all duration-200 bg-indigo-600 border border-transparent rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+                    Sign In
+                    <svg class="w-5 h-5 ml-2 transition-transform duration-200 group-hover:translate-x-1 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+                <a href="{% url 'get_started' %}" class="flex-1 inline-flex items-center justify-center px-8 py-4 text-sm md:text-base font-bold text-slate-700 transition-all duration-200 bg-slate-100 border border-slate-200 rounded-2xl hover:bg-slate-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer snippet -->
+    <div class="text-slate-500 text-sm font-semibold mt-12 text-center absolute bottom-6 z-0">
+        &copy; {% now "Y" %} FlexiPOS. All rights reserved.
     </div>
 
 </body>

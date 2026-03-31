@@ -1,334 +1,191 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_waiter.html' %}
+{% block mobile_title %}Select Menu{% endblock %}
+{% block sidebar %}
+{% include 'pos/waiter_sidebar.html' %}
+{% endblock %}
 
 {% block title %}Select Menu - {% if table %}Table {{ table.name }}{% else %}{{ order_type }}{% endif %}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .page-header {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .page-header h2 {
-        color: #2d3748;
-        margin-bottom: 10px;
-    }
-
-    .table-info {
-        display: flex;
-        gap: 20px;
-        color: #718096;
-    }
-
-    .content-wrapper {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 30px;
-    }
-
-    .menu-section {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .menu-section h3 {
-        color: #2d3748;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
-    }
-
-    .menu-item {
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-        background: white;
-    }
-
-    .menu-item:hover {
-        border-color: #667eea;
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        background: #f7fafc;
-    }
-
-    .menu-item:active {
-        transform: translateY(-1px);
-    }
-
-    .menu-item.selected {
-        border-color: #667eea;
-        background: #f7fafc;
-    }
-
-    .item-name {
-        font-weight: bold;
-        color: #2d3748;
-        margin-bottom: 8px;
-    }
-
-    .item-price {
-        color: #48bb78;
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .item-stock {
-        font-size: 12px;
-        color: #718096;
-    }
-
-    .cart-section {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 20px;
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
-    }
-
-    .cart-section h3 {
-        color: #2d3748;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    .cart-items {
-        margin-bottom: 20px;
-    }
-
-    .cart-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px;
-        border-bottom: 1px solid #e2e8f0;
-        gap: 10px;
-    }
-
-    .cart-item-info {
-        flex: 1;
-    }
-
-    .cart-item-name {
-        font-weight: bold;
-        color: #2d3748;
-        margin-bottom: 4px;
-    }
-
-    .cart-item-price {
-        color: #718096;
-        font-size: 14px;
-    }
-
-    .quantity-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .qty-btn {
-        width: 30px;
-        height: 30px;
-        border: none;
-        border-radius: 6px;
-        background: #667eea;
-        color: white;
-        cursor: pointer;
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .qty-btn:hover {
-        background: #5568d3;
-    }
-
-    .qty-display {
-        min-width: 40px;
-        text-align: center;
-        font-weight: bold;
-    }
-
-    .cart-total {
-        padding: 20px;
-        background: #f7fafc;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 20px;
-        font-weight: bold;
-        color: #2d3748;
-    }
-
-    .notes-section {
-        margin-bottom: 20px;
-    }
-
-    .notes-section textarea {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        resize: vertical;
-        min-height: 80px;
-        font-family: inherit;
-    }
-
-    .empty-cart {
-        text-align: center;
-        padding: 40px 20px;
-        color: #a0aec0;
-    }
-
-    .category-filter {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-
-    .filter-btn {
-        padding: 8px 16px;
-        border: 2px solid #e2e8f0;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .filter-btn:hover, .filter-btn.active {
-        border-color: #667eea;
-        background: #667eea;
-        color: white;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="page-header">
-    {% if table %}
-    <h2> Create Order - Table {{ table.name }}</h2>
-    <div class="table-info">
-        <span> {{ table.category.name }}</span>
-        <span> Capacity: {{ table.capacity }}</span>
-        <span> {{ table.get_status_display }}</span>
-        <span style="background: #667eea; color: white; padding: 5px 15px; border-radius: 20px;">DINE-IN</span>
-    </div>
-    {% else %}
-    <h2>
-        {% if order_type == 'TAKEAWAY' %} Takeaway Order
-        {% elif order_type == 'DELIVERY' %}Delivery Order
-        {% else %}📋 New Order{% endif %}
-    </h2>
-    <div class="table-info">
-        <span style="background: #ed8936; color: white; padding: 5px 15px; border-radius: 20px;">
-            {{ order_type }}
-        </span>
-    </div>
-    {% endif %}
-</div>
-
-<div class="content-wrapper">
-    <div class="menu-section">
-        <h3>Menu Items</h3>
-        
-        <div class="category-filter">
-        <button class="filter-btn" onclick="filterCategory('{{ category.grouper.id }}', event)">
-            {{ category.grouper.name }}
-        </button>       
-        {% regroup menu_items by category as categories %}
-            {% for category in categories %}
-                <button class="filter-btn" onclick="filterCategory('{{ category.grouper.id }}')">
-                    {{ category.grouper.name }}
-                </button>
-            {% endfor %}
-        </div>
-
-        <div class="menu-grid" id="menuGrid">
-            {% for item in menu_items %}
-            <div class="menu-item" 
-                 data-category="{{ item.category.id }}" 
-                 data-target-id="{{ item.id }}" 
-                 data-name="{{ item.name|escapejs }}" 
-                 data-price="{{ item.price }}" 
-                 data-track-stock="{{ item.track_stock|yesno:'true,false'|default:'false' }}" 
-                 data-stock-qty="{{ item.stock_qty|default:0 }}"
-                 onclick="addToCart(this.dataset.targetId, this.dataset.name, this.dataset.price, this.dataset.trackStock === 'true', this.dataset.stockQty)">
-                
-                <!-- antim added for cloudinary -->
-                <div style="width: 100%; height: 150px; border-radius: 8px; margin-bottom: 10px; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
-                    {% if item.thumbnail %}
-                        <img src="{{ item.thumbnail }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    {% elif item.image %}
-                        <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    {% else %}
-                        <span style="color: #718096; font-size: 14px;">No Image</span>
-                    {% endif %}
+<div class="px-4 py-6 md:px-8 max-w-[1600px] mx-auto min-h-screen flex flex-col">
+    
+    <!-- Top Header -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            {% if table %}
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight m-0">Order: Table {{ table.name }}</h2>
+                <div class="flex flex-wrap items-center gap-3 mt-3 text-sm font-medium">
+                    <span class="text-slate-500 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        {{ table.category.name }}
+                    </span>
+                    <span class="text-slate-300">|</span>
+                    <span class="text-slate-500 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Up to {{ table.capacity }}
+                    </span>
+                    <span class="text-slate-300">|</span>
+                    <span class="text-slate-500">{{ table.get_status_display }}</span>
+                    <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ml-2 border border-indigo-200 shadow-sm">
+                        DINE-IN
+                    </span>
                 </div>
-                <!-- antim added for cloudinary -->
-
-                <div class="item-name">{{ item.name }}</div>
-                <div class="item-price">Rs{{ item.price }}</div>
-            </div>
-            {% endfor %}
+            {% else %}
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight m-0">
+                    {% if order_type == 'TAKEAWAY' %}Takeaway Order
+                    {% elif order_type == 'DELIVERY' %}Delivery Order
+                    {% else %}New Order{% endif %}
+                </h2>
+                <div class="mt-3">
+                    <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide border border-amber-200 shadow-sm">
+                        {{ order_type }}
+                    </span>
+                 </div>
+            {% endif %}
+        </div>
+        <div>
+            <a href="{% url 'waiter_dashboard' %}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl transition-colors flex items-center gap-2 border border-slate-200">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back
+            </a>
         </div>
     </div>
 
-    <div class="cart-section">
-        <h3>Order Cart</h3>
+    <!-- Main Content -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start relative pb-20 lg:pb-0">
         
-        <div class="cart-items" id="cartItems">
-            <div class="empty-cart">
-                <p>Orders has not been selected</p>
-                {% comment %} <p style="font-size: 14px;">Click on menu items to add</p> {% endcomment %}
+        <!-- Left Column: Menu Items -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <!-- Category Filters -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-x-auto">
+                <div class="flex gap-2 min-w-max">
+                    <button class="filter-btn active bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-2 px-5 rounded-xl transition-all border border-slate-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                            onclick="filterCategory('all', event)" id="btn-filter-all">
+                        All Items
+                    </button>
+                    {% regroup menu_items by category as categories %}
+                    {% for category in categories %}
+                    <button class="filter-btn bg-white text-slate-600 hover:bg-slate-50 font-semibold py-2 px-5 rounded-xl transition-all border border-slate-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                            onclick="filterCategory('{{ category.grouper.id }}', event)">
+                        {{ category.grouper.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="menuGrid">
+                    {% for item in menu_items %}
+                    <div class="menu-item bg-white border border-slate-200 rounded-2xl p-3 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400 group" 
+                         data-category="{{ item.category.id }}" 
+                         data-target-id="{{ item.id }}" 
+                         data-name="{{ item.name|escapejs }}" 
+                         data-price="{{ item.price }}" 
+                         data-track-stock="{{ item.track_stock|yesno:'true,false'|default:'false' }}" 
+                         data-stock-qty="{{ item.stock_qty|default:0 }}"
+                         onclick="addToCart(this.dataset.targetId, this.dataset.name, this.dataset.price, this.dataset.trackStock === 'true', this.dataset.stockQty)">
+                        
+                        <div class="w-full h-32 md:h-40 rounded-xl mb-4 overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100 relative group-hover:border-indigo-100 transition-colors">
+                            {% if item.thumbnail %}
+                                <img src="{{ item.thumbnail }}" alt="{{ item.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            {% elif item.image %}
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            {% else %}
+                                <svg class="w-12 h-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            {% endif %}
+                            
+                            <!-- Add overlay icon -->
+                            <div class="absolute inset-0 bg-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div class="bg-white/90 rounded-full p-2 shadow-sm text-indigo-600 transform scale-50 group-hover:scale-100 transition-transform duration-300">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="font-bold text-slate-800 leading-tight mb-1 line-clamp-2 min-h-[40px]">{{ item.name }}</div>
+                        <div class="flex items-center justify-between mt-auto pt-2">
+                            <div class="font-black text-emerald-600 tracking-tight text-lg">Rs{{ item.price }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
-        <div class="cart-total" id="cartTotal" style="display: none;">
-            <div class="total-row">
-                <span>Total:</span>
-                <span id="totalAmount">Rs0.00</span>
+        <!-- Right Column: Cart (Sticky on desktop, fixed bottom on mobile) -->
+        <div class="lg:col-span-1 lg:sticky lg:top-6 z-40 fixed lg:relative bottom-0 left-0 right-0 p-4 lg:p-0 bg-slate-50 lg:bg-transparent border-t lg:border-t-0 border-slate-200">
+            <div class="bg-white rounded-2xl shadow-xl lg:shadow-sm border border-slate-200 flex flex-col h-[50vh] lg:h-[calc(100vh-140px)] max-h-[800px]">
+                
+                <!-- Cart Header -->
+                <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex-shrink-0 flex justify-between items-center rounded-t-2xl">
+                    <h3 class="text-xl font-bold text-slate-800 m-0 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        Current Order
+                    </h3>
+                    <span id="cartItemCount" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded-full hidden">0</span>
+                </div>
+                
+                <!-- Cart Items Scrollable -->
+                <div class="flex-1 overflow-y-auto p-4 bg-slate-50/30" id="cartItems">
+                    <div class="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+                        <svg class="w-16 h-16 mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        <p class="font-bold text-lg text-slate-500 mb-1">Order is empty</p>
+                        <p class="text-sm">Tap items on the left to add them</p>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-white">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Special Notes</label>
+                    <textarea id="orderNotes" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none" rows="2" placeholder="Customer requests..."></textarea>
+                </div>
+
+                <!-- Total & Submit -->
+                <div class="px-6 py-5 border-t border-slate-100 bg-slate-50 rounded-b-2xl flex-shrink-0">
+                    <div id="cartTotal" class="hidden mb-4">
+                        <div class="flex justify-between items-center text-slate-600 font-medium mb-1 text-sm">
+                            <span>Subtotal</span>
+                            <span id="subTotalDisplay">Rs0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-2xl font-black text-slate-900 border-t border-slate-200 pt-3 mt-3">
+                            <span>Total</span>
+                            <span id="totalAmount" class="text-indigo-600 tracking-tight">Rs0.00</span>
+                        </div>
+                    </div>
+
+                    <button id="submitBtn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-md shadow-indigo-200/50 text-xl flex justify-center items-center gap-2 transform disabled:transform-none hover:-translate-y-0.5" onclick="submitOrder()">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Confirm Order
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="notes-section">
-            <label style="display: block; margin-bottom: 8px; color: #2d3748; font-weight: bold;">
-                for to adding extra by the customer on demands 
-            </label>
-            <textarea id="orderNotes" placeholder="Any special instructions can also addded"></textarea>
-        </div>
-
-        <button class="btn btn-success" style="width: 100%;" onclick="submitOrder()" id="submitBtn" disabled>
-             Order Confirm
-        </button>
-        <a href="{% url 'waiter_dashboard' %}" class="btn btn-secondary" style="width: 100%; margin-top: 10px; text-align: center;">
-            Back to Tables
-        </a>
     </div>
 </div>
+
+<style>
+/* For custom scrollbar in cart */
+#cartItems::-webkit-scrollbar {
+    width: 6px;
+}
+#cartItems::-webkit-scrollbar-track {
+    background: transparent;
+}
+#cartItems::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Active Filter State override */
+.filter-btn.active {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: white;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -340,12 +197,21 @@
     const tableId = tableIdStr ? parseInt(tableIdStr) : null;
     const orderType = '{{ order_type|default:"DINE_IN" }}';
 
+    // Initial Setup
+    document.addEventListener('DOMContentLoaded', () => {
+        // Find DOM nodes once
+        document.getElementById('btn-filter-all').classList.add('active');
+    });
+
     function filterCategory(categoryId, event) {
         const items = document.querySelectorAll('.menu-item');
         const buttons = document.querySelectorAll('.filter-btn');
 
-        buttons.forEach(btn => btn.classList.remove('active'));
         if (event) {
+            buttons.forEach(btn => btn.classList.remove('active', 'bg-indigo-600', 'text-white'));
+            buttons.forEach(btn => btn.classList.add('bg-white', 'text-slate-600'));
+            
+            event.target.classList.remove('bg-white', 'text-slate-600');
             event.target.classList.add('active');
         }
 
@@ -359,8 +225,6 @@
     }
 
     function addToCart(itemId, itemName, price, trackStock, stockQty) {
-        console.log('Adding to cart:', itemId, itemName, price, trackStock, stockQty);
-
         stockQty = parseFloat(stockQty || 0);
 
         if (trackStock && stockQty <= 0) {
@@ -384,7 +248,15 @@
             };
         }
 
-        console.log('Cart updated:', cart);
+        // Visual feedback on click
+        const element = document.querySelector(`.menu-item[data-target-id="${itemId}"]`);
+        if (element) {
+            element.classList.add('scale-[0.97]', 'border-indigo-500');
+            setTimeout(() => {
+                element.classList.remove('scale-[0.97]', 'border-indigo-500');
+            }, 150);
+        }
+
         updateCartDisplay();
     }
 
@@ -406,49 +278,65 @@
     function updateCartDisplay() {
         const cartItemsDiv = document.getElementById('cartItems');
         const totalAmountSpan = document.getElementById('totalAmount');
+        const subTotalDisplay = document.getElementById('subTotalDisplay');
         const cartTotalDiv = document.getElementById('cartTotal');
         const submitBtn = document.getElementById('submitBtn');
+        const cartItemCount = document.getElementById('cartItemCount');
 
-        if (Object.keys(cart).length === 0) {
+        const keys = Object.keys(cart);
+        if (keys.length === 0) {
             cartItemsDiv.innerHTML = `
-                <div class="empty-cart">
-                    <p>Cart is empty</p>
-                    <p style="font-size: 14px;">Click on menu items to add</p>
+                <div class="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center min-h-[300px]">
+                    <svg class="w-16 h-16 mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <p class="font-bold text-lg text-slate-500 mb-1">Order is empty</p>
+                    <p class="text-sm">Tap items on the left to add them</p>
                 </div>
             `;
-            cartTotalDiv.style.display = 'none';
+            cartTotalDiv.classList.add('hidden');
+            cartItemCount.classList.add('hidden');
             submitBtn.disabled = true;
             return;
         }
 
-        let html = '';
+        let html = '<div class="space-y-3">';
         let total = 0;
+        let totalItems = 0;
 
         for (let itemId in cart) {
             const item = cart[itemId];
             const lineTotal = item.price * item.quantity;
             total += lineTotal;
+            totalItems += item.quantity;
 
             html += `
-                <div class="cart-item">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-price">Rs${item.price.toFixed(2)} each</div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3 group hover:border-indigo-200 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="font-bold text-slate-800 leading-tight flex-1 pr-2">${item.name}</div>
+                        <div class="font-black text-slate-900 whitespace-nowrap">Rs${lineTotal.toFixed(2)}</div>
                     </div>
-                    <div class="quantity-controls">
-                        <button class="qty-btn" onclick="updateQuantity(${itemId}, -1)">−</button>
-                        <span class="qty-display">${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateQuantity(${itemId}, 1)">+</button>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-slate-500 font-medium text-sm">Rs${item.price.toFixed(2)} / ea</div>
+                        <div class="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                            <button class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-600 rounded-md font-bold shadow-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors focus:outline-none" onclick="updateQuantity(${itemId}, -1)">−</button>
+                            <span class="w-8 text-center font-black text-slate-800">${item.quantity}</span>
+                            <button class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-600 rounded-md font-bold shadow-sm hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors focus:outline-none" onclick="updateQuantity(${itemId}, 1)">+</button>
+                        </div>
                     </div>
-                    <div style="font-weight: bold; color: #2d3748;">Rs${lineTotal.toFixed(2)}</div>
                 </div>
             `;
         }
+        html += '</div>';
 
         cartItemsDiv.innerHTML = html;
         totalAmountSpan.textContent = `Rs${total.toFixed(2)}`;
-        cartTotalDiv.style.display = 'block';
+        subTotalDisplay.textContent = `Rs${total.toFixed(2)}`;
+        cartTotalDiv.classList.remove('hidden');
+        cartItemCount.textContent = totalItems;
+        cartItemCount.classList.remove('hidden');
         submitBtn.disabled = false;
+        
+        // Auto scroll cart to bottom conceptually handled automatically by container
     }
 
     async function submitOrder() {
@@ -458,8 +346,16 @@
         }
 
         const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating Order...';
+        submitBtn.innerHTML = `
+            <svg class="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Creating Order...
+        `;
 
         const items = Object.keys(cart).map(itemId => ({
             item_id: parseInt(itemId),
@@ -491,21 +387,16 @@
             const data = await response.json();
 
             if (data.success) {
-                if (tableId) {
-                    alert('Order created successfully!\n\nOrder Number: ' + data.order_no + '\nTable is now occupied.');
-                } else {
-                    alert('Order created successfully!\n\nOrder Number: ' + data.order_no + '\nOrder Type: ' + orderType);
-                }
                 window.location.href = '/pos/order/' + data.order_id + '/';
             } else {
                 alert('Error: ' + data.error);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Order Confirm';
+                submitBtn.innerHTML = originalText;
             }
         } catch (error) {
             alert('Error creating order: ' + error.message);
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Order Confirm';
+            submitBtn.innerHTML = originalText;
         }
     }
 </script>

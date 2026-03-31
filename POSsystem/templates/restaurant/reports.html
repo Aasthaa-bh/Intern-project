@@ -3,153 +3,214 @@
 {% load nepali_number %}
 
 {% block title %}{% trans "Reports" %}{% endblock %}
-{% block page_title %}{% trans "Restaurant Reports" %}{% endblock %}
-{% block page_subtitle %}{% trans "Sales, items, tables and payment insights" %}{% endblock %}
 
 {% block content %}
+<div class="px-4 py-8 md:px-8 max-w-7xl mx-auto space-y-8">
 
-<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="mb-4">
+    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight m-0">{% trans "Restaurant Reports" %}</h1>
+    <p class="text-slate-500 font-medium mt-2">{% trans "Sales, items, tables and payment insights" %}</p>
+  </div>
 
-  <div class="card">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <div class="text-base font-semibold text-gray-900">{% trans "Filter Reports" %}</div>
-        <div class="text-sm text-gray-500">{% trans "Select date range to view report data" %}</div>
-      </div>
+  <!-- Filters -->
+  <div class="card p-6 border-b border-indigo-500/10 bg-indigo-50/10">
+    <div class="mb-5">
+      <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Filter Reports" %}</h3>
+      <p class="text-sm font-medium text-slate-500 mt-1">{% trans "Select date range to view report data" %}</p>
     </div>
 
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Start Date" %}</label>
+    <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{% trans "Start Date" %}</label>
         <input type="date" name="start_date" value="{{ start_date }}"
-               class="input w-full">
+               class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "End Date" %}</label>
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{% trans "End Date" %}</label>
         <input type="date" name="end_date" value="{{ end_date }}"
-               class="input w-full">
+               class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
       </div>
 
-      <div class="flex items-end gap-2 md:col-span-2">
-        <button type="submit"
-                class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-          {% trans "Apply Filter" %}
+      <div class="flex gap-2">
+        <button type="submit" class="btn btn-primary flex-1 py-2.5 flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          {% trans "Apply" %}
         </button>
 
-        <a href="{% url 'restaurant_reports' %}"
-           class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100">
-          {% trans "Reset" %}
+        <a href="{% url 'restaurant_reports' %}" class="btn btn-secondary px-4 py-2.5 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </a>
       </div>
     </form>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-    <div class="card">
-      <p class="text-sm text-gray-500">{% trans "Today Sales" %}</p>
-      <h2 class="text-2xl font-bold text-gray-900 mt-2">{% trans "Rs." %} {{ today_sales|floatformat:2|nepali_number }}</h2>
-      <p class="text-sm text-gray-500 mt-2">{% trans "Total sales for today" %}</p>
-    </div>
-
-    <div class="card">
-      <p class="text-sm text-gray-500">{% trans "This Month Sales" %}</p>
-      <h2 class="text-2xl font-bold text-gray-900 mt-2">{% trans "Rs." %} {{ month_sales|floatformat:2|nepali_number }}</h2>
-      <p class="text-sm text-gray-500 mt-2">{% trans "Total sales for this month" %}</p>
-    </div>
-
-    <div class="card">
-      <p class="text-sm text-gray-500">{% trans "Completed Orders" %}</p>
-      <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ completed_orders|nepali_number }}</h2>
-      <p class="text-sm text-gray-500 mt-2">{% trans "Successfully completed orders" %}</p>
-    </div>
-
-    <div class="card">
-      <p class="text-sm text-gray-500">{% trans "Average Order Value" %}</p>
-      <h2 class="text-2xl font-bold text-gray-900 mt-2">{% trans "Rs." %} {{ avg_order_value|floatformat:2|nepali_number }}</h2>
-      <p class="text-sm text-gray-500 mt-2">{% trans "Average revenue per order" %}</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="mb-4">
-      <div class="text-base font-semibold text-gray-900">{% trans "Highest Sales Day" %}</div>
-      <div class="text-sm text-gray-500">{% trans "Best performing day by revenue" %}</div>
-    </div>
-
-    {% if highest_sales_day %}
-      <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3">
-        <div class="text-sm text-green-700">{% trans "Top Sales Day" %}</div>
-        <div class="text-lg font-semibold text-green-900 mt-1">
-          {{ highest_sales_day.day }} — {% trans "Rs." %} {{ highest_sales_day.total_sales|floatformat:2|nepali_number }}
+  <!-- Key Metrics -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-indigo-50/80 rounded-2xl p-6 border border-indigo-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <h4 class="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% trans "Today Sales" %}
+        </h4>
+        <div class="flex items-baseline gap-1 mt-1">
+          <span class="text-xl font-black text-indigo-400">{% trans "Rs." %}</span>
+          <span class="text-3xl font-black text-indigo-900 tracking-tight">{{ today_sales|floatformat:2|nepali_number }}</span>
         </div>
       </div>
-    {% else %}
-      <div class="text-sm text-gray-500">{% trans "No sales data found." %}</div>
-    {% endif %}
-  </div>
-
-  <div class="card">
-    <div class="p-5">
-      <div class="text-base font-semibold text-gray-900">{% trans "Best Selling Items" %}</div>
-      <div class="text-sm text-gray-500">{% trans "Top menu items by quantity sold" %}</div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="input w-full">
-          <tr>
-            <th class="text-left px-5 py-3 font-medium">{% trans "Item" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Qty Sold" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Sales" %}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for row in best_selling_items %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-5 py-3">{{ row.item_name_snapshot }}</td>
-            <td class="px-5 py-3 text-right">{{ row.total_qty }}</td>
-            <td class="px-5 py-3 text-right">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
-              {% trans "No item sales found." %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="bg-emerald-50/80 rounded-2xl p-6 border border-emerald-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <h4 class="text-[11px] font-bold text-emerald-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            {% trans "This Month" %}
+        </h4>
+        <div class="flex items-baseline gap-1 mt-1">
+          <span class="text-xl font-black text-emerald-500">{% trans "Rs." %}</span>
+          <span class="text-3xl font-black text-emerald-900 tracking-tight">{{ month_sales|floatformat:2|nepali_number }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-amber-50/80 rounded-2xl p-6 border border-amber-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <h4 class="text-[11px] font-bold text-amber-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            {% trans "Completed Orders" %}
+        </h4>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span class="text-3xl font-black text-amber-900 tracking-tight">{{ completed_orders|nepali_number }}</span>
+          <span class="text-sm font-bold text-amber-600">{% trans "orders" %}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-fuchsia-50/80 rounded-2xl p-6 border border-fuchsia-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-fuchsia-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <h4 class="text-[11px] font-bold text-fuchsia-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            {% trans "Avg Order Value" %}
+        </h4>
+        <div class="flex items-baseline gap-1 mt-1">
+          <span class="text-xl font-black text-fuchsia-400">{% trans "Rs." %}</span>
+          <span class="text-3xl font-black text-fuchsia-900 tracking-tight">{{ avg_order_value|floatformat:2|nepali_number }}</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <div class="card">
-      <div class="p-5">
-        <div class="text-base font-semibold text-gray-900">{% trans "Sales by Order Type" %}</div>
-        <div class="text-sm text-gray-500">{% trans "Dine in, takeaway, delivery and counter sales" %}</div>
+    <!-- Highest Sales Highlight -->
+    <div class="card p-6 flex flex-col justify-center relative overflow-hidden border-2 border-emerald-500/20">
+      <div class="absolute top-0 right-0 p-4 opacity-10">
+          <svg class="w-32 h-32 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+      </div>
+      <div class="relative z-10">
+          <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Highest Sales Day" %}</h3>
+          <p class="text-sm font-medium text-slate-500 mt-1 mb-5">{% trans "Best performing day by revenue" %}</p>
+
+          {% if highest_sales_day %}
+            <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-200 text-white">
+              <div class="text-xs font-bold text-emerald-200 uppercase tracking-widest mb-1">{% trans "Top Sales Day" %}</div>
+              <div class="text-xl font-black tracking-tight">{{ highest_sales_day.day }}</div>
+              <div class="mt-4 pt-4 border-t border-emerald-400/50 flex items-baseline gap-1">
+                  <span class="text-emerald-200 font-bold">{% trans "Rs." %}</span>
+                  <span class="text-2xl font-black">{{ highest_sales_day.total_sales|floatformat:2|nepali_number }}</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
+              <span class="text-sm font-medium text-slate-500">{% trans "No sales data found." %}</span>
+            </div>
+          {% endif %}
+      </div>
+    </div>
+
+    <!-- Best Selling Items -->
+    <div class="card lg:col-span-2 flex flex-col">
+      <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Best Selling Items" %}</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">{% trans "Top menu items by quantity sold" %}</p>
+        </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="input w-full">
+      <div class="fp-table-wrap !rounded-none !border-0 !shadow-none flex-1">
+        <table class="fp-table">
+          <thead>
             <tr>
-              <th class="text-left px-5 py-3 font-medium">{% trans "Order Type" %}</th>
-              <th class="text-right px-5 py-3 font-medium">{% trans "Orders" %}</th>
-              <th class="text-right px-5 py-3 font-medium">{% trans "Sales" %}</th>
+              <th>{% trans "Item" %}</th>
+              <th class="text-right">{% trans "Qty Sold" %}</th>
+              <th class="text-right">{% trans "Sales Value" %}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            {% for row in sales_by_order_type %}
-            <tr class="hover:bg-gray-50">
-              <td class="px-5 py-3">{{ row.order_type }}</td>
-              <td class="px-5 py-3 text-right">{{ row.total_orders }}</td>
-              <td class="px-5 py-3 text-right">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
+          <tbody>
+            {% for row in best_selling_items %}
+            <tr>
+              <td class="font-bold text-slate-700">{{ row.item_name_snapshot }}</td>
+              <td class="text-right font-black text-indigo-600 bg-indigo-50/50">{{ row.total_qty }}</td>
+              <td class="text-right font-black text-emerald-600">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+              <td colspan="3" class="py-12 text-center text-slate-500 font-medium">
+                {% trans "No item sales found." %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Sales by Order Type -->
+    <div class="card flex flex-col h-full">
+      <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Sales by Order Type" %}</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">{% trans "Dine in, takeaway, delivery" %}</p>
+        </div>
+      </div>
+
+      <div class="fp-table-wrap !rounded-none !border-0 !shadow-none flex-1">
+        <table class="fp-table">
+          <thead>
+            <tr>
+              <th>{% trans "Order Type" %}</th>
+              <th class="text-right">{% trans "Orders" %}</th>
+              <th class="text-right">{% trans "Sales" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in sales_by_order_type %}
+            <tr>
+              <td class="font-bold text-slate-700">
+                <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs tracking-wider uppercase inline-block">
+                    {{ row.order_type }}
+                </span>
+              </td>
+              <td class="text-right font-black text-slate-600">{{ row.total_orders }}</td>
+              <td class="text-right font-black text-emerald-600">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="py-10 text-center text-slate-500 font-medium">
                 {% trans "No order type data found." %}
               </td>
             </tr>
@@ -159,31 +220,42 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="p-5">
-        <div class="text-base font-semibold text-gray-900">{% trans "Payment Summary" %}</div>
-        <div class="text-sm text-gray-500">{% trans "Payment method wise totals" %}</div>
+    <!-- Payment Summary -->
+    <div class="card flex flex-col h-full">
+      <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Payment Summary" %}</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">{% trans "Count and value per method" %}</p>
+        </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="input w-full">
+      <div class="fp-table-wrap !rounded-none !border-0 !shadow-none flex-1">
+        <table class="fp-table">
+          <thead>
             <tr>
-              <th class="text-left px-5 py-3 font-medium">{% trans "Method" %}</th>
-              <th class="text-right px-5 py-3 font-medium">{% trans "Count" %}</th>
-              <th class="text-right px-5 py-3 font-medium">{% trans "Amount" %}</th>
+              <th>{% trans "Method" %}</th>
+              <th class="text-right">{% trans "Count" %}</th>
+              <th class="text-right">{% trans "Amount" %}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
+          <tbody>
             {% for row in payment_summary %}
-            <tr class="hover:bg-gray-50">
-              <td class="px-5 py-3">{{ row.payment_method }}</td>
-              <td class="px-5 py-3 text-right">{{ row.total_count }}</td>
-              <td class="px-5 py-3 text-right">{% trans "Rs." %} {{ row.total_amount|floatformat:2|nepali_number }}</td>
+            <tr>
+              <td class="font-bold text-slate-700">
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full {% if row.payment_method == 'CASH' %}bg-emerald-500{% elif row.payment_method == 'CARD' %}bg-blue-500{% else %}bg-purple-500{% endif %}"></span>
+                    {{ row.payment_method }}
+                </span>
+              </td>
+              <td class="text-right font-black text-slate-600">{{ row.total_count }}</td>
+              <td class="text-right font-black text-emerald-600">{% trans "Rs." %} {{ row.total_amount|floatformat:2|nepali_number }}</td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="3" class="px-5 py-10 text-center text-gray-500">
+              <td colspan="3" class="py-10 text-center text-slate-500 font-medium">
                 {% trans "No payment data found." %}
               </td>
             </tr>
@@ -195,72 +267,84 @@
 
   </div>
 
-  <div class="card">
-    <div class="p-5">
-      <div class="text-base font-semibold text-gray-900">{% trans "Table Wise Sales" %}</div>
-      <div class="text-sm text-gray-500">{% trans "Top tables by sales amount" %}</div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Table Wise Sales -->
+    <div class="card flex flex-col h-[500px]">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div>
+            <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Table Wise Sales" %}</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">{% trans "Top tables by sales amount" %}</p>
+        </div>
+      </div>
+
+      <div class="fp-table-wrap !rounded-none !border-0 !shadow-none flex-1">
+        <table class="fp-table">
+          <thead class="sticky top-0 z-10">
+            <tr>
+              <th>{% trans "Table" %}</th>
+              <th class="text-right">{% trans "Orders" %}</th>
+              <th class="text-right">{% trans "Sales" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in table_wise_sales %}
+            <tr>
+              <td class="font-bold text-slate-700 flex items-center gap-2">
+                  <span class="text-slate-300">🪑</span> {{ row.table_name }}
+              </td>
+              <td class="text-right font-black text-slate-600">{{ row.total_orders }}</td>
+              <td class="text-right font-black text-emerald-600">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="py-10 text-center text-slate-500 font-medium">
+                {% trans "No table sales found." %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="input w-full">
-          <tr>
-            <th class="text-left px-5 py-3 font-medium">{% trans "Table" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Orders" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Sales" %}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for row in table_wise_sales %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-5 py-3">{{ row.table_name }}</td>
-            <td class="px-5 py-3 text-right">{{ row.total_orders }}</td>
-            <td class="px-5 py-3 text-right">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
-              {% trans "No table sales found." %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <!-- Daily Sales -->
+    <div class="card flex flex-col h-[500px]">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div>
+            <h3 class="text-lg font-bold text-slate-800 m-0">{% trans "Daily Sales" %}</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">{% trans "Day-wise invoice and sales totals" %}</p>
+        </div>
+      </div>
 
-  <div class="card">
-    <div class="p-5">
-      <div class="text-base font-semibold text-gray-900">{% trans "Daily Sales" %}</div>
-      <div class="text-sm text-gray-500">{% trans "Day-wise invoice and sales totals" %}</div>
+      <div class="fp-table-wrap !rounded-none !border-0 !shadow-none flex-1">
+        <table class="fp-table">
+          <thead class="sticky top-0 z-10">
+            <tr>
+              <th>{% trans "Date" %}</th>
+              <th class="text-right">{% trans "Invoices" %}</th>
+              <th class="text-right">{% trans "Sales" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in sales_by_day %}
+            <tr>
+              <td class="font-bold text-slate-700">{{ row.day|date:"M d, Y" }}</td>
+              <td class="text-right font-black text-slate-600">{{ row.invoice_count }}</td>
+              <td class="text-right font-black text-emerald-600">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="py-10 text-center text-slate-500 font-medium">
+                {% trans "No daily sales data found." %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="input w-full">
-          <tr>
-            <th class="text-left px-5 py-3 font-medium">{% trans "Date" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Invoices" %}</th>
-            <th class="text-right px-5 py-3 font-medium">{% trans "Sales" %}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for row in sales_by_day %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-5 py-3">{{ row.day }}</td>
-            <td class="px-5 py-3 text-right">{{ row.invoice_count }}</td>
-            <td class="px-5 py-3 text-right">{% trans "Rs." %} {{ row.total_sales|floatformat:2|nepali_number }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="3" class="px-5 py-10 text-center text-gray-500">
-              {% trans "No daily sales data found." %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
 
 </div>

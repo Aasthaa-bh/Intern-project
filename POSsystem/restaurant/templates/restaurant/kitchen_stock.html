@@ -1,283 +1,223 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kitchen Stock</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: #f4f5f7;
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      color: #1f2937;
-    }
-    .dash-wrap {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 20px 14px 28px;
-    }
-    .stock-header {
-      background: linear-gradient(135deg, #111827, #374151);
-      color: #fff;
-      border-radius: 14px;
-      padding: 18px;
-      border: 1px solid rgba(255,255,255,.08);
-      box-shadow: 0 10px 24px rgba(17, 24, 39, .18);
-    }
-    .stock-header .sub {
-      color: rgba(255,255,255,.82);
-      margin: 6px 0 0;
-      font-size: 14px;
-    }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.4);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      background: rgba(255,255,255,.08);
-    }
-    .chip:hover { background: #fff; color: #111827; }
-    .panel {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, .04);
-    }
-    .panel-head {
-      padding: 14px 16px;
-      border-bottom: 1px solid #edf0f4;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    .panel-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-      color: #111827;
-    }
-    .panel-body-pad { padding: 14px 16px; }
-    .table th {
-      color: #6b7280;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .35px;
-      border-bottom-width: 1px;
-      white-space: nowrap;
-    }
-    .table td {
-      vertical-align: middle;
-      white-space: nowrap;
-      font-size: 14px;
-    }
-    .notice {
-      color: #9a3412;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
-    .edit-box {
-      margin-top: 8px;
-      padding: 12px;
-      border: 1px solid #dbe2ea;
-      border-radius: 8px;
-      background: #f8fafc;
-    }
-    .empty {
-      color: #6b7280;
-      padding: 16px;
-      margin: 0;
-      font-weight: 600;
-    }
-    .action-col {
-      min-width: 220px;
-    }
-    summary {
-      cursor: pointer;
-      color: #0d6efd;
-      font-weight: 600;
-      list-style: none;
-    }
-    summary::-webkit-details-marker { display: none; }
-  </style>
-</head>
-<body>
-  <main class="dash-wrap">
-    <section class="stock-header mb-3">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-          <h1 class="h3 mb-0">Kitchen Stock</h1>
-          <p class="sub">
-          {% if business %}{{ business.business_name }} inventory{% else %}Sign in with a business account to manage inventory{% endif %}
-        </p>
-        </div>
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-          <a class="chip" href="{% url 'restaurant_kitchen_dashboard' %}">Kitchen Dashboard</a>
-          <a class="chip" href="{% url 'logout' %}">Logout</a>
-        </div>
-      </div>
-    </section>
+{% extends "restaurant/base.html" %}
 
-    <section class="row g-3">
-      <article class="col-12 col-xl-5">
-        <div class="panel h-100">
+{% block title %}Kitchen Stock{% endblock %}
+{% block page_title %}Kitchen Stock{% endblock %}
+{% block page_subtitle %}
+{% if business %}
+{{ business.business_name }} inventory and stock updates
+{% else %}
+Sign in with a business account to manage inventory
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.25fr;
+        gap: 18px;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .panel-head {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .panel-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .panel-body {
+        padding: 20px;
+    }
+
+    .notice {
+        margin-bottom: 14px;
+        background: #fff7ed;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 700;
+    }
+
+    .empty-box {
+        padding: 32px 16px;
+        text-align: center;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .form-block {
+        margin-bottom: 14px;
+    }
+
+    .month-tools {
+        display: flex;
+        gap: 10px;
+        align-items: end;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+
+    @media (max-width: 1100px) {
+        .stock-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stock-grid">
+    <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-title">Added Stock</h2>
-          <span class="badge text-bg-light border">Items</span>
+            <div class="panel-title">Added Stock</div>
+            <span class="badge badge-info">Items</span>
         </div>
+
         {% if ingredients %}
-          <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+        <table>
             <thead>
-              <tr><th>Name</th><th>Qty</th><th>Unit</th><th>Price</th></tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Price</th>
+                </tr>
             </thead>
             <tbody>
-              {% for ingredient in ingredients %}
+                {% for ingredient in ingredients %}
                 <tr>
-                  <td>{{ ingredient.name }}</td>
-                  <td>{{ ingredient.quantity }}</td>
-                  <td>{{ ingredient.unit }}</td>
-                  <td>{{ ingredient.latest_price }}</td>
+                    <td>{{ ingredient.name }}</td>
+                    <td>{{ ingredient.quantity }}</td>
+                    <td>{{ ingredient.unit }}</td>
+                    <td>{{ ingredient.latest_price }}</td>
                 </tr>
-              {% endfor %}
+                {% endfor %}
             </tbody>
-          </table>
-          </div>
+        </table>
         {% else %}
-          <p class="empty">No kitchen stock items added yet.</p>
+        <div class="empty-box">No kitchen stock items added yet.</div>
         {% endif %}
-        </div>
-      </article>
+    </div>
 
-      <article class="col-12 col-xl-7">
-        <div class="panel h-100">
+    <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-title">Add Stock</h2>
-          <span class="badge text-bg-light border">Manage</span>
+            <div class="panel-title">Add Stock</div>
+            <span class="badge badge-success">Manage</span>
         </div>
-        <div class="panel-body-pad">
-        {% if form_error %}
-          <div class="alert alert-danger py-2 px-3 mb-3">{{ form_error }}</div>
-        {% endif %}
-        <form method="post" class="mb-4">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="add_stock">
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <label for="ingredient_name" class="form-label">Stock item name</label>
-              <input id="ingredient_name" name="ingredient_name" type="text" placeholder="Rice" class="form-control">
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="unit" class="form-label">Unit</label>
-              <input id="unit" name="unit" type="text" placeholder="kg" class="form-control">
-            </div>
-          </div>
-          <div class="row g-3 mt-0">
-            <div class="col-12 col-md-6">
-              <label for="quantity" class="form-label">Quantity to add</label>
-              <input id="quantity" name="quantity" type="number" step="0.01" min="0.01" required class="form-control">
-            </div>
-            <div class="col-12 col-md-6">
-              <label for="price" class="form-label">Price</label>
-              <input id="price" name="price" type="number" step="0.01" min="0" placeholder="0.00" class="form-control">
-            </div>
-          </div>
-          <div class="mt-3">
-            <label for="note" class="form-label">Note (optional)</label>
-            <input id="note" name="note" type="text" placeholder="Morning supply delivery" class="form-control">
-          </div>
-          <button type="submit" class="btn btn-primary mt-3">Add Kitchen Stock</button>
-        </form>
 
-        <h3 class="h5 mb-2">Added Stock (Month-wise)</h3>
-        <form method="get" class="row g-2 align-items-end mb-3">
-          <div class="col-12 col-sm-6 col-md-4">
-            <label for="month" class="form-label">Select month</label>
-            <input id="month" name="month" type="month" value="{{ selected_month }}" class="form-control">
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-outline-primary btn-sm">Filter</button>
-          </div>
-          <div class="col-auto">
-            <a href="{% url 'restaurant_kitchen_stock' %}" class="btn btn-link btn-sm">Clear</a>
-          </div>
-        </form>
-        {% if month_filter_error %}
-          <div class="alert alert-danger py-2 px-3 mb-3">{{ month_filter_error }}</div>
-        {% endif %}
-        <div class="notice">
-          Total Added Stock Price{% if total_price_month_label %} ({{ total_price_month_label }}){% endif %}: {{ total_added_stock_price }}
+        <div class="panel-body">
+            {% if form_error %}
+                <div class="fp-alert error" style="margin-bottom:14px;">{{ form_error }}</div>
+            {% endif %}
+
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_stock">
+
+                <div class="form-grid">
+                    <div class="form-block">
+                        <label for="ingredient_name">Stock item name</label>
+                        <input id="ingredient_name" name="ingredient_name" type="text" placeholder="Rice">
+                    </div>
+
+                    <div class="form-block">
+                        <label for="unit">Unit</label>
+                        <input id="unit" name="unit" type="text" placeholder="kg">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-block">
+                        <label for="quantity">Quantity to add</label>
+                        <input id="quantity" name="quantity" type="number" step="0.01" min="0.01" required>
+                    </div>
+
+                    <div class="form-block">
+                        <label for="price">Price</label>
+                        <input id="price" name="price" type="number" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <label for="note">Note (optional)</label>
+                    <input id="note" name="note" type="text" placeholder="Morning supply delivery">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Add Kitchen Stock</button>
+            </form>
+
+            <div style="font-size:16px; font-weight:800; margin-bottom:12px;">Added Stock (Month-wise)</div>
+
+            <form method="get" class="month-tools">
+                <div>
+                    <label for="month">Select month</label>
+                    <input id="month" name="month" type="month" value="{{ selected_month }}">
+                </div>
+                <button type="submit" class="btn btn-secondary">Filter</button>
+                <a href="{% url 'restaurant_kitchen_stock' %}" class="btn btn-secondary">Clear</a>
+            </form>
+
+            {% if month_filter_error %}
+                <div class="fp-alert error" style="margin-bottom:14px;">{{ month_filter_error }}</div>
+            {% endif %}
+
+            <div class="notice">
+                Total Added Stock Price{% if total_price_month_label %} ({{ total_price_month_label }}){% endif %}: {{ total_added_stock_price }}
+            </div>
+
+            {% if recent_changes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for change in recent_changes %}
+                    <tr>
+                        <td>{{ change.created_at|date:"M d, Y" }}</td>
+                        <td>{{ change.ingredient.name }}</td>
+                        <td>{{ change.quantity }}</td>
+                        <td>{{ change.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-box">No stock changes found for the selected period.</div>
+            {% endif %}
         </div>
-        {% if recent_changes %}
-          <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead><tr><th>Stock Item</th><th>Type</th><th>Qty</th><th>Price</th><th>Total Price</th><th>By</th><th>Note</th><th>Action</th></tr></thead>
-            <tbody>
-              {% for change in recent_changes %}
-                <tr>
-                  <td>{{ change.ingredient.name }}</td>
-                  <td>{{ change.get_change_type_display }}</td>
-                  <td>{{ change.quantity_change }}</td>
-                  <td>{{ change.price }}</td>
-                  <td>{{ change.total_price }}</td>
-                  <td>{{ change.changed_by.username }}</td>
-                  <td>{{ change.note|default:"-" }}</td>
-                  <td class="action-col">
-                    {% if change.change_type == "ADD" %}
-                      <div class="d-grid gap-2">
-                        <details>
-                          <summary>Edit</summary>
-                          <div class="edit-box">
-                            <form method="post" action="{% url 'restaurant_kitchen_stock_change_edit' change.id %}">
-                              {% csrf_token %}
-                              <div class="row g-2">
-                                <div class="col-12 col-md-6">
-                                  <label class="form-label mb-1">Qty</label>
-                                  <input type="number" step="0.01" min="0.01" name="quantity" value="{{ change.quantity_change }}" required class="form-control form-control-sm">
-                                </div>
-                                <div class="col-12 col-md-6">
-                                  <label class="form-label mb-1">Price</label>
-                                  <input type="number" step="0.01" min="0" name="price" value="{{ change.edit_price }}" placeholder="0.00" class="form-control form-control-sm">
-                                </div>
-                                <div class="col-12">
-                                  <label class="form-label mb-1">Note</label>
-                                  <input type="text" name="note" value="{{ change.edit_note }}" placeholder="Optional note" class="form-control form-control-sm">
-                                </div>
-                              </div>
-                              <button type="submit" class="btn btn-secondary btn-sm mt-2">Save Edit</button>
-                            </form>
-                          </div>
-                        </details>
-                        <form method="post" action="{% url 'restaurant_kitchen_stock_change_delete' change.id %}" onsubmit="return confirm('Delete this stock add entry and rollback quantity?');">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                      </div>
-                    {% else %}
-                      <span class="text-muted">-</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        {% else %}
-          <p class="empty">No stock changes recorded yet.</p>
-        {% endif %}
-        </div>
-        </div>
-      </article>
-    </section>
-  </main>
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}

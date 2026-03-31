@@ -3,111 +3,127 @@
 {% block page_title %}{{ offer.offer_name }}{% endblock %}
 {% block page_subtitle %}Offer details and usage statistics{% endblock %}
 
-{% block header_actions %}
-<a href="{% url 'clothing_offer_edit' offer.id %}"
-   class="btn btn-primary">
-    Edit Offer
-</a>
-<a href="{% url 'clothing_offer_list' %}"
-   class="btn btn-secondary">
-    Back to List
-</a>
-{% endblock %}
-
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-6 lg:p-6">
 
     <div class="card">
-        <div class="card-header">
-            <h3>Offer Information</h3>
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-slate-800 m-0">Offer Information</h3>
+            <div class="flex gap-2">
+                <a href="{% url 'clothing_offer_edit' offer.id %}" class="btn btn-primary">
+                    Edit Offer
+                </a>
+                <a href="{% url 'clothing_offer_list' %}" class="btn btn-secondary">
+                    Back to List
+                </a>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div>
-                    <label>Offer Name</label>
-                    <p class="mt-1">{{ offer.offer_name }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Offer Name</h4>
+                    <p class="text-base font-bold text-slate-800">{{ offer.offer_name }}</p>
                 </div>
 
                 <div>
-                    <label>Offer Type</label>
-                    <p class="mt-1">{{ offer.get_offer_type_display }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Offer Type</h4>
+                    <span class="inline-block bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider">{{ offer.get_offer_type_display }}</span>
                 </div>
 
                 <div>
-                    <label>Discount</label>
-                    <p class="mt-1 font-semibold text-green-600">{{ offer.get_discount_display }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Discount</h4>
+                    <p class="text-xl font-black text-emerald-600">{{ offer.get_discount_display }}</p>
                 </div>
 
                 <div>
-                    <label>Status</label>
-                    <div class="mt-1">
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Status</h4>
+                    <div>
                         {% if offer.status == 'ACTIVE' %}
-                            <span class="badge badge-success">Active</span>
+                            <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide shadow-sm border border-emerald-200 inline-flex items-center gap-1.5">
+                              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                            </span>
                         {% elif offer.status == 'INACTIVE' %}
-                            <span class="badge badge-neutral">Inactive</span>
+                            <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide border border-slate-200">Inactive</span>
                         {% else %}
-                            <span class="badge badge-danger">Expired</span>
+                            <span class="bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide shadow-sm border border-rose-200 inline-flex items-center gap-1">
+                              <svg class="w-3 h-3 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Expired
+                            </span>
                         {% endif %}
                     </div>
                 </div>
 
                 <div>
-                    <label>Valid From</label>
-                    <p class="mt-1">{{ offer.start_date|date:"F d, Y" }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Valid From</h4>
+                    <p class="text-[15px] font-bold text-slate-700">{{ offer.start_date|date:"F d, Y" }}</p>
                 </div>
 
                 <div>
-                    <label>Valid Until</label>
-                    <p class="mt-1">{{ offer.end_date|date:"F d, Y" }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Valid Until</h4>
+                    <p class="text-[15px] font-bold text-slate-700">{{ offer.end_date|date:"F d, Y" }}</p>
                 </div>
 
                 {% if offer.product %}
                 <div>
-                    <label>Product</label>
-                    <p class="mt-1">{{ offer.product.name }}</p>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Product</h4>
+                    <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold px-4 py-2 rounded-xl">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        {{ offer.product.name }}
+                    </div>
                 </div>
                 {% endif %}
 
                 {% if offer.offer_type == 'VARIANT' and offer.variants.exists %}
-                <div>
-                    <label>Variants</label>
-                    <div class="mt-1">
+                <div class="md:col-span-2">
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Variants</h4>
+                    <div class="flex flex-wrap gap-2">
                         {% for variant in offer.variants.all %}
-                            <div>{{ variant }}</div>
+                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold">{{ variant }}</span>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
                 {% if offer.description %}
-                <div class="md:col-span-2">
-                    <label>Description</label>
-                    <p class="mt-1">{{ offer.description }}</p>
+                <div class="md:col-span-2 lg:col-span-3 pt-4 border-t border-slate-100">
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Description</h4>
+                    <p class="text-sm font-medium text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{{ offer.description }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>Usage Statistics</h3>
+    <!-- Stats grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-indigo-50/80 rounded-2xl p-6 border border-indigo-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative z-10">
+                <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Total Usage</h4>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-indigo-900 tracking-tight">{{ usage_stats.total_usage|default:0 }}</span>
+                    <span class="text-sm font-bold text-indigo-500">times</span>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Usage</h3>
-                    <p>{{ usage_stats.total_usage|default:0 }}</p>
-                </div>
 
-                <div class="stat-card">
-                    <h3>Total Discount Given</h3>
-                    <p>Rs {{ usage_stats.total_discount|default:0 }}</p>
+        <div class="bg-emerald-50/80 rounded-2xl p-6 border border-emerald-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative z-10">
+                <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Total Discount Given</h4>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-black text-emerald-600">Rs</span>
+                    <span class="text-4xl font-black text-emerald-900 tracking-tight">{{ usage_stats.total_discount|default:0 }}</span>
                 </div>
+            </div>
+        </div>
 
-                <div class="stat-card">
-                    <h3>Average Discount</h3>
-                    <p>Rs {{ usage_stats.avg_discount|default:0 }}</p>
+        <div class="bg-amber-50/80 rounded-2xl p-6 border border-amber-100/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative z-10">
+                <h4 class="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Average Discount</h4>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-black text-amber-600">Rs</span>
+                    <span class="text-4xl font-black text-amber-900 tracking-tight">{{ usage_stats.avg_discount|default:0 }}</span>
                 </div>
             </div>
         </div>

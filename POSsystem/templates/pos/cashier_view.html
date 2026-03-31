@@ -1,275 +1,129 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_waiter.html' %}
 
 {% block title %}Cashier - FlexiPOS{% endblock %}
+{% block mobile_title %}Cashier{% endblock %}
 
-{% block extra_css %}
-<style>
-    .page-header {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-
-    .page-header h2 {
-        color: white;
-        font-size: 36px;
-        margin-bottom: 10px;
-    }
-
-    .orders-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-        gap: 25px;
-    }
-
-    .cashier-order-card {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cashier-order-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 8px;
-        background: linear-gradient(90deg, #48bb78, #38a169);
-    }
-
-    .order-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        padding-bottom: 20px;
-        border-bottom: 3px solid #e2e8f0;
-    }
-
-    .order-number {
-        font-size: 28px;
-        font-weight: bold;
-        color: #2d3748;
-    }
-
-    .ready-badge {
-        background: #c6f6d5;
-        color: #22543d;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .order-info {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    .info-item {
-        padding: 12px;
-        background: #f7fafc;
-        border-radius: 10px;
-    }
-
-    .info-label {
-        font-size: 12px;
-        color: #718096;
-        margin-bottom: 5px;
-    }
-
-    .info-value {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2d3748;
-    }
-
-    .items-section {
-        margin-bottom: 25px;
-    }
-
-    .items-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2d3748;
-        margin-bottom: 15px;
-    }
-
-    .item-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px;
-        border-bottom: 1px solid #e2e8f0;
-        font-size: 16px;
-    }
-
-    .item-row:last-child {
-        border-bottom: none;
-    }
-
-    .item-details {
-        flex: 1;
-    }
-
-    .item-name {
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 4px;
-    }
-
-    .item-price-qty {
-        font-size: 14px;
-        color: #718096;
-    }
-
-    .item-total {
-        font-weight: bold;
-        color: #2d3748;
-        font-size: 18px;
-    }
-
-    .total-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-    }
-
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 28px;
-        font-weight: bold;
-    }
-
-    .action-btn {
-        width: 100%;
-        padding: 15px;
-        border: none;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-payment {
-        background: #48bb78;
-        color: white;
-    }
-
-    .btn-payment:hover {
-        background: #38a169;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
-    }
-
-    .locked-indicator {
-        background: #fed7d7;
-        color: #742a2a;
-        padding: 12px;
-        border-radius: 8px;
-        text-align: center;
-        margin-bottom: 15px;
-        font-weight: bold;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
-</style>
+{% block sidebar %}
+<div class="p-6 border-b border-slate-800">
+    <h2 class="text-xl font-black text-white tracking-tight leading-none mb-1">FlexiPOS</h2>
+    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cashier Station</p>
+</div>
+<div class="flex-1 overflow-y-auto py-4">
+    <nav class="space-y-1 px-3">
+        <a href="{% url 'cashier_view' %}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600/10 text-indigo-400 font-bold transition-colors">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Payment Queue
+        </a>
+    </nav>
+</div>
+<div class="p-4 border-t border-slate-800">
+    <form method="post" action="{% url 'logout' %}" class="m-0">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-300 font-bold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 group">
+            <svg class="w-4 h-4 text-slate-500 group-hover:text-rose-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            Logout
+        </button>
+    </form>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>Cashier - Orders Ready for Payment</h2>
-    <p style="color: rgba(255,255,255,0.9);">These orders are locked and ready for payment</p>
+<div class="text-center mb-10">
+    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Orders Ready for Payment</h2>
+    <p class="text-slate-500 font-medium mt-2">These orders are locked and ready for payment</p>
 </div>
 
 {% if orders_with_totals %}
-<div class="orders-grid">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     {% for order_data in orders_with_totals %}
-    <div class="cashier-order-card">
-        <div class="order-header">
-            <div class="order-number">{{ order_data.order.order_no }}</div>
-            <span class="ready-badge">LOCKED</span>
-        </div>
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden relative flex flex-col">
+        <div class="h-2 w-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
 
-        <div class="order-info">
-            <div class="info-item">
-                <div class="info-label">Table</div>
-                <div class="info-value">{{ order_data.order.table.name }}</div>
+        <div class="p-6 md:p-8 flex-1 flex flex-col">
+            <div class="flex justify-between items-center pb-6 mb-6 border-b border-slate-100">
+                <div class="text-3xl font-black text-slate-800 tracking-tight">#{{ order_data.order.order_no }}</div>
+                <span class="bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide">LOCKED</span>
             </div>
-            <div class="info-item">
-                <div class="info-label">Waiter</div>
-                <div class="info-value">{{ order_data.order.created_by.get_full_name|default:order_data.order.created_by.username }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Order Time</div>
-                <div class="info-value">{{ order_data.order.opened_at|time:"h:i A" }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Sent to Cashier</div>
-                <div class="info-value">{{ order_data.order.kitchen_order.sent_to_cashier_at|time:"h:i A" }}</div>
-            </div>
-        </div>
 
-        <div class="locked-indicator">
-            Order Locked - Cannot Add Items
-        </div>
-
-        <div class="items-section">
-            <div class="items-title">Order Items</div>
-            {% for item in order_data.order.items.all %}
-            <div class="item-row">
-                <div class="item-details">
-                    <div class="item-name">{{ item.item_name_snapshot }}</div>
-                    <div class="item-price-qty">Rs{{ item.unit_price }} × {{ item.quantity }}</div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Table</div>
+                    <div class="text-lg font-bold text-slate-900">{{ order_data.order.table.name }}</div>
                 </div>
-                <div class="item-total">Rs{{ item.line_total }}</div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Waiter</div>
+                    <div class="text-lg font-bold text-slate-900 truncate">{{ order_data.order.created_by.get_full_name|default:order_data.order.created_by.username }}</div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Order Time</div>
+                    <div class="text-lg font-bold text-slate-900">{{ order_data.order.opened_at|time:"h:i A" }}</div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">To Cashier</div>
+                    <div class="text-lg font-bold text-slate-900">{{ order_data.order.kitchen_order.sent_to_cashier_at|time:"h:i A" }}</div>
+                </div>
             </div>
-            {% endfor %}
-        </div>
 
-        {% if order_data.order.notes %}
-        <div style="padding: 12px; background: #fef5e7; border-radius: 8px; margin-bottom: 15px;">
-            <strong>Notes:</strong> {{ order_data.order.notes }}
-        </div>
-        {% endif %}
+            <div class="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 font-bold text-center mb-6 text-sm">
+                Order Locked - Cannot Add Items
+            </div>
 
-        <div class="total-section">
-            <div class="total-row">
-                <span>TOTAL AMOUNT:</span>
-                <span>Rs{{ order_data.subtotal }}</span>
+            <div class="mb-8 flex-1">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Order Items</h3>
+                <div class="space-y-3">
+                    {% for item in order_data.order.items.all %}
+                    <div class="flex justify-between items-center py-2 border-b border-dashed border-slate-200 pb-3 last:border-0 last:pb-0">
+                        <div class="pr-4">
+                            <div class="font-bold text-slate-800">{{ item.item_name_snapshot }}</div>
+                            <div class="text-sm font-medium text-slate-500">Rs{{ item.unit_price }} x {{ item.quantity }}</div>
+                        </div>
+                        <div class="font-bold text-lg text-slate-900 whitespace-nowrap">Rs{{ item.line_total }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if order_data.order.notes %}
+            <div class="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-200">
+                <strong class="text-amber-900">Notes:</strong>
+                <span class="text-amber-800">{{ order_data.order.notes }}</span>
+            </div>
+            {% endif %}
+
+            <div class="mt-auto">
+                <div class="bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-2xl p-6 mb-4 shadow-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-indigo-100 font-bold tracking-wide uppercase">Total Amount</span>
+                        <span class="text-3xl font-black">Rs{{ order_data.subtotal }}</span>
+                    </div>
+                </div>
+                <button class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-lg text-lg flex justify-center items-center gap-2 transform hover:-translate-y-0.5"
+                        onclick="completeOrder({{ order_data.order.id }}, {{ order_data.subtotal }}, '{{ order_data.order.table.name|escapejs }}')">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Complete Order &amp; Free Table
+                </button>
             </div>
         </div>
-
-        <button class="action-btn btn-payment" onclick="completeOrder({{ order_data.order.id }}, {{ order_data.subtotal }}, '{{ order_data.order.table.name }}')">
-            Complete Order & Free Table
-        </button>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="empty-state">
-    <div class="empty-state-icon"></div>
-    <h3>No Orders Ready for Payment</h3>
-    <p>Waiting for waiters to send orders to cashier...</p>
+<div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-16 text-center max-w-2xl mx-auto mt-10">
+    <div class="w-24 h-24 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+    </div>
+    <h3 class="text-2xl font-bold text-slate-800 mb-2">No Orders Ready for Payment</h3>
+    <p class="text-slate-500 font-medium text-lg">Waiting for waiters to send orders to your counter.</p>
 </div>
 {% endif %}
 {% endblock %}
@@ -277,33 +131,18 @@
 {% block extra_js %}
 <script>
     async function completeOrder(orderId, amount, tableName) {
-        if (confirm(`Complete order and free up table ${tableName}?\n\nTotal Amount: Rs${amount}\n\nThis will:\n- Mark order as COMPLETED\n- Make table AVAILABLE for new orders`)) {
+        if (confirm('Complete order and free up table ' + tableName + '?\n\nTotal Amount: Rs' + amount + '\n\nThis will mark the order as COMPLETED and make the table AVAILABLE.')) {
             try {
-                const response = await fetch(`/pos/order/${orderId}/complete/`, {
+                const response = await fetch('/pos/order/' + orderId + '/complete/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    }
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }
                 });
-                
                 const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ ' + data.message);
-                    location.reload();
-                } else {
-                    alert('❌ Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
+                if (data.success) location.reload(); else alert('Error: ' + data.error);
+            } catch (error) { alert('Error: ' + error.message); }
         }
     }
 
-    // Auto-refresh every 30 seconds
-    setTimeout(() => {
-        location.reload();
-    }, 30000);
+    setTimeout(() => { location.reload(); }, 30000);
 </script>
 {% endblock %}

@@ -62,7 +62,7 @@ def login_view(request):
 
         elif user.role == "CASHIER":
             if business_type == "restaurant":
-                return redirect("restaurant_cashier_dashboard")
+                return redirect("reception_dashboard")
             elif business_type == "clothing":
                 return redirect("clothing_cashier_dashboard")
             elif business_type == "mart":

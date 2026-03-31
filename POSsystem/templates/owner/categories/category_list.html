@@ -5,105 +5,161 @@
 {% block page_title %}{% trans "Menu Categories" %}{% endblock %}
 {% block page_subtitle %}{% trans "Organize your menu into categories" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-shell {
+        max-width: 1180px;
+    }
+
+    .section-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .section-head {
+        padding: 24px 24px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .section-subtitle {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        padding: 0 0 6px;
+    }
+
+    .table-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-soft {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .btn-soft:hover {
+        background: var(--surface-raised);
+    }
+
+    .btn-danger-solid {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #ef4444;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .btn-danger-solid:hover {
+        background: #dc2626;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .status-pill.active {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-pill.inactive {
+        background: #f1f5f9;
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="page-shell">
+    <div class="section-card">
+        <div class="section-head">
+            <div>
+                <div class="section-title">{% trans "Categories" %}</div>
+                <div class="section-subtitle">{% trans "Active categories are shown to staff" %}</div>
+            </div>
 
-<div class="card">
+            <a href="{% url 'category_create' %}" class="btn-primary">
+                + {% trans "Add Category" %}
+            </a>
+        </div>
 
-  <div class="p-5 flex items-center justify-between">
-    
-    <div>
-      <div class="text-base font-semibold text-gray-900 dark:text-white">
-        {% trans "Categories" %}
-      </div>
-
-      <div class="text-sm text-gray-500 dark:text-gray-300">
-        {% trans "Active categories are shown to staff" %}
-      </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th style="text-align:right;">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in categories %}
+                    <tr>
+                        <td>{{ c.name }}</td>
+                        <td>
+                            {% if c.is_active %}
+                                <span class="status-pill active">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="status-pill inactive">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'category_edit' c.id %}" class="btn-soft">{% trans "Edit" %}</a>
+                                <a href="{% url 'category_delete' c.id %}" class="btn-danger-solid">{% trans "Delete" %}</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align:center; color:var(--text-muted); padding:40px 20px;">
+                            {% trans "No categories found." %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <a href="{% url 'category_create' %}"
-       class="btn-primary">
-       + {% trans "Add Category" %}
-    </a>
-
-  </div>
-
-  <div class="overflow-x-auto">
-
-    <table class="table">
-
-      <thead class="bg-gray-50 dark:bg-gray-800">
-
-        <tr>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Name" %}</th>
-          <th class="text-left px-5 py-3 font-medium">{% trans "Status" %}</th>
-          <th class="text-right px-5 py-3 font-medium">{% trans "Actions" %}</th>
-        </tr>
-
-      </thead>
-
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-
-        {% for c in categories %}
-
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-
-          <td class="px-5 py-3 text-gray-900 dark:text-gray-200">
-            {{ c.name }}
-          </td>
-
-          <td class="px-5 py-3">
-
-            {% if c.is_active %}
-
-            <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-              {% trans "Active" %}
-            </span>
-
-            {% else %}
-
-            <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-              {% trans "Inactive" %}
-            </span>
-
-            {% endif %}
-
-          </td>
-
-          <td class="px-5 py-3 text-right space-x-2">
-
-            <a href="{% url 'category_edit' c.id %}"
-               class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-              {% trans "Edit" %}
-            </a>
-
-            <a href="{% url 'category_delete' c.id %}"
-               class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
-              {% trans "Delete" %}
-            </a>
-
-          </td>
-
-        </tr>
-
-        {% empty %}
-
-        <tr>
-
-          <td colspan="3" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
-            {% trans "No categories found." %}
-          </td>
-
-        </tr>
-
-        {% endfor %}
-
-      </tbody>
-
-    </table>
-
-  </div>
-
 </div>
-
 {% endblock %}

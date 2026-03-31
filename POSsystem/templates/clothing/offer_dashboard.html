@@ -4,78 +4,91 @@
 {% block page_subtitle %}Sales offers analytics and insights{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="px-4 py-8 md:px-8 max-w-[1600px] mx-auto space-y-8">
+    
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight m-0">Offers Dashboard</h1>
+        <p class="text-slate-500 font-medium mt-2">Sales offers analytics and performance insights</p>
+    </div>
+
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total Offers -->
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between">
+        <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl shadow-lg shadow-indigo-200 p-6 text-white relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
+            <div class="relative z-10 flex items-start justify-between">
                 <div>
-                    <p class="text-blue-100 text-sm font-medium">Total Offers</p>
-                    <p class="text-3xl font-bold mt-2">{{ stats.total_offers }}</p>
+                    <h4 class="text-indigo-100 text-[11px] font-bold uppercase tracking-widest mb-1">Total Offers</h4>
+                    <p class="text-4xl font-black tracking-tight mt-1">{{ stats.total_offers }}</p>
                 </div>
-                <div class="bg-blue-400 bg-opacity-30 rounded-full p-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                <div class="bg-white/20 rounded-2xl p-3 backdrop-blur-sm border border-white/10 shadow-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 text-sm text-blue-100">
-                <span class="font-semibold">{{ stats.active_offers }}</span> active
+            <div class="relative z-10 mt-6 pt-4 border-t border-white/20 text-sm font-medium text-indigo-100 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-bold text-white">{{ stats.active_offers }}</span> active right now
             </div>
         </div>
 
         <!-- Total Discount Given -->
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between">
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl shadow-lg shadow-emerald-200 p-6 text-white relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
+            <div class="relative z-10 flex items-start justify-between">
                 <div>
-                    <p class="text-green-100 text-sm font-medium">Total Discount</p>
-                    <p class="text-3xl font-bold mt-2">Rs {{ stats.total_discount|floatformat:0 }}</p>
+                    <h4 class="text-emerald-100 text-[11px] font-bold uppercase tracking-widest mb-1">Total Savings</h4>
+                    <p class="text-3xl font-black tracking-tight mt-1 truncate max-w-[140px]">Rs {{ stats.total_discount|floatformat:0 }}</p>
                 </div>
-                <div class="bg-green-400 bg-opacity-30 rounded-full p-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <div class="bg-white/20 rounded-2xl p-3 backdrop-blur-sm border border-white/10 shadow-sm shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 text-sm text-green-100">
-                Total savings for customers
+            <div class="relative z-10 mt-6 pt-4 border-t border-white/20 text-sm font-medium text-emerald-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                Total customer savings
             </div>
         </div>
 
         <!-- Total Usage -->
-        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between">
+        <div class="bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 rounded-3xl shadow-lg shadow-fuchsia-200 p-6 text-white relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
+            <div class="relative z-10 flex items-start justify-between">
                 <div>
-                    <p class="text-purple-100 text-sm font-medium">Total Usage</p>
-                    <p class="text-3xl font-bold mt-2">{{ stats.total_usage }}</p>
+                    <h4 class="text-fuchsia-100 text-[11px] font-bold uppercase tracking-widest mb-1">Total Usage</h4>
+                    <p class="text-4xl font-black tracking-tight mt-1">{{ stats.total_usage }}</p>
                 </div>
-                <div class="bg-purple-400 bg-opacity-30 rounded-full p-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                <div class="bg-white/20 rounded-2xl p-3 backdrop-blur-sm border border-white/10 shadow-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 text-sm text-purple-100">
+            <div class="relative z-10 mt-6 pt-4 border-t border-white/20 text-sm font-medium text-fuchsia-100">
                 Times offers were applied
             </div>
         </div>
 
         <!-- Average Discount -->
-        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between">
+        <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl shadow-lg shadow-amber-200 p-6 text-white relative overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
+            <div class="relative z-10 flex items-start justify-between">
                 <div>
-                    <p class="text-orange-100 text-sm font-medium">Avg Discount</p>
-                    <p class="text-3xl font-bold mt-2">Rs {{ stats.avg_discount|floatformat:0 }}</p>
+                    <h4 class="text-amber-100 text-[11px] font-bold uppercase tracking-widest mb-1">Avg Discount</h4>
+                    <p class="text-3xl font-black tracking-tight mt-1 truncate max-w-[140px]">Rs {{ stats.avg_discount|floatformat:0 }}</p>
                 </div>
-                <div class="bg-orange-400 bg-opacity-30 rounded-full p-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                <div class="bg-white/20 rounded-2xl p-3 backdrop-blur-sm border border-white/10 shadow-sm shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 text-sm text-orange-100">
-                Per order discount
+            <div class="relative z-10 mt-6 pt-4 border-t border-white/20 text-sm font-medium text-amber-100">
+                Average discount per order
             </div>
         </div>
     </div>
@@ -83,152 +96,190 @@
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Offer Types Distribution -->
-        <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Offers by Type</h3>
-            <div class="space-y-3">
+        <div class="card h-full flex flex-col">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 m-0">Offers by Type</h3>
+            </div>
+            <div class="p-6 flex-1 space-y-5">
                 {% for type_stat in stats.by_type %}
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-sm font-medium text-gray-700">{{ type_stat.type_display }}</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ type_stat.count }}</span>
+                <div class="group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-bold text-slate-700">{{ type_stat.type_display }}</span>
+                        <div class="flex gap-3">
+                            <span class="text-sm font-black text-slate-900">{{ type_stat.count }}</span>
+                            <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg w-12 text-center">{{ type_stat.percentage|floatformat:0 }}%</span>
+                        </div>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ type_stat.percentage }}%"></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-indigo-500 h-2.5 rounded-full transition-all group-hover:bg-indigo-600 relative" style="width: {{ type_stat.percentage }}%">
+                            <div class="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                        </div>
                     </div>
+                </div>
+                {% empty %}
+                <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                    <p class="text-sm font-medium">No offers data available.</p>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Offer Status -->
-        <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Offer Status</h3>
-            <div class="flex items-center justify-center h-48">
-                <div class="grid grid-cols-3 gap-8 w-full">
-                    <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-3">
-                            <span class="text-2xl font-bold text-green-600">{{ stats.active_offers }}</span>
+        <div class="card h-full flex flex-col">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 m-0">Offer Status</h3>
+            </div>
+            <div class="p-6 flex-1 flex items-center justify-center min-h-[200px]">
+                <div class="grid grid-cols-3 gap-4 sm:gap-8 w-full">
+                    
+                    <div class="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100 shadow-sm transition-transform hover:-translate-y-1">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-sm border border-emerald-100 mb-3 text-emerald-500">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <p class="text-sm font-medium text-gray-600">Active</p>
+                        <div class="text-3xl font-black text-emerald-700 tracking-tight leading-none mb-1">{{ stats.active_offers }}</div>
+                        <p class="text-[11px] font-bold text-emerald-600/70 uppercase tracking-widest">Active</p>
                     </div>
-                    <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-3">
-                            <span class="text-2xl font-bold text-gray-600">{{ stats.inactive_offers }}</span>
+                    
+                    <div class="bg-slate-50 rounded-2xl p-4 text-center border border-slate-200 shadow-sm transition-transform hover:-translate-y-1">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-sm border border-slate-200 mb-3 text-slate-400">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <p class="text-sm font-medium text-gray-600">Inactive</p>
+                        <div class="text-3xl font-black text-slate-600 tracking-tight leading-none mb-1">{{ stats.inactive_offers }}</div>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Inactive</p>
                     </div>
-                    <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 mb-3">
-                            <span class="text-2xl font-bold text-red-600">{{ stats.expired_offers }}</span>
+                    
+                    <div class="bg-rose-50 rounded-2xl p-4 text-center border border-rose-100 shadow-sm transition-transform hover:-translate-y-1">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-sm border border-rose-100 mb-3 text-rose-500">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <p class="text-sm font-medium text-gray-600">Expired</p>
+                        <div class="text-3xl font-black text-rose-700 tracking-tight leading-none mb-1">{{ stats.expired_offers }}</div>
+                        <p class="text-[11px] font-bold text-rose-600/70 uppercase tracking-widest">Expired</p>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top Performing Offers -->
-    <div class="bg-white rounded-lg shadow border border-gray-200">
-        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">Top Performing Offers</h3>
-                <p class="text-sm text-gray-500 mt-1">Most used offers by customers</p>
+    <!-- Lists Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Top Performing Offers -->
+        <div class="card lg:col-span-2 flex flex-col h-full">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 m-0">Top Performing Offers</h3>
+                    <p class="text-sm font-medium text-slate-500 mt-1">Most used promotional offers</p>
+                </div>
+                <a href="{% url 'clothing_offer_list' %}" class="btn btn-secondary px-4 py-2 text-xs">
+                    View All
+                </a>
             </div>
-            <a href="{% url 'clothing_offer_list' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View All →
-            </a>
+            
+            <div class="fp-table-wrap !border-0 !shadow-none !rounded-none flex-1">
+                <table class="fp-table">
+                    <thead>
+                        <tr>
+                            <th>Offer Link</th>
+                            <th>Discount</th>
+                            <th>Usage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for offer in top_offers %}
+                        <tr class="group cursor-pointer hover:bg-slate-50" onclick="window.location.href='{% url 'clothing_offer_detail' offer.id %}'">
+                            <td>
+                                <div class="font-bold text-indigo-600 group-hover:text-indigo-800 transition-colors">{{ offer.offer_name }}</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ offer.get_offer_type_display }}</div>
+                            </td>
+                            <td>
+                                <div class="font-black text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded text-sm">{{ offer.get_discount_display }}</div>
+                            </td>
+                            <td>
+                                <div class="font-bold text-slate-800">{{ offer.usage_count }} times</div>
+                                <div class="text-xs font-bold text-slate-400 mt-0.5">Rs {{ offer.total_discount|floatformat:0 }} given</div>
+                            </td>
+                            <td>
+                                {% if offer.status == 'ACTIVE' %}
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Active</span>
+                                {% elif offer.status == 'INACTIVE' %}
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Inactive</span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Expired</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-12 text-center text-slate-500">
+                                <p class="font-medium text-sm">No offers have been used yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Offer Name</th>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Discount</th>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Usage Count</th>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Total Discount</th>
-                        <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for offer in top_offers %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <a href="{% url 'clothing_offer_detail' offer.id %}" class="text-sm font-medium text-blue-600 hover:text-blue-700">
-                                {{ offer.offer_name }}
-                            </a>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ offer.get_offer_type_display }}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-green-600">{{ offer.get_discount_display }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">{{ offer.usage_count }}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">Rs {{ offer.total_discount|floatformat:0 }}</td>
-                        <td class="px-6 py-4">
-                            {% if offer.status == 'ACTIVE' %}
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Active</span>
-                            {% elif offer.status == 'INACTIVE' %}
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">Inactive</span>
-                            {% else %}
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Expired</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            No offers have been used yet
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- Recent Activity -->
-    <div class="bg-white rounded-lg shadow border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Offer Usage</h3>
-            <p class="text-sm text-gray-500 mt-1">Latest discount applications</p>
-        </div>
-        <div class="divide-y divide-gray-200">
-            {% for usage in recent_usage %}
-            <div class="p-6 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">{{ usage.offer.offer_name }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Order #{{ usage.order.order_no }} • {{ usage.applied_at|date:"M d, Y H:i" }}</p>
+        <!-- Recent Activity -->
+        <div class="card flex flex-col h-[500px]">
+            <div class="p-6 border-b border-slate-100 shrink-0">
+                <h3 class="text-xl font-bold text-slate-800 m-0">Recent Activity</h3>
+                <p class="text-sm font-medium text-slate-500 mt-1">Latest discount applications</p>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                {% for usage in recent_usage %}
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 hover:shadow-md transition-shadow hover:bg-white cursor-pointer group" onclick="window.location.href='{% url 'order_detail' usage.order.id %}'">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <h4 class="text-sm font-bold text-slate-800 truncate mb-1 group-hover:text-indigo-600 transition-colors">{{ usage.offer.offer_name }}</h4>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Order #{{ usage.order.order_no }}</p>
+                        </div>
+                        <div class="text-right shrink-0 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
+                            <p class="text-xs font-black text-emerald-600">-Rs {{ usage.discount_amount }}</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-semibold text-green-600">-Rs {{ usage.discount_amount }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ usage.offer.get_offer_type_display }}</p>
+                    <div class="mt-3 pt-3 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span>{{ usage.applied_at|date:"M d, H:i" }}</span>
+                        <span>{{ usage.offer.get_offer_type_display }}</span>
                     </div>
                 </div>
+                {% empty %}
+                <div class="flex flex-col items-center justify-center h-full text-center text-slate-400">
+                    <svg class="w-10 h-10 mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="font-medium text-sm">No recent offer usage</p>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="p-8 text-center text-gray-500">
-                No recent offer usage
+        </div>
+        
+    </div>
+
+    <!-- Quick Actions Banner -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-6 md:p-8 shadow-lg shadow-indigo-200 text-white relative overflow-hidden group">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvgwidth=\'60\'height=\'60\'viewBox=\'006060\'xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cgfill=\'none\'fill-rule=\'evenodd\'%3E%3Cgfill=\'%23ffffff\'fill-opacity=\'0.1\'%3E%3Cpathd=\'M3634v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM634v-4H4v4H0v2h4v4h2v-4h4v-2H6zM64V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30 mix-blend-overlay"></div>
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+                <h3 class="text-2xl font-black mb-1">Manage Your Offers</h3>
+                <p class="text-indigo-100 font-medium text-sm">Create and organize new promotional codes to push sales.</p>
             </div>
-            {% endfor %}
+            <div class="flex flex-wrap gap-3 shrink-0">
+                <a href="{% url 'clothing_offer_create' %}" class="bg-white text-indigo-700 hover:bg-slate-50 font-bold py-3 px-6 rounded-xl transition-all shadow-sm flex items-center gap-2 transform hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Create New Offer
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
-                <p class="text-sm text-gray-600 mt-1">Manage your offers efficiently</p>
-            </div>
-            <div class="flex gap-3">
-                <a href="{% url 'clothing_offer_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                    + Create New Offer
-                </a>
-                <a href="{% url 'clothing_offer_list' %}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
-                    View All Offers
-                </a>
-            </div>
-        </div>
-    </div>
 </div>
+
+<style>
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+</style>
 {% endblock %}

@@ -1,140 +1,87 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_waiter.html' %}
+{% block mobile_title %}Select Table{% endblock %}
+{% block sidebar %}
+{% include 'pos/waiter_sidebar.html' %}
+{% endblock %}
 
 {% block title %}Select Table - FlexiPOS Waiter{% endblock %}
 
-{% block extra_css %}
-<style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-    }
-
-    .waiter-header {
-        background: white;
-        padding: 15px 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-
-    .header-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #667eea;
-    }
-
-    .back-btn {
-        background: #718096;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .page-title {
-        color: white;
-        font-size: 32px;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .tables-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 20px;
-    }
-
-    .table-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .table-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-
-    .table-card.available {
-        border: 3px solid #48bb78;
-    }
-
-    .table-card.occupied {
-        border: 3px solid #f56565;
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .table-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
-
-    .table-name {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2d3748;
-        margin-bottom: 10px;
-    }
-
-    .table-status {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
-    .status-available {
-        background: #c6f6d5;
-        color: #22543d;
-    }
-
-    .status-occupied {
-        background: #fed7d7;
-        color: #742a2a;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="waiter-header">
-    <div class="header-title">Select Table for Dine-In</div>
-    <button class="back-btn" onclick="window.location.href='{% url 'waiter_dashboard' %}'">
-        ← Back to Dashboard
-    </button>
-</div>
+<div class="px-4 py-8 md:px-8 max-w-7xl mx-auto min-h-[calc(100vh-80px)]">
 
-<h2 class="page-title">🪑 Choose a Table</h2>
-
-<div class="tables-grid">
-    {% for table in tables %}
-    <div class="table-card {{ table.status|lower }}" 
-         {% if table.status == 'AVAILABLE' %}
-         onclick="window.location.href='{% url 'select_table' table.id %}?order_type=DINE_IN'"
-         {% endif %}>
-        <div class="table-icon">
-            {% if table.status == 'AVAILABLE' %}🟢
-            {% else %}🔴
-            {% endif %}
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight leading-tight m-0">Select Table</h1>
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mt-1">For Dine-In Order</p>
+            </div>
         </div>
-        <div class="table-name">{{ table.name }}</div>
-        <div style="color: #718096; font-size: 14px; margin-bottom: 15px;">
-            👥 Capacity: {{ table.capacity }}
-        </div>
-        <span class="table-status status-{{ table.status|lower }}">
-            {{ table.get_status_display }}
-        </span>
+        <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 border border-slate-200" onclick="window.location.href='{% url 'waiter_dashboard' %}'">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Back to Dashboard
+        </button>
     </div>
-    {% endfor %}
+
+    <!-- Tables Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        {% for table in tables %}
+        
+        {% if table.status == 'AVAILABLE' %}
+            <div class="group bg-white rounded-2xl shadow-sm border-2 border-emerald-500/20 hover:border-emerald-500 p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 relative"
+                 onclick="window.location.href='{% url 'select_table' table.id %}?order_type=DINE_IN'">
+                
+                <div class="absolute top-3 left-3 w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50"></div>
+                
+                <div class="text-4xl text-emerald-400 mb-3 group-hover:scale-110 transition-transform">🪑</div>
+                <div class="text-xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ table.name }}</div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Capacity: {{ table.capacity }}</div>
+                
+                <span class="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest w-full">
+                    {{ table.get_status_display }}
+                </span>
+            </div>
+
+        {% elif table.status == 'OCCUPIED' %}
+            <div class="bg-rose-50 rounded-2xl shadow-sm border-2 border-rose-200 p-6 flex flex-col items-center justify-center text-center opacity-75 cursor-not-allowed relative">
+                
+                <div class="text-4xl text-rose-300 mb-3">🍽️</div>
+                <div class="text-xl font-black text-rose-900 tracking-tight leading-none mb-1">{{ table.name }}</div>
+                <div class="text-xs font-bold text-rose-400/80 uppercase tracking-wider mb-4">Capacity: {{ table.capacity }}</div>
+                
+                <span class="bg-rose-200 text-rose-800 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest w-full">
+                    {{ table.get_status_display }}
+                </span>
+            </div>
+
+        {% else %}
+            <div class="bg-slate-50 rounded-2xl shadow-sm border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center opacity-75 cursor-not-allowed">
+                
+                <div class="text-4xl text-slate-300 mb-3">📅</div>
+                <div class="text-xl font-black text-slate-700 tracking-tight leading-none mb-1">{{ table.name }}</div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Capacity: {{ table.capacity }}</div>
+                
+                <span class="bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest w-full">
+                    {{ table.get_status_display }}
+                </span>
+            </div>
+        {% endif %}
+
+        {% endfor %}
+    </div>
+
+    {% if not tables %}
+        <div class="bg-white rounded-3xl border border-slate-200 border-dashed p-12 text-center shadow-sm max-w-2xl mx-auto mt-10">
+            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">No Tables Available</h3>
+            <p class="text-slate-500 font-medium max-w-sm mx-auto">There are no tables configured in the system. Please ask a manager to configure tables first.</p>
+        </div>
+    {% endif %}
+
 </div>
 {% endblock %}

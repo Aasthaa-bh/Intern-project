@@ -1,246 +1,122 @@
-{% extends 'base.html' %}
+{% extends 'pos/base_waiter.html' %}
+{% block mobile_title %}Table Management{% endblock %}
+{% block sidebar %}
+{% include 'pos/waiter_sidebar.html' %}
+{% endblock %}
 
 {% block title %}Table Management - FlexiPOS{% endblock %}
 
-{% block extra_css %}
-<style>
-    .page-header {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-
-    .page-header h2 {
-        color: white;
-        font-size: 36px;
-        margin-bottom: 10px;
-    }
-
-    .tables-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-    }
-
-    .table-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s;
-    }
-
-    .table-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 5px;
-    }
-
-    .table-card.available::before {
-        background: #48bb78;
-    }
-
-    .table-card.occupied::before {
-        background: #f56565;
-    }
-
-    .table-card.reserved::before {
-        background: #ed8936;
-    }
-
-    .table-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-
-    .table-header {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .table-icon {
-        font-size: 48px;
-        margin-bottom: 10px;
-    }
-
-    .table-name {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2d3748;
-        margin-bottom: 5px;
-    }
-
-    .table-category {
-        color: #718096;
-        font-size: 14px;
-        margin-bottom: 10px;
-    }
-
-    .table-info {
-        background: #f7fafc;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        font-size: 14px;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-bottom: 15px;
-    }
-
-    .status-available {
-        background: #c6f6d5;
-        color: #22543d;
-    }
-
-    .status-occupied {
-        background: #fed7d7;
-        color: #742a2a;
-    }
-
-    .status-reserved {
-        background: #feebc8;
-        color: #7c2d12;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .action-btn {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-        font-size: 14px;
-    }
-
-    .btn-reserve {
-        background: #ed8936;
-        color: white;
-    }
-
-    .btn-reserve:hover {
-        background: #dd6b20;
-    }
-
-    .btn-available {
-        background: #48bb78;
-        color: white;
-    }
-
-    .btn-available:hover {
-        background: #38a169;
-    }
-
-    .btn-disabled {
-        background: #cbd5e0;
-        color: #718096;
-        cursor: not-allowed;
-    }
-
-    .category-section {
-        margin-bottom: 40px;
-    }
-
-    .category-title {
-        color: white;
-        font-size: 24px;
-        margin-bottom: 20px;
-        padding: 15px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="page-header">
-    <h2>Table Management</h2>
-    <p style="color: rgba(255,255,255,0.9);">Reserve tables or make them available</p>
-</div>
-
-{% regroup tables by category as table_categories %}
-
-{% for category in table_categories %}
-<div class="category-section">
-    <div class="category-title">
-         {{ category.grouper.name }} Tables
-    </div>
+<div class="px-4 py-6 md:px-8 max-w-7xl mx-auto min-h-[calc(100vh-80px)]">
     
-    <div class="tables-grid">
-        {% for table in category.list %}
-        <div class="table-card {{ table.status|lower }}">
-            <div class="table-header">
-                <div class="table-icon">
-                    {% if table.status == 'AVAILABLE' %}🟢
-                    {% elif table.status == 'OCCUPIED' %}🔴
-                    {% else %}🟡{% endif %}
-                </div>
-                <div class="table-name">{{ table.name }}</div>
-                <div class="table-category">{{ table.category.name }}</div>
-            </div>
+    <!-- Page Header -->
+    <div class="text-center mb-10">
+        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Table Management</h2>
+        <p class="text-slate-500 font-medium mt-2">Reserve tables or make them available</p>
+    </div>
 
-            <span class="status-badge status-{{ table.status|lower }}">
-                {{ table.get_status_display }}
-            </span>
-
-            <div class="table-info">
-                <div class="info-row">
-                    <span> Capacity:</span>
-                    <strong>{{ table.capacity }} people</strong>
-                </div>
-                <div class="info-row">
-                    <span> Status:</span>
-                    <strong>{{ table.get_status_display }}</strong>
-                </div>
+    <!-- Category Sections -->
+    {% regroup tables by category as table_categories %}
+    
+    <div class="space-y-12">
+        {% for category in table_categories %}
+        <div class="category-section">
+            
+            <div class="flex items-center gap-3 mb-6">
+                <h3 class="text-2xl font-black text-slate-800 tracking-tight m-0">
+                    {{ category.grouper.name }} Tables
+                </h3>
+                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">{{ category.list|length }}</span>
             </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for table in category.list %}
+                <div class="bg-white rounded-2xl shadow-sm border-2 transition-all hover:-translate-y-1 hover:shadow-lg flex flex-col overflow-hidden relative
+                            {% if table.status == 'AVAILABLE' %}border-emerald-500/20 hover:border-emerald-500
+                            {% elif table.status == 'OCCUPIED' %}border-rose-500/20 hover:border-rose-500
+                            {% else %}border-amber-500/20 hover:border-amber-500{% endif %}">
+                    
+                    <!-- Top subtle accent bar -->
+                    <div class="absolute top-0 left-0 right-0 h-1.5 
+                                {% if table.status == 'AVAILABLE' %}bg-emerald-500
+                                {% elif table.status == 'OCCUPIED' %}bg-rose-500
+                                {% else %}bg-amber-500{% endif %}"></div>
 
-            <div class="action-buttons">
-                {% if table.status == 'AVAILABLE' %}
-                <button class="action-btn btn-reserve" onclick="updateTableStatus({{ table.id }}, 'RESERVED', '{{ table.name }}')">
-                     Reserve
-                </button>
-                {% elif table.status == 'RESERVED' %}
-                <button class="action-btn btn-available" onclick="updateTableStatus({{ table.id }}, 'AVAILABLE', '{{ table.name }}')">
-                     Make Available
-                </button>
-                {% elif table.status == 'OCCUPIED' %}
-                <button class="action-btn btn-disabled" disabled>
-                    🔴 Has Active Order
-                </button>
-                {% endif %}
+                    <div class="p-6 flex flex-col items-center flex-grow text-center mt-2">
+                        <div class="text-4xl mb-3">
+                            {% if table.status == 'AVAILABLE' %}
+                                <div class="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center text-emerald-500 mx-auto">🟢</div>
+                            {% elif table.status == 'OCCUPIED' %}
+                                <div class="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center text-rose-500 mx-auto">🔴</div>
+                            {% else %}
+                                <div class="bg-amber-50 w-16 h-16 rounded-full flex items-center justify-center text-amber-500 mx-auto">🟡</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{{ table.name }}</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{{ table.category.name }}</div>
+
+                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-5
+                                    {% if table.status == 'AVAILABLE' %}bg-emerald-100 text-emerald-800
+                                    {% elif table.status == 'OCCUPIED' %}bg-rose-100 text-rose-800
+                                    {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ table.get_status_display }}
+                        </span>
+
+                        <div class="w-full bg-slate-50 rounded-xl p-3 border border-slate-100 mt-auto space-y-2">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="font-bold text-slate-500">Capacity</span>
+                                <span class="font-black text-slate-800">{{ table.capacity }} <span class="text-slate-400 font-medium">ppl</span></span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm border-t border-slate-200/60 pt-2">
+                                <span class="font-bold text-slate-500">Status</span>
+                                <span class="font-bold text-slate-700">{{ table.get_status_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                        {% if table.status == 'AVAILABLE' %}
+                        <button class="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-amber-200/50 flex justify-center items-center gap-2 transform hover:-translate-y-[1px]" onclick="updateTableStatus({{ table.id }}, 'RESERVED', '{{ table.name|escapejs }}')">
+                            Reserve
+                        </button>
+                        {% elif table.status == 'RESERVED' %}
+                        <button class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-emerald-200/50 flex justify-center items-center gap-2 transform hover:-translate-y-[1px]" onclick="updateTableStatus({{ table.id }}, 'AVAILABLE', '{{ table.name|escapejs }}')">
+                            Make Available
+                        </button>
+                        {% elif table.status == 'OCCUPIED' %}
+                        <button class="w-full bg-slate-200 text-slate-500 font-bold py-2.5 rounded-xl cursor-not-allowed flex justify-center items-center gap-2" disabled>
+                            Has Active Order
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+                {% endfor %}
             </div>
+            
         </div>
         {% endfor %}
     </div>
+
+    {% if not tables %}
+        <div class="bg-white rounded-3xl border border-slate-200 border-dashed p-12 text-center shadow-sm max-w-2xl mx-auto mt-10">
+            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">No Tables Found</h3>
+            <p class="text-slate-500 font-medium max-w-sm mx-auto">There are no tables configured in the system yet. Please add tables from the setting menu.</p>
+        </div>
+    {% endif %}
+
 </div>
-{% endfor %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    const csrftoken = "{{ csrf_token }}";
+
     async function updateTableStatus(tableId, newStatus, tableName) {
         const action = newStatus === 'RESERVED' ? 'reserve' : 'make available';
         
@@ -258,13 +134,12 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert(' ' + data.message);
                     location.reload();
                 } else {
-                    alert(' Error: ' + data.error);
+                    alert('Error: ' + data.error);
                 }
             } catch (error) {
-                alert(' Error: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
     }

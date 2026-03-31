@@ -4,416 +4,587 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FlexiPOS{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #f3f5fb;
+            --surface: #ffffff;
+            --surface-raised: #f8faff;
+            --border: #e2e8f4;
+            --border-strong: #c8d4e8;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-bg: #0b1220;
+            --sidebar-border: rgba(255,255,255,0.06);
+            --sidebar-text: rgba(255,255,255,0.72);
+            --sidebar-text-active: #ffffff;
+            --sidebar-hover: rgba(255,255,255,0.05);
+            --sidebar-active: rgba(99,102,241,0.18);
+            --sidebar-active-border: #6366f1;
+            --accent: #3767e8;
+            --accent-dark: #2d57cc;
+            --accent-soft: #eef3ff;
+            --success: #10b981;
+            --success-soft: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --info: #3b82f6;
+            --info-soft: #eff6ff;
+            --shadow-sm: 0 2px 8px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+            --shadow-md: 0 10px 28px rgba(15,23,42,0.10), 0 4px 8px rgba(15,23,42,0.05);
+            --radius: 16px;
+            --radius-sm: 10px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 250px;
-            height: 100vh;
-            background: #1a1a1a;
-            color: #fff;
-            padding: 20px 0;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #333;
-            margin-bottom: 20px;
-        }
-
-        .sidebar-header h2 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .sidebar-header p {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        .user-info {
-            padding: 15px 20px;
-            background: #2a2a2a;
-            margin: 0 10px 10px;
-            border-radius: 4px;
-        }
-
-        .user-info .username {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
             font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 5px;
+            color: var(--text);
+            background: var(--bg);
         }
 
-        .user-info .role {
+        .fp-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 272px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .fp-sidebar-logo {
+            padding: 26px 22px 20px;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fp-logo-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+        }
+
+        .fp-logo-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .fp-logo-sub {
             font-size: 12px;
-            color: #999;
+            color: var(--sidebar-text);
+            margin-top: 2px;
         }
 
-        .sidebar-menu {
-            list-style: none;
+        .fp-biz-badge {
+            margin: 16px 16px 12px;
+            padding: 12px 14px;
+            background: rgba(99,102,241,0.10);
+            border: 1px solid rgba(99,102,241,0.16);
+            border-radius: 12px;
         }
 
-        .sidebar-menu li {
-            margin: 5px 0;
+        .fp-biz-badge .biz-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #a5b4fc;
         }
 
-        .sidebar-menu a {
+        .fp-biz-badge .biz-type {
+            font-size: 10px;
+            color: rgba(165,180,252,0.65);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .fp-nav {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .fp-nav-section-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.26);
+            text-transform: uppercase;
+            letter-spacing: 1.1px;
+            padding: 14px 12px 6px;
+        }
+
+        .fp-nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
-            color: #ccc;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            color: var(--sidebar-text);
             text-decoration: none;
-            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 3px;
+            position: relative;
+            transition: all 0.18s ease;
         }
 
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: #333;
+        .fp-nav-item:hover {
+            background: var(--sidebar-hover);
             color: #fff;
-            border-left: 3px solid #fff;
         }
 
-        .sidebar-menu a .icon {
-            margin-right: 10px;
-            font-size: 18px;
+        .fp-nav-item.active {
+            background: var(--sidebar-active);
+            color: #fff;
+            font-weight: 700;
         }
 
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
+        .fp-nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 7px;
+            bottom: 7px;
+            width: 3px;
+            background: var(--sidebar-active-border);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .fp-sidebar-footer {
+            padding: 14px 16px;
+            border-top: 1px solid var(--sidebar-border);
+            font-size: 12px;
+            color: rgba(255,255,255,0.34);
+        }
+
+        .fp-sidebar-footer span {
+            color: rgba(255,255,255,0.65);
+            font-weight: 700;
+        }
+
+        .fp-main {
+            margin-left: 272px;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Header */
-        .header {
-            background: #fff;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e0e0e0;
+        .fp-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            height: 78px;
+            padding: 0 30px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 18px;
         }
 
-        .header h1 {
-            font-size: 24px;
-            color: #1a1a1a;
+        .fp-page-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
         }
 
-        .header-actions {
+        .fp-page-subtitle {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .fp-topbar-right {
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        /* Content Area */
-        .content {
-            padding: 30px;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #1a1a1a;
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background: #333;
-        }
-
-        .btn-secondary {
+        .fp-icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
             background: #fff;
-            color: #1a1a1a;
-            border: 1px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            position: relative;
         }
 
-        .btn-secondary:hover {
-            background: #f5f5f5;
+        .fp-noti-count {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            min-width: 17px;
+            height: 17px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn-danger {
-            background: #666;
+        .fp-avatar-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px 6px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .fp-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #fff;
+            font-size: 13px;
+            font-weight: 800;
         }
 
-        .btn-danger:hover {
-            background: #888;
+        .fp-content {
+            padding: 28px 30px 34px;
         }
 
-        /* Cards */
         .card {
             background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
         }
 
         .card-header {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+            font-weight: 800;
         }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        .card-body {
+            padding: 22px;
         }
 
-        .stat-card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-card .icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin: 10px 0;
-        }
-
-        .stat-card .label {
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 11px 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            text-decoration: none;
             font-size: 14px;
-            color: #666;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            font-family: inherit;
         }
 
-        /* Table */
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(55,103,232,0.22);
+        }
+
+        .btn-primary:hover { background: var(--accent-dark); }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--surface-raised); }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
         }
 
-        table th {
-            background: #1a1a1a;
-            color: #fff;
-            padding: 12px;
+        th {
+            background: #f8faff;
+            padding: 14px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
             text-align: left;
-            font-weight: 600;
+            border-bottom: 1px solid var(--border);
         }
 
-        table td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        table tr:hover {
-            background: #f9f9f9;
-        }
-
-        /* Messages */
-        .messages {
-            margin: 20px 0;
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .alert-success {
-            background: #f0f0f0;
-            border-left: 4px solid #1a1a1a;
-            color: #1a1a1a;
-        }
-
-        .alert-error {
-            background: #f0f0f0;
-            border-left: 4px solid #666;
-            color: #333;
-        }
-
-        .alert-info {
-            background: #f9f9f9;
-            border-left: 4px solid #999;
-            color: #333;
-        }
-
-        /* Forms */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        td {
+            padding: 16px 18px;
             font-size: 14px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-success { background: #dcfce7; color: #15803d; }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-danger { background: #fee2e2; color: #b91c1c; }
+        .badge-info { background: #dbeafe; color: #1d4ed8; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #1a1a1a;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(55,103,232,0.10);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* Shared dashboard grid styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .stats-grid .stat-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            padding: 18px;
+            text-align: center;
+        }
+
+        .stats-grid .stat-card .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid .stat-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stats-grid .stat-card .label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fp-alerts {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .fp-alert {
+            padding: 13px 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .fp-alert.success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .fp-alert.error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .fp-alert.warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        .fp-alert.info { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+
+        @media (max-width: 991px) {
+            .fp-sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
             }
 
-            .main-content {
-                margin-left: 200px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
+            .fp-main {
+                margin-left: 0;
             }
         }
     </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>FlexiPOS</h2>
-            <p>Reception System</p>
+    <aside class="fp-sidebar">
+        <div class="fp-sidebar-logo">
+            <div class="fp-logo-mark">F</div>
+            <div>
+                <div class="fp-logo-title">FlexiPOS</div>
+                <div class="fp-logo-sub">Restaurant System</div>
+            </div>
         </div>
-        
+
         {% if user.is_authenticated %}
-        <div class="user-info">
-            <div class="username">👤 {{ user.username }}</div>
-            <div class="role">{{ user.get_full_name|default:"Staff" }}</div>
+        <div class="fp-biz-badge">
+            <div class="biz-name">{{ user.username }}</div>
+            <div class="biz-type">{{ user.get_full_name|default:"Restaurant Staff" }}</div>
         </div>
         {% endif %}
-        
-        <ul class="sidebar-menu">
-            <li>
-                <a href="{% url 'reception_dashboard' %}" class="{% if request.resolver_match.url_name == 'reception_dashboard' %}active{% endif %}">
-                    <span class="icon">📊</span>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'table_check' %}" class="{% if request.resolver_match.url_name == 'table_check' %}active{% endif %}">
-                    <span class="icon">🪑</span>
-                    <span>Tables</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'pending_invoices' %}" class="{% if request.resolver_match.url_name == 'pending_invoices' %}active{% endif %}">
-                    <span class="icon">📄</span>
-                    <span>Pending Invoices</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'payment_history' %}" class="{% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}">
-                    <span class="icon">💳</span>
-                    <span>Payment History</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'pending_payments_list' %}" class="{% if request.resolver_match.url_name == 'pending_payments_list' %}active{% endif %}">
-                    <span class="icon">⏳</span>
-                    <span>Pending Payments</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'loyalty_points_check' %}" class="{% if request.resolver_match.url_name == 'loyalty_points_check' %}active{% endif %}">
-                    <span class="icon">⭐</span>
-                    <span>Loyalty Points</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'daily_payment_report' %}" class="{% if request.resolver_match.url_name == 'daily_payment_report' %}active{% endif %}">
-                    <span class="icon">📈</span>
-                    <span>Daily Report</span>
-                </a>
-            </li>
-            <li style="margin-top: 20px; border-top: 1px solid #333; padding-top: 10px;">
-                <a href="/accounts/logout/" style="color: #ff6b6b;">
-                    <span class="icon">🚪</span>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header -->
-        <div class="header">
-            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
-            <div class="header-actions">
-                {% block header_actions %}{% endblock %}
-            </div>
+        <nav class="fp-nav">
+            <div class="fp-nav-section-label">Operations</div>
+
+            <a href="{% url 'reception_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'reception_dashboard' %}active{% endif %}">
+                <span>📊</span><span>Reception Dashboard</span>
+            </a>
+
+            <a href="{% url 'table_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'table_check' %}active{% endif %}">
+                <span>🪑</span><span>Tables</span>
+            </a>
+
+            <a href="{% url 'pending_invoices' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_invoices' %}active{% endif %}">
+                <span>📄</span><span>Pending Invoices</span>
+            </a>
+
+            <a href="{% url 'payment_history' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}">
+                <span>💳</span><span>Payment History</span>
+            </a>
+
+            <a href="{% url 'pending_payments_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_payments_list' %}active{% endif %}">
+                <span>⏳</span><span>Pending Payments</span>
+            </a>
+
+            <a href="{% url 'loyalty_points_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'loyalty_points_check' %}active{% endif %}">
+                <span>⭐</span><span>Loyalty Points</span>
+            </a>
+
+            <a href="{% url 'daily_payment_report' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'daily_payment_report' %}active{% endif %}">
+                <span>📈</span><span>Daily Report</span>
+            </a>
+
+            <div class="fp-nav-section-label">Kitchen</div>
+
+            <a href="{% url 'restaurant_kitchen_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_dashboard' %}active{% endif %}">
+                <span>👨‍🍳</span><span>Kitchen Dashboard</span>
+            </a>
+
+            <a href="{% url 'restaurant_kitchen_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_stock' or request.resolver_match.url_name == 'restaurant_kitchen_stock_change_edit' %}active{% endif %}">
+                <span>🥬</span><span>Kitchen Stock</span>
+            </a>
+
+            <div class="fp-nav-section-label">Account</div>
+
+            <a href="{% url 'logout' %}" class="fp-nav-item">
+                <span>🚪</span><span>Logout</span>
+            </a>
+        </nav>
+
+        <div class="fp-sidebar-footer">
+            Logged in as <span>{{ user.username }}</span>
         </div>
+    </aside>
 
-        <!-- Messages -->
-        {% if messages %}
-        <div class="content">
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
+    <div class="fp-main">
+        <header class="fp-topbar">
+            <div>
+                <div class="fp-page-title">{% block page_title %}Dashboard{% endblock %}</div>
+                <div class="fp-page-subtitle">{% block page_subtitle %}Clean and professional workspace{% endblock %}</div>
+            </div>
+
+            <div class="fp-topbar-right">
+                <div class="fp-icon-btn">
+                    🔔
+                    <span class="fp-noti-count">5</span>
                 </div>
-                {% endfor %}
+
+                {% if user.is_authenticated %}
+                <div class="fp-avatar-btn">
+                    <div class="fp-avatar">{{ user.username|slice:":1"|upper }}</div>
+                    <span>{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                {% endif %}
             </div>
-        </div>
-        {% endif %}
+        </header>
 
-        <!-- Content -->
-        <div class="content">
+        <main class="fp-content">
+            {% if messages %}
+                <div class="fp-alerts">
+                    {% for message in messages %}
+                        <div class="fp-alert {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}info{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
-        </div>
+        </main>
     </div>
-
-    {% block extra_js %}{% endblock %}
 </body>
 </html>
