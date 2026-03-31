@@ -16,12 +16,14 @@
 {% if can_edit_purchase %}
 <a class="btn btn-info" href="{% url 'clothing_purchase_edit' purchase.id %}">Edit</a>
 {% endif %}
-<a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
 {% endblock %}
 
 {% block content %}
 <div class="card">
-    <div class="card-header">Purchase Summary</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+        <div class="card-header" style="margin-bottom:0;">Purchase Summary</div>
+        <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
+    </div>
     <table>
         <tbody>
             <tr>

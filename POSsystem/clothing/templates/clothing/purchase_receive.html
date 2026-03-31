@@ -3,16 +3,17 @@
 {% block title %}Receive Purchase {{ purchase.purchase_no }}{% endblock %}
 {% block page_title %}Receive Purchase{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">Back to Purchase</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 <form method="post">
     {% csrf_token %}
 
     <div class="card">
-        <div class="card-header">Receive Against {{ purchase.purchase_no }}</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="card-header" style="margin-bottom:0;">Receive Against {{ purchase.purchase_no }}</div>
+            <a class="btn btn-secondary" href="{% url 'clothing_purchase_detail' purchase.id %}">Back to Purchase</a>
+        </div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 12px;">
             <button class="btn btn-info" type="button" id="fill-remaining">Receive All Remaining</button>
             <button class="btn btn-secondary" type="button" id="clear-receive">Clear</button>

@@ -5,32 +5,61 @@
 
 {% block extra_css %}
 <style>
+    .stock-page-card {
+        padding: 12px;
+    }
+
+    .stock-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .stock-card-header .card-header {
+        margin-bottom: 0;
+    }
+
+    .stock-card-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .stock-card-actions .btn {
+        padding: 6px 9px;
+        font-size: 11px;
+        border-radius: 9px;
+    }
+
     .stock-summary {
         display: grid;
-        grid-template-columns: repeat(3, minmax(180px, 1fr));
-        gap: 14px;
-        margin-bottom: 18px;
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
     }
 
     .summary-card {
         background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
         border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
+        border-radius: 12px;
+        padding: 9px 10px;
         box-shadow: var(--shadow-soft);
     }
 
     .summary-card .label {
         color: var(--text-muted);
-        font-size: 12px;
+        font-size: 9px;
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 3px;
     }
 
     .summary-card .value {
-        font-size: 28px;
+        font-size: clamp(1rem, 1.05vw, 1.35rem);
         font-weight: 700;
         color: var(--brand-dark);
         letter-spacing: -0.03em;
@@ -39,34 +68,45 @@
     .stock-filters {
         display: grid;
         grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(180px, 1fr)) auto auto;
-        gap: 12px;
+        gap: 8px;
         align-items: end;
+    }
+
+    .stock-filters > div {
+        min-width: 0;
     }
 
     .stock-filters label {
         display: block;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
         color: var(--text-muted);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+    }
+
+    .stock-filters input,
+    .stock-filters select {
+        padding: 6px 9px;
+        font-size: 12px;
     }
 
     .stock-filter-actions {
         display: flex;
-        gap: 10px;
+        gap: 6px;
         align-items: center;
     }
 
     .low-stock-toggle {
         display: flex;
         align-items: center;
-        gap: 10px;
-        min-height: 45px;
-        padding: 0 12px;
+        gap: 7px;
+        min-height: 34px;
+        padding: 0 8px;
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 9px;
         background: #fff;
         font-weight: 600;
+        font-size: 11px;
     }
 
     .low-stock-toggle input {
@@ -79,12 +119,13 @@
         max-height: 68vh;
         overflow: auto;
         border: 1px solid var(--border);
-        border-radius: 14px;
-        margin-top: 4px;
+        border-radius: 12px;
+        margin-top: 2px;
     }
 
     .scroll-table table {
         margin: 0;
+        min-width: 900px;
     }
 
     .scroll-table thead th {
@@ -93,9 +134,30 @@
         z-index: 1;
     }
 
+    .scroll-table th,
+    .scroll-table td {
+        padding: 7px 8px;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
     .numeric {
         text-align: right;
         white-space: nowrap;
+    }
+
+    .stock-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-width: 80px;
+    }
+
+    .stock-actions .btn {
+        padding: 6px 9px;
+        font-size: 11px;
+        line-height: 1.2;
+        border-radius: 9px;
     }
 
     @media (max-width: 1100px) {
@@ -116,11 +178,6 @@
 </style>
 {% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-info" href="{% url 'clothing_stock_movements' %}">Movement Log</a>
-<a class="btn btn-warning" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
-{% endblock %}
-
 {% block content %}
 <div class="stock-summary">
     <div class="summary-card">
@@ -137,7 +194,7 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card stock-page-card">
     <div class="card-header">Filter Current Stock</div>
     <form method="get" class="stock-filters">
         <div>
@@ -177,8 +234,14 @@
     </form>
 </div>
 
-<div class="card">
-    <div class="card-header">Available Inventory</div>
+<div class="card stock-page-card">
+    <div class="stock-card-header">
+        <div class="card-header">Available Inventory</div>
+        <div class="stock-card-actions">
+            <a class="btn btn-info" href="{% url 'clothing_stock_movements' %}">Movement Log</a>
+            <a class="btn btn-warning" href="{% url 'clothing_stock_adjustment_create' %}">Create Adjustment</a>
+        </div>
+    </div>
     {% if stock_rows %}
     <div class="scroll-table">
         <table>
@@ -219,7 +282,9 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a class="btn btn-info" href="{% url 'clothing_product_detail' row.product.id %}">View</a>
+                        <div class="stock-actions">
+                            <a class="btn btn-info" href="{% url 'clothing_product_detail' row.product.id %}">View</a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

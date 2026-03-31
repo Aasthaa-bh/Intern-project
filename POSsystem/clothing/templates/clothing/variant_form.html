@@ -5,17 +5,68 @@
 {% block page_title %}{% if mode == "edit" %}Edit Variant{% else %}Add Variant{% endif %} for {{ product.name }}{% endblock %}
 {% block page_subtitle %}Manage variant details, stock and pricing{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
-{% if variant %}
-<a class="btn btn-primary" target="_blank" href="{% url 'clothing_variant_barcode' product.id variant.id %}">Print Barcode</a>
-{% endif %}
+{% block extra_css %}
+<style>
+    .form-shell {
+        display: grid;
+        gap: 18px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .form-field {
+        min-width: 0;
+    }
+
+    .barcode-preview-shell {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .barcode-preview-box {
+        max-width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        background: #fff;
+    }
+
+    .field-title {
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--brand-dark);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions .btn {
+            flex: 1 1 100%;
+        }
+    }
+</style>
 {% endblock %}
+
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 {% get_media_prefix as MEDIA_PREFIX %}
 
-<form method="post">
+<form method="post" class="form-shell">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
@@ -25,12 +76,20 @@
     {% endif %}
 
     <div class="card">
-        <div class="card-header">Variant Information</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Name</label>{{ form.name }}</div>
-            <div><label>SKU</label>{{ form.sku }}</div>
-            <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="card-header" style="margin-bottom:0;">Variant Information</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
+                {% if variant %}
+                <a class="btn btn-primary" target="_blank" href="{% url 'clothing_variant_barcode' product.id variant.id %}">Print Barcode</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-field"><label>Name</label>{{ form.name }}</div>
+            <div class="form-field"><label>SKU</label>{{ form.sku }}</div>
+            <div class="form-field"><label>Barcode</label>{{ form.barcode }}</div>
+            <div class="form-field">
                 <label>Size</label>
                 {{ form.size_name }}
                 <datalist id="size-name-options">
@@ -39,7 +98,7 @@
                     {% endfor %}
                 </datalist>
             </div>
-            <div>
+            <div class="form-field">
                 <label>Color</label>
                 {{ form.color_name }}
                 <datalist id="color-name-options">
@@ -48,34 +107,39 @@
                     {% endfor %}
                 </datalist>
             </div>
-            <div><label>Selling Price</label>{{ form.price }}</div>
-            <div><label>Track Stock</label>{{ form.track_stock }}</div>
-            <div><label>Min Stock</label>{{ form.min_stock_qty }}</div>
-            <div><label>Active</label>{{ form.is_active }}</div>
+            <div class="form-field"><label>Selling Price</label>{{ form.price }}</div>
+            <div class="form-field"><label>Track Stock</label>{{ form.track_stock }}</div>
+            <div class="form-field"><label>Min Stock</label>{{ form.min_stock_qty }}</div>
+            <div class="form-field"><label>Active</label>{{ form.is_active }}</div>
         </div>
     </div>
 
     {% if variant and variant.barcode %}
     <div class="card">
         <div class="card-header">Barcode Preview</div>
-        <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+        <div class="barcode-preview-shell">
             <div>
-                <div style="font-weight:600; margin-bottom:8px;">Barcode Value</div>
+                <div class="field-title">Barcode Value</div>
                 <div>{{ variant.barcode }}</div>
             </div>
 
             {% if variant.barcode_image %}
             <div>
-                <div style="font-weight:600; margin-bottom:8px;">Barcode Image</div>
-                <img src="{{ MEDIA_PREFIX }}{{ variant.barcode_image }}" alt="Barcode" style="max-width:320px; height:auto; border:1px solid #ddd; padding:8px; background:#fff;">
+                <div class="field-title">Barcode Image</div>
+                <div class="barcode-preview-box">
+                    <img src="{{ MEDIA_PREFIX }}{{ variant.barcode_image }}" alt="Barcode" style="max-width:320px; width:100%; height:auto;">
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
     {% endif %}
 
-    <button class="btn btn-primary" type="submit">
-        {% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}
-    </button>
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit">
+            {% if mode == "edit" %}Update Variant{% else %}Save Variant{% endif %}
+        </button>
+        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Cancel</a>
+    </div>
 </form>
 {% endblock %}

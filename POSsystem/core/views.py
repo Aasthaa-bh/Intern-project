@@ -235,7 +235,7 @@ def business_dashboard_router(request):
         if business_type_code == "REST":
             return redirect("owner_dashboard")   # current restaurant owner dashboard
         elif business_type_code == "CLTH":
-            return redirect("clothing_owner_dashboard")
+            return redirect("clothing_inventory_dashboard")
         elif business_type_code == "MART":
             return redirect("mart_owner_dashboard")
         else:
@@ -350,7 +350,7 @@ def owner_dashboard_redirect(request):
     if business_type == "restaurant":
         return redirect("restaurant_owner_dashboard")
     elif business_type == "clothing":
-        return redirect("clothing_owner_dashboard")
+        return redirect("clothing_inventory_dashboard")
     elif business_type == "mart":
         return redirect("mart_owner_dashboard")
 

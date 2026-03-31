@@ -184,6 +184,7 @@ from datetime import timedelta
 from functools import wraps
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
@@ -197,6 +198,7 @@ from django.utils import timezone
 
 from pos.inventory_services import create_adjustment, recalculate_purchase_totals, receive_purchase_lines
 from pos.models import Brand, Category, Item, ItemVariant, OrderItem, Purchase, PurchaseItem, StockBatch, StockMovement, Supplier
+from subscription.utils import get_active_subscription
 from .forms import (
     ClothingProductForm,
     ClothingPurchaseForm,
@@ -206,6 +208,8 @@ from .forms import (
     ClothingVariantForm,
 )
 from .models import ClothingItem, ClothingVariantDetail
+
+User = get_user_model()
 
 
 _TABLE_COLUMNS = {}
@@ -396,6 +400,15 @@ def inventory_dashboard(request):
     total_products = products_qs.count()
     total_variants = variants_qs.count()
     total_skus = total_products + total_variants
+    active_products = products_qs.filter(is_active=True).count()
+    total_staff = User.objects.filter(business=business).exclude(role="OWNER").count() if business else 0
+
+    active_subscription = get_active_subscription(business) if business else None
+    max_users = active_subscription.package.max_users if active_subscription else 3
+    max_products = active_subscription.package.max_products if active_subscription else 5
+    current_users = User.objects.filter(business=business).count() if business else 0
+    current_products = total_products
+    remaining_users = max(max_users - current_users, 0)
 
     standalone_products = products_qs.annotate(
         variant_count=Count("variants", distinct=True),
@@ -564,6 +577,14 @@ def inventory_dashboard(request):
         "period": period,
         "period_label": period_label,
         "period_options": period_options,
+        "active_subscription": active_subscription,
+        "max_users": max_users,
+        "max_products": max_products,
+        "current_users": current_users,
+        "current_products": current_products,
+        "remaining_users": remaining_users,
+        "active_products": active_products,
+        "total_staff": total_staff,
         "total_products": total_products,
         "total_variants": total_variants,
         "total_skus": total_skus,
@@ -811,6 +832,24 @@ def product_detail(request, product_id):
                 "open_value": Decimal("0"),
             }
 
+    variant_summary = {
+        "total_variants": len(variants),
+        "active_variants": 0,
+        "low_stock_variants": 0,
+        "total_qty": Decimal("0"),
+        "open_qty": Decimal("0"),
+        "open_value": Decimal("0"),
+    }
+
+    for variant in variants:
+        if getattr(variant, "is_active", False):
+            variant_summary["active_variants"] += 1
+        if getattr(variant, "track_stock", False) and (variant.stock_qty or Decimal("0")) <= (variant.min_stock_qty or Decimal("0")):
+            variant_summary["low_stock_variants"] += 1
+        variant_summary["total_qty"] += variant.stock_qty or Decimal("0")
+        variant_summary["open_qty"] += variant.batch_summary.get("open_qty", Decimal("0"))
+        variant_summary["open_value"] += variant.batch_summary.get("open_value", Decimal("0"))
+
     purchase_lines = []
     purchase_summary = {
         "purchase_count": 0,
@@ -856,6 +895,7 @@ def product_detail(request, product_id):
     context = {
         "product": product,
         "variants": variants,
+        "variant_summary": variant_summary,
         "active_tab": active_tab,
         "purchase_lines": purchase_lines,
         "purchase_summary": purchase_summary,
@@ -940,8 +980,26 @@ def variant_list(request):
         business,
     ).order_by("name")
 
+    variants = variants.order_by("item__name", "name")
+    variant_list = list(variants)
+
+    variant_summary = {
+        "total_variants": len(variant_list),
+        "active_variants": 0,
+        "low_stock_variants": 0,
+        "total_qty": Decimal("0"),
+    }
+
+    for variant in variant_list:
+        if getattr(variant, "is_active", False):
+            variant_summary["active_variants"] += 1
+        if getattr(variant, "track_stock", False) and (variant.stock_qty or Decimal("0")) <= (variant.min_stock_qty or Decimal("0")):
+            variant_summary["low_stock_variants"] += 1
+        variant_summary["total_qty"] += variant.stock_qty or Decimal("0")
+
     context = {
-        "variants": variants.order_by("item__name", "name"),
+        "variants": variant_list,
+        "variant_summary": variant_summary,
         "products": products,
         "selected_product": product_id,
         "search_query": search_query,

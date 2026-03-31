@@ -5,26 +5,60 @@
 
 {% block extra_css %}
 <style>
+    .supplier-page-card {
+        padding: 12px;
+    }
+
+    .supplier-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .supplier-card-header .card-header {
+        margin-bottom: 0;
+    }
+
     .supplier-filters {
         display: grid;
         grid-template-columns: minmax(260px, 2fr) minmax(180px, 1fr) auto auto;
-        gap: 12px;
+        gap: 8px;
         align-items: end;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+    }
+
+    .supplier-filters > div {
+        min-width: 0;
     }
 
     .supplier-filters label {
         display: block;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
         color: var(--text-muted);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+    }
+
+    .supplier-filters input,
+    .supplier-filters select {
+        padding: 6px 9px;
+        font-size: 12px;
     }
 
     .supplier-filter-actions {
         display: flex;
-        gap: 10px;
+        gap: 6px;
         align-items: center;
+    }
+
+    .supplier-filter-actions .btn,
+    .supplier-card-header .btn {
+        padding: 6px 9px;
+        font-size: 11px;
+        border-radius: 9px;
     }
 
     .scroll-table {
@@ -32,11 +66,12 @@
         overflow: auto;
         border: 1px solid var(--border);
         border-radius: 10px;
-        margin-top: 4px;
+        margin-top: 2px;
     }
 
     .scroll-table table {
         margin: 0;
+        min-width: 980px;
     }
 
     .scroll-table thead th {
@@ -45,11 +80,36 @@
         z-index: 1;
     }
 
+    .scroll-table td {
+        vertical-align: top;
+    }
+
+    .scroll-table th,
+    .scroll-table td {
+        padding: 7px 8px;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .supplier-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-width: 150px;
+    }
+
+    .supplier-actions .btn {
+        padding: 6px 9px;
+        font-size: 11px;
+        line-height: 1.2;
+        border-radius: 9px;
+    }
+
     .status-pill {
         display: inline-block;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 999px;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
     }
 
@@ -75,13 +135,12 @@
 </style>
 {% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-primary" href="{% url 'clothing_supplier_create' %}">Add Supplier</a>
-{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">Supplier Directory</div>
+<div class="card supplier-page-card">
+    <div class="supplier-card-header">
+        <div class="card-header">Supplier Directory</div>
+        <a class="btn btn-primary" href="{% url 'clothing_supplier_create' %}">Add Supplier</a>
+    </div>
     <form method="get" class="supplier-filters">
         <div>
             <label for="supplier-search">Search suppliers</label>
@@ -138,10 +197,12 @@
                     <td>{{ supplier.address|default:"-" }}</td>
                     <td>{{ supplier.notes|default:"-" }}</td>
                     <td>
-                        <a class="btn btn-info" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
-                        <a class="btn {% if supplier.total_purchases %}btn-warning{% else %}btn-danger{% endif %}" href="{% url 'clothing_supplier_delete' supplier.id %}">
-                            {% if supplier.total_purchases %}Archive{% else %}Delete{% endif %}
-                        </a>
+                        <div class="supplier-actions">
+                            <a class="btn btn-info" href="{% url 'clothing_supplier_edit' supplier.id %}">Edit</a>
+                            <a class="btn {% if supplier.total_purchases %}btn-warning{% else %}btn-danger{% endif %}" href="{% url 'clothing_supplier_delete' supplier.id %}">
+                                {% if supplier.total_purchases %}Archive{% else %}Delete{% endif %}
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

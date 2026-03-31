@@ -3,26 +3,69 @@
 {% block title %}{% if mode == "create" %}Add Supplier{% else %}Edit Supplier{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "create" %}Add Supplier{% else %}Edit Supplier{% endif %}{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Back to Suppliers</a>
+{% block extra_css %}
+<style>
+    .form-shell {
+        display: grid;
+        gap: 18px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .form-field {
+        min-width: 0;
+    }
+
+    .form-field--full {
+        grid-column: 1 / -1;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions .btn {
+            flex: 1 1 100%;
+        }
+    }
+</style>
 {% endblock %}
 
+{% block header_actions %}{% endblock %}
+
 {% block content %}
-<form method="post">
+<form method="post" class="form-shell">
     {% csrf_token %}
     <div class="card">
-        <div class="card-header">Supplier Details</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Name</label>{{ form.name }}</div>
-            <div><label>Contact Person</label>{{ form.contact_person }}</div>
-            <div><label>Phone</label>{{ form.phone_no }}</div>
-            <div><label>Email</label>{{ form.email }}</div>
-            <div style="grid-column: 1 / -1;"><label>Address</label>{{ form.address }}</div>
-            <div><label>PAN/VAT</label>{{ form.pan_vat_no }}</div>
-            <div style="grid-column: 1 / -1;"><label>Notes</label>{{ form.notes }}</div>
-            <div><label>Active</label>{{ form.is_active }}</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="card-header" style="margin-bottom:0;">Supplier Details</div>
+            <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Back to Suppliers</a>
+        </div>
+        <div class="form-grid">
+            <div class="form-field"><label>Name</label>{{ form.name }}</div>
+            <div class="form-field"><label>Contact Person</label>{{ form.contact_person }}</div>
+            <div class="form-field"><label>Phone</label>{{ form.phone_no }}</div>
+            <div class="form-field"><label>Email</label>{{ form.email }}</div>
+            <div class="form-field form-field--full"><label>Address</label>{{ form.address }}</div>
+            <div class="form-field"><label>PAN/VAT</label>{{ form.pan_vat_no }}</div>
+            <div class="form-field"><label>Active</label>{{ form.is_active }}</div>
+            <div class="form-field form-field--full"><label>Notes</label>{{ form.notes }}</div>
         </div>
     </div>
-    <button class="btn btn-primary" type="submit">Save Supplier</button>
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save Supplier</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Cancel</a>
+    </div>
 </form>
 {% endblock %}

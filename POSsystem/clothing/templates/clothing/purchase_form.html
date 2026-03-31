@@ -5,8 +5,35 @@
 
 {% block extra_css %}
 <style>
+    .form-shell {
+        display: grid;
+        gap: 18px;
+    }
+
+    .purchase-details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .purchase-details-grid > div {
+        min-width: 0;
+    }
+
+    .purchase-details-grid .full-width {
+        grid-column: 1 / -1;
+    }
+
     .purchase-form-table {
         overflow-x: auto;
+    }
+
+    .purchase-form-table table {
+        min-width: 860px;
+    }
+
+    .purchase-form-table td {
+        vertical-align: top;
     }
 
     .purchase-item-actions {
@@ -14,25 +41,56 @@
         gap: 10px;
         margin-bottom: 12px;
         flex-wrap: wrap;
+        align-items: center;
     }
 
     .purchase-item-actions .btn {
         padding: 8px 14px;
     }
+
+    .helper-copy {
+        font-size: 13px;
+        color: #64748b;
+        align-self: center;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .purchase-details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .purchase-item-actions,
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .purchase-item-actions .btn,
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
-<form method="post">
+<form method="post" class="form-shell">
     {% csrf_token %}
 
     <div class="card">
-        <div class="card-header">Purchase Details</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="card-header" style="margin-bottom:0;">Purchase Details</div>
+            <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Back to Purchases</a>
+        </div>
+        <div class="purchase-details-grid">
             <div>
                 <label>Supplier (Select Existing)</label>
                 {{ form.supplier }}
@@ -63,13 +121,13 @@
                 {{ form.purchase_date }}
                 {% if form.purchase_date.errors %}<div class="alert alert-error">{{ form.purchase_date.errors }}</div>{% endif %}
             </div>
-            <div style="grid-column: 1 / -1;">
+            <div class="full-width">
                 <label>Notes</label>
                 {{ form.notes }}
                 {% if form.notes.errors %}<div class="alert alert-error">{{ form.notes.errors }}</div>{% endif %}
             </div>
             {% if form.non_field_errors %}
-            <div style="grid-column: 1 / -1;" class="alert alert-error">{{ form.non_field_errors }}</div>
+            <div class="full-width alert alert-error">{{ form.non_field_errors }}</div>
             {% endif %}
         </div>
     </div>
@@ -83,7 +141,7 @@
         <div class="purchase-item-actions">
             <button type="button" class="btn btn-info" id="add-purchase-line">+ Add Another Variant Line</button>
             <button type="button" class="btn btn-secondary" id="duplicate-purchase-line">Duplicate Previous Row</button>
-            <span style="font-size: 13px; color: #64748b; align-self: center;">Use multiple rows for the same product with different variants.</span>
+            <span class="helper-copy">Use multiple rows for the same product with different variants.</span>
         </div>
         <div class="purchase-form-table">
             <table>
@@ -157,7 +215,7 @@
         </template>
     </div>
 
-    <div style="display: flex; gap: 10px;">
+    <div class="form-actions">
         <button class="btn btn-primary" type="submit">Save Purchase</button>
         <a class="btn btn-secondary" href="{% url 'clothing_purchase_list' %}">Cancel</a>
     </div>

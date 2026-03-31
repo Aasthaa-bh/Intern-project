@@ -10,7 +10,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         flex-wrap: wrap;
     }
 
@@ -30,14 +30,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 10px 14px;
+        padding: 9px 14px;
         border-radius: 999px;
         border: 1px solid var(--border-strong);
         background: #fff;
         color: var(--brand-dark);
         text-decoration: none;
         font-weight: 700;
-        font-size: 13px;
+        font-size: 12.5px;
         transition: all 0.18s ease;
     }
 
@@ -56,17 +56,33 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 14px;
-        margin-bottom: 18px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .stats-grid--business .stat-card {
+        grid-column: span 4;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fafc 100%);
+    }
+
+    .stats-grid--inventory .stat-card {
+        grid-column: span 4;
+    }
+
+    .stats-grid--business .stat-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f9fafc 100%);
     }
 
     .stat-card {
         border: 1px solid var(--border);
         border-radius: 18px;
-        padding: 16px;
+        padding: 14px;
         background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+        min-height: 118px;
+        display: flex;
+        flex-direction: column;
     }
 
     .stat-card .icon {
@@ -79,24 +95,41 @@
     }
 
     .stat-card .value {
-        font-size: 28px;
+        font-size: clamp(1.55rem, 1.75vw, 2.15rem);
         font-weight: 800;
         line-height: 1.1;
         color: var(--brand-dark);
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+        overflow-wrap: anywhere;
+    }
+
+    .stat-card .value.value--compact {
+        font-size: clamp(1.2rem, 1.35vw, 1.7rem);
+        line-height: 1.15;
     }
 
     .stat-card .label {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-muted);
         font-weight: 600;
+        margin-top: auto;
+        line-height: 1.4;
+    }
+
+    .dashboard-section-title {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
     }
 
     .dashboard-panels {
         display: grid;
         grid-template-columns: minmax(280px, 1.05fr) minmax(0, 1.35fr);
-        gap: 16px;
-        margin-bottom: 18px;
+        gap: 14px;
+        margin-bottom: 16px;
         align-items: start;
     }
 
@@ -109,22 +142,22 @@
     .attention-item {
         display: grid;
         grid-template-columns: auto 1fr auto;
-        gap: 14px;
+        gap: 12px;
         align-items: center;
-        padding: 14px;
+        padding: 12px;
         border-radius: 18px;
         border: 1px solid var(--border);
         background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     }
 
     .attention-count {
-        min-width: 54px;
-        height: 54px;
+        min-width: 46px;
+        height: 46px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 16px;
-        font-size: 20px;
+        font-size: 17px;
         font-weight: 800;
         color: #fff;
         background: var(--tone, var(--primary));
@@ -135,14 +168,14 @@
     .attention-item--info { --tone: var(--info); }
 
     .attention-title {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         color: var(--brand-dark);
-        margin-bottom: 4px;
+        margin-bottom: 3px;
     }
 
     .attention-copy {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-muted);
     }
 
@@ -162,8 +195,9 @@
     }
 
     .muted-copy {
-        margin: 0 0 14px 0;
+        margin: 0 0 12px 0;
         color: var(--text-muted);
+        font-size: 12.5px;
     }
 
     .health-copy {
@@ -175,7 +209,7 @@
     .quick-actions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
+        gap: 10px;
     }
 
     .quick-action {
@@ -183,7 +217,7 @@
         text-decoration: none;
         border: 1px solid var(--border);
         border-radius: 20px;
-        padding: 16px;
+        padding: 14px;
         background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
         color: var(--brand-dark);
         transition: all 0.2s ease;
@@ -198,14 +232,14 @@
     }
 
     .quick-action-title {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         margin-bottom: 4px;
         color: var(--brand-dark);
     }
 
     .quick-action-subtitle {
-        font-size: 12px;
+        font-size: 11.5px;
         color: var(--text-muted);
     }
 
@@ -256,8 +290,49 @@
         --accent-dark: var(--brand-dark);
     }
 
+    @media (max-width: 1200px) {
+        .stats-grid--business .stat-card,
+        .stats-grid--inventory .stat-card {
+            grid-column: span 6;
+        }
+    }
+
     @media (max-width: 1080px) {
         .dashboard-panels {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-toolbar {
+            align-items: flex-start;
+        }
+
+        .period-filter {
+            width: 100%;
+        }
+
+        .period-chip {
+            flex: 1 1 calc(50% - 10px);
+        }
+
+    }
+
+    @media (max-width: 720px) {
+        .stats-grid--business .stat-card,
+        .stats-grid--inventory .stat-card {
+            grid-column: span 12;
+        }
+
+        .stat-card {
+            min-height: 0;
+        }
+
+        .period-chip {
+            flex-basis: 100%;
+        }
+
+        .attention-item {
             grid-template-columns: 1fr;
         }
     }
@@ -274,10 +349,57 @@
     </div>
 </div>
 
-<div class="stats-grid">
+<div class="dashboard-section-title">Business Overview</div>
+<div class="stats-grid stats-grid--business">
+    <div class="stat-card">
+        <div class="icon">Active Package</div>
+        <div class="value value--compact">
+            {% if active_subscription %}
+                {{ active_subscription.package.name }}
+            {% else %}
+                Free / No Package
+            {% endif %}
+        </div>
+        <div class="label">
+            {% if active_subscription and active_subscription.end_date %}
+                Active until {{ active_subscription.end_date|date:"d M Y" }}
+            {% else %}
+                Upgrade to unlock more users and products
+            {% endif %}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">User Limit</div>
+        <div class="value">{{ current_users }} / {{ max_users }}</div>
+        <div class="label">Users currently used</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">Product Limit</div>
+        <div class="value">{{ current_products }} / {{ max_products }}</div>
+        <div class="label">Products currently used</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">Active Products</div>
+        <div class="value">{{ active_products }}</div>
+        <div class="label">Products currently active</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">Variants</div>
+        <div class="value">{{ total_variants }}</div>
+        <div class="label">Sellable product variants</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">Total Staff</div>
+        <div class="value">{{ total_staff }}</div>
+        <div class="label">Staff members excluding owner</div>
+    </div>
+</div>
+
+<div class="dashboard-section-title">Inventory Overview</div>
+<div class="stats-grid stats-grid--inventory">
     <div class="stat-card">
         <div class="icon">Stock Value</div>
-        <div class="value">{{ total_stock_value }}</div>
+        <div class="value">{{ total_stock_value|floatformat:2 }}</div>
         <div class="label">Current Inventory Value</div>
     </div>
     <div class="stat-card">

@@ -3,13 +3,14 @@
 {% block title %}Delete Supplier{% endblock %}
 {% block page_title %}Delete Supplier{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Back to Suppliers</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 <div class="card">
-    <div class="card-header">Confirm Delete</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+        <div class="card-header" style="margin-bottom:0;">Confirm Delete</div>
+        <a class="btn btn-secondary" href="{% url 'clothing_supplier_list' %}">Back to Suppliers</a>
+    </div>
     <p>Supplier: <strong>{{ supplier.name }}</strong></p>
     {% if purchase_count %}
     <p>This supplier is linked to {{ purchase_count }} purchase{{ purchase_count|pluralize }}.</p>

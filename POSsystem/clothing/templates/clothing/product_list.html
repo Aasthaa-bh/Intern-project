@@ -4,20 +4,29 @@
 {% block page_title %}Product Catalog{% endblock %}
 {% block page_subtitle %}Manage clothing products and variants{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
-<a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
-<a class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700" href="{% url 'clothing_product_create' %}">Add Product</a>
-{% endblock %}
-
 {% block extra_css %}
 <style>
+    .catalog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .catalog-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
     .catalog-filters {
         display: grid;
         grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr)) auto;
-        gap: 12px;
+        gap: 10px;
         align-items: end;
-        margin-bottom: 18px;
+        margin-bottom: 12px;
     }
 
     .catalog-filters > div {
@@ -26,15 +35,15 @@
 
     .catalog-filters label {
         display: block;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--text-muted);
-        margin-bottom: 6px;
+        margin-bottom: 5px;
     }
 
     .catalog-filter-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         align-items: center;
         align-self: end;
         white-space: nowrap;
@@ -50,6 +59,7 @@
 
     .scroll-table table {
         margin: 0;
+        min-width: 860px;
     }
 
     .scroll-table thead th {
@@ -58,9 +68,69 @@
         z-index: 1;
     }
 
+    .scroll-table td {
+        vertical-align: top;
+    }
+
+    .product-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-width: 210px;
+    }
+
+    .product-actions .btn,
+    .product-actions .btn-offer {
+        padding: 6px 9px;
+        font-size: 11px;
+        line-height: 1.2;
+        border-radius: 9px;
+    }
+
+    .btn-offer {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #16a34a;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .btn-offer:hover {
+        background: #15803d;
+    }
+
+    .col-product {
+        min-width: 140px;
+    }
+
+    .col-sku {
+        min-width: 105px;
+    }
+
+    .col-category {
+        min-width: 96px;
+    }
+
+    .col-actions {
+        width: 1%;
+    }
+
     @media (max-width: 1200px) {
         .catalog-filters {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .catalog-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .catalog-header-actions {
+            width: 100%;
+            justify-content: flex-start;
         }
 
         .catalog-filter-actions {
@@ -87,8 +157,14 @@
 
 {% block content %}
 <div class="card">
-    <div class="card-header">Products</div>
-    <p style="margin: 0 0 16px 0; color: var(--text-muted);">
+    <div class="catalog-header">
+        <div class="card-header" style="margin-bottom: 0;">Products</div>
+        <div class="catalog-header-actions">
+            <a class="btn btn-info" href="{% url 'clothing_variant_list' %}">Search Variants</a>
+            <a class="btn btn-primary" href="{% url 'clothing_product_create' %}">Add Product</a>
+        </div>
+    </div>
+    <p style="margin: 0 0 14px 0; color: var(--text-muted); font-size: 12.5px;">
         Manage variants from each product detail page. Use Variant Search only when you need to find a variant across all products.
     </p>
     <form method="get" class="catalog-filters">
@@ -139,13 +215,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Category</th>
+                    <th class="col-product">Product</th>
+                    <th class="col-sku">SKU</th>
+                    <th class="col-category">Category</th>
                     <th>Status</th>
                     <th>Variants</th>
                     <th>Total Stock</th>
-                    <th>Action</th>
+                    <th class="col-actions">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -164,18 +240,20 @@
                     <td>{{ product.variant_count }}</td>
                     <td>{{ product.total_stock }}</td>
                     <td>
-                        <a class="btn btn-info" href="{% url 'clothing_product_detail' product.id %}">
-                            View
-                        </a>
-                        <a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">
-                            Edit
-                        </a>
-                        <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
-                            Add Variant
-                        </a>
-                        <a class="px-3 py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 text-xs" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
+                        <div class="product-actions">
+                            <a class="btn btn-info" href="{% url 'clothing_product_detail' product.id %}">
+                                View
+                            </a>
+                            <a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">
+                                Edit
+                            </a>
+                            <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">
+                                Add Variant
+                            </a>
+                            <a class="btn-offer" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">
                                 Create Offer
-                        </a>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

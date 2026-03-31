@@ -1,54 +1,33 @@
 {% extends "owner/base.html" %}
 {% load static %}
+
 {% block title %}{{ product.name }} - Details{% endblock %}
 {% block page_title %}Product Detail{% endblock %}
+{% block page_subtitle %}Review product info, variants, and purchase history{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-success" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">Create Offer</a>
-<a class="btn btn-info" href="{% url 'clothing_variant_list' %}?product={{ product.id }}">Search Variants</a>
-<a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
-<a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
-<a class="btn btn-danger" href="{% url 'clothing_product_delete' product.id %}">Delete Product</a>
-<a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .detail-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 190px;
-        gap: 16px;
-        align-items: start;
-    }
-
-    .detail-main {
-        min-width: 0;
-    }
-
-    .detail-sidebar {
-        position: sticky;
-        top: 90px;
-        align-self: start;
-    }
-
     .tab-nav {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
     }
 
     .tab-link {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 11px 16px;
-        border-radius: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
         border: 1px solid var(--border);
         background: #fff;
         color: var(--text-main);
         text-decoration: none;
         font-weight: 700;
+        font-size: 12.5px;
         transition: all 0.2s ease;
     }
 
@@ -65,37 +44,62 @@
 
     .summary-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(180px, 1fr));
-        gap: 14px;
-        margin-bottom: 18px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
     }
 
     .summary-card {
-        background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
         border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
+        border-radius: 14px;
+        padding: 14px;
         box-shadow: var(--shadow-soft);
     }
 
     .summary-card .label {
         color: var(--text-muted);
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .summary-card .value {
-        font-size: 26px;
+        font-size: clamp(1.3rem, 1.7vw, 2rem);
         font-weight: 700;
         color: var(--brand-dark);
         letter-spacing: -0.03em;
+        overflow-wrap: anywhere;
+    }
+
+    .variant-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .variant-summary-grid .summary-card {
+        padding: 12px;
+    }
+
+    .variant-summary-grid .summary-card .value {
+        font-size: clamp(1.15rem, 1.45vw, 1.7rem);
+    }
+
+    .detail-table th {
+        width: 160px;
+        white-space: nowrap;
+    }
+
+    .detail-main {
+        min-width: 0;
     }
 
     .scroll-table {
-        max-height: 68vh;
+        max-height: 66vh;
         overflow: auto;
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -103,6 +107,7 @@
 
     .scroll-table table {
         margin: 0;
+        min-width: 900px;
     }
 
     .scroll-table thead th {
@@ -111,89 +116,62 @@
         z-index: 1;
     }
 
-    .variant-sidebar-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    .scroll-table td {
+        vertical-align: top;
     }
 
-    .variant-sidebar-item {
-        border: 1px solid var(--border);
+    .compact-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-width: 130px;
+    }
+
+    .compact-actions .btn {
+        padding: 7px 10px;
+        font-size: 12px;
         border-radius: 10px;
-        background: var(--surface-soft);
-        transition: border-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .variant-sidebar-item:hover {
-        border-color: #222;
-        transform: translateY(-1px);
-    }
-
-    .variant-sidebar-link {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 9px;
-        color: var(--text-main);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .variant-sidebar-text {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        min-width: 0;
-    }
-
-    .variant-sidebar-name {
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .variant-sidebar-sub {
-        font-size: 11px;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
-
-    .detail-sidebar .card {
-        padding: 12px;
-    }
-
-    .detail-sidebar .card-header {
-        font-size: 15px;
-        margin-bottom: 10px;
-    }
-
-    .variant-sidebar-empty {
-        color: var(--text-muted);
-        margin-bottom: 14px;
     }
 
     .section-note {
-        margin: 0 0 16px 0;
+        margin: 0 0 12px 0;
         color: var(--text-muted);
+        font-size: 12.5px;
     }
 
-    @media (max-width: 1100px) {
-        .detail-layout {
-            grid-template-columns: 1fr;
-        }
+    .empty-copy {
+        color: var(--text-muted);
+        font-size: 12.5px;
+    }
 
-        .detail-sidebar {
-            position: static;
-        }
+    .detail-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .barcode-preview img {
+        max-height: 52px;
+        width: auto;
     }
 
     @media (max-width: 900px) {
         .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .variant-summary-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .scroll-table table {
+            min-width: 760px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .variant-summary-grid {
             grid-template-columns: 1fr;
         }
     }
@@ -201,6 +179,14 @@
 {% endblock %}
 
 {% block content %}
+<div class="detail-actions">
+    <a class="btn btn-success" href="{% url 'clothing_offer_create' %}?product={{ product.id }}">Create Offer</a>
+    <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Add Variant</a>
+    <a class="btn btn-info" href="{% url 'clothing_product_edit' product.id %}">Edit Product</a>
+    <a class="btn btn-danger" href="{% url 'clothing_product_delete' product.id %}">Delete</a>
+    <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+</div>
+
 <div class="tab-nav">
     <a class="tab-link {% if active_tab == 'overview' %}active{% endif %}" href="{% url 'clothing_product_detail' product.id %}?tab=overview">Overview</a>
     <a class="tab-link {% if active_tab == 'variants' %}active{% endif %}" href="{% url 'clothing_product_detail' product.id %}?tab=variants">Variants</a>
@@ -211,7 +197,7 @@
 <div class="summary-grid">
     <div class="summary-card">
         <div class="label">Category</div>
-        <div class="value" style="font-size: 22px;">{{ product.category.name|default:"-" }}</div>
+        <div class="value">{{ product.category.name|default:"-" }}</div>
     </div>
     <div class="summary-card">
         <div class="label">Variants</div>
@@ -225,157 +211,73 @@
 
 <div class="card">
     <div class="card-header">Product Summary</div>
-    <table>
+    <table class="detail-table">
         <tbody>
-            <tr>
-                <th style="width: 180px;">Name</th>
-                <td>{{ product.name }}</td>
-            </tr>
-            <tr>
-                <th>SKU</th>
-                <td>{{ product.sku|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Barcode</th>
-                <td>{{ product.barcode|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Category</th>
-                <td>{{ product.category.name|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Brand</th>
-                <td>{{ product.brand.name|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td>{% if product.is_active %}Active{% else %}Inactive{% endif %}</td>
-            </tr>
+            <tr><th>Name</th><td>{{ product.name }}</td></tr>
+            <tr><th>SKU</th><td>{{ product.sku|default:"-" }}</td></tr>
+            <tr><th>Barcode</th><td>{{ product.barcode|default:"-" }}</td></tr>
+            <tr><th>Category</th><td>{{ product.category.name|default:"-" }}</td></tr>
+            <tr><th>Brand</th><td>{{ product.brand.name|default:"-" }}</td></tr>
+            <tr><th>Status</th><td>{% if product.is_active %}Active{% else %}Inactive{% endif %}</td></tr>
             <tr>
                 <th>Stock Qty</th>
-                <td>
-                    {% if variants %}
-                        Managed by variants
-                    {% else %}
-                        {{ product.stock_qty }}
-                    {% endif %}
-                </td>
+                <td>{% if variants %}Managed by variants{% else %}{{ product.stock_qty }}{% endif %}</td>
             </tr>
             <tr>
                 <th>Min Stock</th>
-                <td>
-                    {% if variants %}
-                        Managed by variants
-                    {% else %}
-                        {{ product.min_stock_qty }}
-                    {% endif %}
-                </td>
+                <td>{% if variants %}Managed by variants{% else %}{{ product.min_stock_qty }}{% endif %}</td>
             </tr>
             {% if product.clothing %}
-            <tr>
-                <th>Gender</th>
-                <td>{{ product.clothing.get_gender_display }}</td>
-            </tr>
-            <tr>
-                <th>Material</th>
-                <td>{{ product.clothing.material|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Fit</th>
-                <td>{{ product.clothing.fit|default:"-" }}</td>
-            </tr>
-            <tr>
-                <th>Care Note</th>
-                <td>{{ product.clothing.care_note|default:"-" }}</td>
-            </tr>
+            <tr><th>Gender</th><td>{{ product.clothing.get_gender_display }}</td></tr>
+            <tr><th>Material</th><td>{{ product.clothing.material|default:"-" }}</td></tr>
+            <tr><th>Fit</th><td>{{ product.clothing.fit|default:"-" }}</td></tr>
+            <tr><th>Care Note</th><td>{{ product.clothing.care_note|default:"-" }}</td></tr>
             {% endif %}
             {% if product.description %}
-            <tr>
-                <th>Description</th>
-                <td>{{ product.description }}</td>
-            </tr>
+            <tr><th>Description</th><td>{{ product.description }}</td></tr>
             {% endif %}
         </tbody>
     </table>
 </div>
-{% elif active_tab == "variants" %}
-<div class="detail-layout">
-    <div class="detail-main">
-        <div class="card">
-            <div class="card-header">Variants & Sizes</div>
-            <p class="section-note">This is the main place to add, edit, and review variants for this product.</p>
-            {% if variants %}
-            <div class="scroll-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Variant</th>
-                            <th>SKU</th>
-                            <th>Size</th>
-                            <th>Color</th>
-                            <th>Stock Qty</th>
-                            <th>Min Stock</th>
-                            <th>Price</th>
-                            <th>Open Layers</th>
-                            <th>Open Qty</th>
-                            <th>Open Value</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for variant in variants %}
-                        <tr id="variant-{{ variant.id }}">
-                            <td>{{ variant.name }}</td>
-                            <td>{{ variant.sku }}</td>
-                            <td>
-                                {% if variant.clothing_detail and variant.clothing_detail.size %}
-                                    {{ variant.clothing_detail.size.name }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if variant.clothing_detail and variant.clothing_detail.color %}
-                                    {{ variant.clothing_detail.color.name }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ variant.stock_qty }}</td>
-                            <td>{{ variant.min_stock_qty }}</td>
-                            <td>{{ variant.price|default:"-" }}</td>
-                            <td>{{ variant.batch_summary.open_layers }} / {{ variant.batch_summary.total_layers }}</td>
-                            <td>{{ variant.batch_summary.open_qty }}</td>
-                            <td>{{ variant.batch_summary.open_value }}</td>
-                            <td>
-                                <a class="btn btn-info" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
-                                <a class="btn btn-danger" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p>No variants defined for this product.</p>
-            {% endif %}
-        </div>
 
-        <div class="card">
-            <div class="card-header">FIFO Batch History</div>
-            {% if variants %}
+{% elif active_tab == "variants" %}
+<div class="detail-main">
+    <div class="card">
+        <div class="card-header">Variants</div>
+        <p class="section-note">Manage size, color, stock, and selling price for each sellable variant here.</p>
+        <div class="variant-summary-grid">
+            <div class="summary-card">
+                <div class="label">Total Variants</div>
+                <div class="value">{{ variant_summary.total_variants }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Active Variants</div>
+                <div class="value">{{ variant_summary.active_variants }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Low Stock</div>
+                <div class="value">{{ variant_summary.low_stock_variants }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">On Hand Qty</div>
+                <div class="value">{{ variant_summary.total_qty }}</div>
+            </div>
+        </div>
+        {% if variants %}
+        <div class="scroll-table">
             <table>
                 <thead>
                     <tr>
                         <th>Variant</th>
                         <th>SKU</th>
-                        <th>Barcode</th>
-                        <th>Barcode Image</th>
                         <th>Size</th>
                         <th>Color</th>
-                        <th>Stock Qty</th>
-                        <th>Min Stock</th>
+                        <th>Qty</th>
+                        <th>Min</th>
                         <th>Price</th>
+                        <th>Status</th>
+                        <th>Open Qty</th>
+                        <th>Open Value</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -383,126 +285,98 @@
                     {% for variant in variants %}
                     <tr id="variant-{{ variant.id }}">
                         <td>{{ variant.name }}</td>
-                        <td>{{ variant.sku }}</td>
-                        <td>{{ variant.barcode|default:"-" }}</td>
-                        <td>
-                            {% get_media_prefix as MEDIA_PREFIX %}
-                            {% if variant.barcode_image %}
-                                <img src="{{ MEDIA_PREFIX }}{{ variant.barcode_image }}" alt="Barcode" style="height:60px; width:auto;">
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                {% for variant in variants %}
-                    <h4 style="margin: 8px 0 10px 0;">
-                        {{ variant.name }}
-                        <span style="font-weight: 500; color: #64748b;">(SKU: {{ variant.sku|default:"-" }})</span>
-                        <span style="font-weight: 500; color: #64748b;">| Size:
-                            {% if variant.clothing_detail and variant.clothing_detail.size %}
-                                {{ variant.clothing_detail.size.name }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </span>
-                        <span style="font-weight: 500; color: #64748b;">| Color:
-                            {% if variant.clothing_detail and variant.clothing_detail.color %}
-                                {{ variant.clothing_detail.color.name }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+                        <td>{{ variant.sku|default:"-" }}</td>
+                        <td>{% if variant.clothing_detail and variant.clothing_detail.size %}{{ variant.clothing_detail.size.name }}{% else %}-{% endif %}</td>
+                        <td>{% if variant.clothing_detail and variant.clothing_detail.color %}{{ variant.clothing_detail.color.name }}{% else %}-{% endif %}</td>
                         <td>{{ variant.stock_qty }}</td>
                         <td>{{ variant.min_stock_qty }}</td>
                         <td>{{ variant.price|default:product.price }}</td>
                         <td>
-                            <a class="btn btn-secondary" href="{% url 'clothing_variant_barcode' product.id variant.id %}">Print Barcode</a>
-                            <a class="btn btn-secondary" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
-                            <a class="btn btn-secondary" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
+                            {% if variant.track_stock and variant.stock_qty <= variant.min_stock_qty %}
+                            <span class="badge badge-warning">Low</span>
+                            {% elif variant.is_active %}
+                            <span class="badge badge-success">Active</span>
+                            {% else %}
+                            <span class="badge">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ variant.batch_summary.open_qty }}</td>
+                        <td>{{ variant.batch_summary.open_value }}</td>
+                        <td>
+                            <div class="compact-actions">
+                                <a class="btn btn-info" href="{% url 'clothing_variant_edit' product.id variant.id %}">Edit</a>
+                                <a class="btn btn-danger" href="{% url 'clothing_variant_delete' product.id variant.id %}">Delete</a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-                        </span>
-                    </h4>
-                    <p style="margin: 0 0 10px 0; color: #475569; font-size: 13px;">
-                        Open layers: <strong>{{ variant.batch_summary.open_layers }}</strong>
-                        of <strong>{{ variant.batch_summary.total_layers }}</strong>
-                        | Open qty: <strong>{{ variant.batch_summary.open_qty }}</strong>
-                        | Open value: <strong>{{ variant.batch_summary.open_value }}</strong>
-                    </p>
-                    {% if variant.batch_history %}
-                    <div class="scroll-table" style="margin-bottom: 16px;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Received At</th>
-                                    <th>Purchase No</th>
-                                    <th>Unit Cost</th>
-                                    <th>Selling Price</th>
-                                    <th>Batch Qty</th>
-                                    <th>Open Qty</th>
-                                    <th>Consumed Qty</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for batch in variant.batch_history %}
-                                <tr>
-                                    <td>{{ batch.received_at|date:"Y-m-d H:i" }}</td>
-                                    <td>{{ batch.purchase_no }}</td>
-                                    <td>{{ batch.unit_cost }}</td>
-                                    <td>{{ batch.selling_price|default:"-" }}</td>
-                                    <td>{{ batch.quantity }}</td>
-                                    <td>{{ batch.remaining_qty }}</td>
-                                    <td>{{ batch.consumed_qty }}</td>
-                                    <td>
-                                        {% if batch.is_open %}
-                                            <span class="badge badge-success">Open</span>
-                                        {% else %}
-                                            <span class="badge">Consumed</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p style="margin: 0 0 14px 0; color: #64748b;">No batch history available for this variant yet.</p>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-            <p>Create variants to start tracking FIFO batch history.</p>
-            {% endif %}
         </div>
+        {% else %}
+        <p class="empty-copy">No variants defined for this product.</p>
+        {% endif %}
     </div>
 
-    <aside class="detail-sidebar">
-        <div class="card">
-            <div class="card-header">Variant Sidebar</div>
-            {% if variants %}
-            <ul class="variant-sidebar-list">
-                {% for variant in variants %}
-                <li class="variant-sidebar-item">
-                    <a class="variant-sidebar-link" href="#variant-{{ variant.id }}">
-                        <span class="variant-sidebar-text">
-                            <span class="variant-sidebar-name">{{ variant.name }}</span>
-                            <span class="variant-sidebar-sub">SKU: {{ variant.sku|default:"-" }}</span>
-                        </span>
-                        <span class="badge {% if variant.stock_qty <= variant.min_stock_qty %}badge-warning{% else %}badge-success{% endif %}">{{ variant.stock_qty }}</span>
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="variant-sidebar-empty">No variants available yet.</p>
-            <a class="btn btn-primary" href="{% url 'clothing_variant_create' product.id %}">Create First Variant</a>
-            {% endif %}
-        </div>
-    </aside>
+    <div class="card">
+        <div class="card-header">FIFO Batch History</div>
+        {% if variants %}
+            {% for variant in variants %}
+            <div style="margin-bottom: 14px;">
+                <p class="section-note" style="margin-bottom: 8px;">
+                    <strong>{{ variant.name }}</strong>
+                    {% if variant.sku %}<span style="color: var(--text-muted);"> | SKU: {{ variant.sku }}</span>{% endif %}
+                    {% if variant.clothing_detail and variant.clothing_detail.size %}<span style="color: var(--text-muted);"> | Size: {{ variant.clothing_detail.size.name }}</span>{% endif %}
+                    {% if variant.clothing_detail and variant.clothing_detail.color %}<span style="color: var(--text-muted);"> | Color: {{ variant.clothing_detail.color.name }}</span>{% endif %}
+                </p>
+                {% if variant.batch_history %}
+                <div class="scroll-table" style="margin-bottom: 10px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Received At</th>
+                                <th>Purchase No</th>
+                                <th>Unit Cost</th>
+                                <th>Selling Price</th>
+                                <th>Batch Qty</th>
+                                <th>Open Qty</th>
+                                <th>Consumed Qty</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch in variant.batch_history %}
+                            <tr>
+                                <td>{{ batch.received_at|date:"Y-m-d H:i" }}</td>
+                                <td>{{ batch.purchase_no }}</td>
+                                <td>{{ batch.unit_cost }}</td>
+                                <td>{{ batch.selling_price|default:"-" }}</td>
+                                <td>{{ batch.quantity }}</td>
+                                <td>{{ batch.remaining_qty }}</td>
+                                <td>{{ batch.consumed_qty }}</td>
+                                <td>
+                                    {% if batch.is_open %}
+                                    <span class="badge badge-success">Open</span>
+                                    {% else %}
+                                    <span class="badge">Consumed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="empty-copy">No batch history available for this variant yet.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="empty-copy">Create variants to start tracking FIFO batch history.</p>
+        {% endif %}
+    </div>
 </div>
+
 {% else %}
 <div class="summary-grid">
     <div class="summary-card">
@@ -521,7 +395,7 @@
 
 <div class="card">
     <div class="card-header">Purchase History</div>
-    <p class="section-note">This shows only purchases that include this product or its variants.</p>
+    <p class="section-note">Only purchases containing this product or its variants are shown here.</p>
     {% if purchase_lines %}
     <div class="scroll-table">
         <table>
@@ -556,18 +430,18 @@
                     <td>{{ line.selling_price|default:"-" }}</td>
                     <td>{{ line.line_total }}</td>
                     <td>
-                        <a class="btn btn-info" href="{% url 'clothing_purchase_detail' line.purchase.id %}">View</a>
+                        <div class="compact-actions">
+                            <a class="btn btn-info" href="{% url 'clothing_purchase_detail' line.purchase.id %}">View</a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <p style="margin-top: 14px; color: var(--text-muted); font-weight: 600;">
-        Total purchase value: {{ purchase_summary.total_amount }}
-    </p>
+    <p class="section-note" style="margin-top: 10px;">Total purchase value: {{ purchase_summary.total_amount }}</p>
     {% else %}
-    <p>No purchase history found for this product yet.</p>
+    <p class="empty-copy">No purchase history found for this product yet.</p>
     {% endif %}
 </div>
 {% endif %}

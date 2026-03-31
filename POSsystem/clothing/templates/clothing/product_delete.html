@@ -3,13 +3,14 @@
 {% block title %}Delete Product{% endblock %}
 {% block page_title %}Delete Product{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
-{% endblock %}
+{% block header_actions %}{% endblock %}
 
 {% block content %}
 <div class="card">
-    <div class="card-header">Confirm Delete</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+        <div class="card-header" style="margin-bottom:0;">Confirm Delete</div>
+        <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
+    </div>
     <p>Product: <strong>{{ product.name }}</strong></p>
 
     {% if can_delete %}
@@ -31,7 +32,7 @@
         {% endif %}
         <div style="margin-top: 12px; display: flex; gap: 8px;">
             <a class="btn btn-warning" href="{% url 'clothing_product_edit' product.id %}">Set Inactive</a>
-            <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back</a>
+            <a class="btn btn-secondary" href="{% url 'clothing_product_detail' product.id %}">Back to Product</a>
         </div>
     {% endif %}
 </div>

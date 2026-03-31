@@ -3,12 +3,65 @@
 {% block title %}{% if mode == "create" %}Add Product{% else %}Edit Product{% endif %}{% endblock %}
 {% block page_title %}{% if mode == "create" %}Add Product{% else %}Edit Product{% endif %}{% endblock %}
 
-{% block header_actions %}
-<a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+{% block extra_css %}
+<style>
+    .form-shell {
+        display: grid;
+        gap: 14px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .form-field {
+        min-width: 0;
+    }
+
+    .form-field--full {
+        grid-column: 1 / -1;
+    }
+
+    .field-help {
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .section-note {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--surface-soft);
+        border: 1px dashed var(--border-strong);
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions .btn {
+            flex: 1 1 100%;
+        }
+    }
+</style>
 {% endblock %}
 
+{% block header_actions %}{% endblock %}
+
 {% block content %}
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="form-shell">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
@@ -18,13 +71,16 @@
     {% endif %}
 
     <div class="card">
-        <div class="card-header">Product Information</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            {{ form.price }}
-            <div><label>Name</label>{{ form.name }}</div>
-            <div><label>SKU</label>{{ form.sku }}</div>
-            <div><label>Barcode</label>{{ form.barcode }}</div>
-            <div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+            <div class="card-header" style="margin-bottom:0;">Product Information</div>
+            <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Back to Products</a>
+        </div>
+        <div class="form-grid">
+            <div class="form-field"><label>Name</label>{{ form.name }}</div>
+            <div class="form-field"><label>Selling Price</label>{{ form.price }}</div>
+            <div class="form-field"><label>SKU</label>{{ form.sku }}</div>
+            <div class="form-field"><label>Barcode</label>{{ form.barcode }}</div>
+            <div class="form-field">
                 <label>Category</label>
                 <input type="text" name="category_name" list="category-name-options" value="{{ form.category_name.value|default_if_none:'' }}">
                 <datalist id="category-name-options">
@@ -33,18 +89,8 @@
                     {% endfor %}
                 </datalist>
                 {% if form.category_name.errors %}<div class="alert alert-error">{{ form.category_name.errors }}</div>{% endif %}
-                <!-- antim added for cloudinary -->
-                <label>Image</label>{{ form.image }}
             </div>
-            <div>
-                <!-- antim added for cloudinary -->
-                <label>Thumbnail (Optional)</label>{{ form.thumbnail }}
-            </div>
-            <div>
-                <label>Track Stock</label>{{ form.track_stock }}
-                {% if form.track_stock.help_text %}<small>{{ form.track_stock.help_text }}</small>{% endif %}
-            </div>
-            <div>
+            <div class="form-field">
                 <label>Brand</label>
                 <input type="text" name="brand_name" list="brand-name-options" value="{{ form.brand_name.value|default_if_none:'' }}">
                 <datalist id="brand-name-options">
@@ -54,24 +100,39 @@
                 </datalist>
                 {% if form.brand_name.errors %}<div class="alert alert-error">{{ form.brand_name.errors }}</div>{% endif %}
             </div>
-            <div style="grid-column: 1 / -1;"><label>Description</label>{{ form.description }}</div>
-            <div style="grid-column: 1 / -1; color: #64748b; font-size: 13px;">
+            <div class="form-field">
+                <label>Image</label>{{ form.image }}
+            </div>
+            <div class="form-field">
+                <label>Thumbnail (Optional)</label>{{ form.thumbnail }}
+            </div>
+            <div class="form-field">
+                <label>Track Stock</label>{{ form.track_stock }}
+                {% if form.track_stock.help_text %}<div class="field-help">{{ form.track_stock.help_text }}</div>{% endif %}
+            </div>
+            <div class="form-field">
+                <label>Active</label>{{ form.is_active }}
+            </div>
+            <div class="form-field form-field--full"><label>Description</label>{{ form.description }}</div>
+            <div class="form-field form-field--full section-note">
                 Stock is managed from variants and purchase/stock adjustment entries.
             </div>
-            <div><label>Active</label>{{ form.is_active }}</div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">Clothing Details</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-            <div><label>Gender</label>{{ form.gender }}</div>
-            <div><label>Material</label>{{ form.material }}</div>
-            <div><label>Fit</label>{{ form.fit }}</div>
-            <div style="grid-column: 1 / -1;"><label>Care Note</label>{{ form.care_note }}</div>
+        <div class="form-grid">
+            <div class="form-field"><label>Gender</label>{{ form.gender }}</div>
+            <div class="form-field"><label>Material</label>{{ form.material }}</div>
+            <div class="form-field"><label>Fit</label>{{ form.fit }}</div>
+            <div class="form-field form-field--full"><label>Care Note</label>{{ form.care_note }}</div>
         </div>
     </div>
 
-    <button class="btn btn-primary" type="submit">Save Product</button>
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save Product</button>
+        <a class="btn btn-secondary" href="{% url 'clothing_product_list' %}">Cancel</a>
+    </div>
 </form>
 {% endblock %}
