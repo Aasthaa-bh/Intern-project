@@ -87,4 +87,7 @@ urlpatterns = [
     path('reception/payments/pending/', views.pending_payments_list, name='pending_payments_list'),
     
     #reports
-]
+    path('owner/notifications/<int:notification_id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('owner/notifications/read-all/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
+    path('owner/notifications/fetch/', views.fetch_notifications, name='fetch_notifications'),
+]

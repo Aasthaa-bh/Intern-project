@@ -7,7 +7,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from pos.models import Item, Category
 from .models import BusinessRequest, Business
-from restaurant.models import DiningTable
+from restaurant.models import DiningTable, RestaurantNotification
+from restaurant.forms import RestaurantNotificationForm
 from .forms import BusinessRequestForm
 import random
 import string
@@ -21,6 +22,7 @@ from core.models import Business
 from subscription.models import Package, BusinessSubscription
 from subscription.utils import get_active_subscription, get_business_user_limit
 from .utils import get_business_type_code
+from datetime import timedelta
 
 
 
@@ -385,6 +387,23 @@ def restaurant_owner_dashboard(request):
     if active_subscription and active_subscription.end_date:
         days_remaining = (active_subscription.end_date - timezone.now()).days
 
+    # Cleanup old notifications (older than 3 days)
+    three_days_ago = timezone.now() - timedelta(days=3)
+    RestaurantNotification.objects.filter(business=business, created_at__lt=three_days_ago).delete()
+
+    # Handle notification form
+    noti_form = RestaurantNotificationForm()
+    if request.method == "POST" and "add_notification" in request.POST:
+        noti_form = RestaurantNotificationForm(request.POST)
+        if noti_form.is_valid():
+            noti = noti_form.save(commit=False)
+            noti.business = business
+            noti.save()
+            messages.success(request, "Notification added successfully!")
+            return redirect("restaurant_owner_dashboard")
+
+    notifications = RestaurantNotification.objects.filter(business=business).order_by('-created_at')[:10]
+
     context = {
         "total_staff": total_staff,
         "active_staff": active_staff,
@@ -399,6 +418,8 @@ def restaurant_owner_dashboard(request):
         "current_users": current_users,
         "remaining_users": remaining_users,
         "remaining_tables": remaining_tables,
+        "notifications": notifications,
+        "noti_form": noti_form,
     }
     return render(request, "owner/dashboard_restaurant.html", context)
 

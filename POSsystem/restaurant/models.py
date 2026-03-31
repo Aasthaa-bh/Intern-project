@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 
 
 from django.db import models
@@ -197,5 +197,15 @@ class ReceptionLoyaltyTransaction(models.Model):
     created_by = models.ForeignKey('accounts.User', on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
 
+# RestaurantNotification model
+class RestaurantNotification(models.Model):
+    business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
     def __str__(self):
-        return f'{self.customer_name} - {self.transaction_type} {self.points} points'
+        return f"{self.business.business_name} - {self.message[:50]}"
