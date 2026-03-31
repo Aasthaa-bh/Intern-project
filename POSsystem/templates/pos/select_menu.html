@@ -256,8 +256,10 @@
         <h3>Menu Items</h3>
         
         <div class="category-filter">
-            <button class="filter-btn active" onclick="filterCategory('all')">All Items</button>
-            {% regroup menu_items by category as categories %}
+        <button class="filter-btn" onclick="filterCategory('{{ category.grouper.id }}', event)">
+            {{ category.grouper.name }}
+        </button>       
+        {% regroup menu_items by category as categories %}
             {% for category in categories %}
                 <button class="filter-btn" onclick="filterCategory('{{ category.grouper.id }}')">
                     {{ category.grouper.name }}
@@ -279,7 +281,7 @@
                 <!-- antim added for cloudinary -->
                 <div style="width: 100%; height: 150px; border-radius: 8px; margin-bottom: 10px; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
                     {% if item.thumbnail %}
-                        <img src="{{ item.thumbnail.url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ item.thumbnail }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                     {% elif item.image %}
                         <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                     {% else %}
@@ -331,18 +333,22 @@
 
 {% block extra_js %}
 <script>
+    const csrftoken = "{{ csrf_token }}";
+
     let cart = {};
     const tableIdStr = "{{ table.id|default:'' }}";
     const tableId = tableIdStr ? parseInt(tableIdStr) : null;
     const orderType = '{{ order_type|default:"DINE_IN" }}';
 
-    function filterCategory(categoryId) {
+    function filterCategory(categoryId, event) {
         const items = document.querySelectorAll('.menu-item');
         const buttons = document.querySelectorAll('.filter-btn');
-        
+
         buttons.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
+        if (event) {
+            event.target.classList.add('active');
+        }
+
         items.forEach(item => {
             if (categoryId === 'all' || item.dataset.category === categoryId) {
                 item.style.display = 'block';
@@ -354,7 +360,9 @@
 
     function addToCart(itemId, itemName, price, trackStock, stockQty) {
         console.log('Adding to cart:', itemId, itemName, price, trackStock, stockQty);
-        
+
+        stockQty = parseFloat(stockQty || 0);
+
         if (trackStock && stockQty <= 0) {
             alert('This item is out of stock!');
             return;
@@ -372,26 +380,26 @@
                 price: parseFloat(price),
                 quantity: 1,
                 trackStock: trackStock,
-                maxStock: parseFloat(stockQty)
+                maxStock: stockQty
             };
         }
-        
+
         console.log('Cart updated:', cart);
         updateCartDisplay();
     }
 
     function updateQuantity(itemId, change) {
         if (!cart[itemId]) return;
-        
+
         cart[itemId].quantity += change;
-        
+
         if (cart[itemId].quantity <= 0) {
             delete cart[itemId];
         } else if (cart[itemId].trackStock && cart[itemId].quantity > cart[itemId].maxStock) {
             alert('Cannot exceed available stock!');
             cart[itemId].quantity = cart[itemId].maxStock;
         }
-        
+
         updateCartDisplay();
     }
 
@@ -400,11 +408,10 @@
         const totalAmountSpan = document.getElementById('totalAmount');
         const cartTotalDiv = document.getElementById('cartTotal');
         const submitBtn = document.getElementById('submitBtn');
-        
+
         if (Object.keys(cart).length === 0) {
             cartItemsDiv.innerHTML = `
                 <div class="empty-cart">
-                    {% comment %} <p></p> {% endcomment %}
                     <p>Cart is empty</p>
                     <p style="font-size: 14px;">Click on menu items to add</p>
                 </div>
@@ -413,15 +420,15 @@
             submitBtn.disabled = true;
             return;
         }
-        
+
         let html = '';
         let total = 0;
-        
+
         for (let itemId in cart) {
             const item = cart[itemId];
             const lineTotal = item.price * item.quantity;
             total += lineTotal;
-            
+
             html += `
                 <div class="cart-item">
                     <div class="cart-item-info">
@@ -433,11 +440,11 @@
                         <span class="qty-display">${item.quantity}</span>
                         <button class="qty-btn" onclick="updateQuantity(${itemId}, 1)">+</button>
                     </div>
-                    <div style="font-weight: bold; color: #2d3748;">₹${lineTotal.toFixed(2)}</div>
+                    <div style="font-weight: bold; color: #2d3748;">Rs${lineTotal.toFixed(2)}</div>
                 </div>
             `;
         }
-        
+
         cartItemsDiv.innerHTML = html;
         totalAmountSpan.textContent = `Rs${total.toFixed(2)}`;
         cartTotalDiv.style.display = 'block';
@@ -449,31 +456,28 @@
             alert('Please add items to cart!');
             return;
         }
-        
+
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating Order...';
-        
+
         const items = Object.keys(cart).map(itemId => ({
             item_id: parseInt(itemId),
             quantity: cart[itemId].quantity
         }));
-        
+
         const notes = document.getElementById('orderNotes').value;
-        
-        // Determine URL based on whether we have a table or not
+
         let url;
         let bodyData = { items, notes };
-        
+
         if (tableId) {
-            // Dine-in order with table
             url = `/pos/table/${tableId}/create-order/`;
         } else {
-            // Takeaway or Delivery order without table
             url = `/pos/create-order/`;
             bodyData.order_type = orderType;
         }
-        
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -483,26 +487,25 @@
                 },
                 body: JSON.stringify(bodyData)
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 if (tableId) {
                     alert('Order created successfully!\n\nOrder Number: ' + data.order_no + '\nTable is now occupied.');
                 } else {
                     alert('Order created successfully!\n\nOrder Number: ' + data.order_no + '\nOrder Type: ' + orderType);
                 }
-                // Redirect to order detail page to add more items or confirm
                 window.location.href = '/pos/order/' + data.order_id + '/';
             } else {
                 alert('Error: ' + data.error);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Create Order';
+                submitBtn.textContent = 'Order Confirm';
             }
         } catch (error) {
             alert('Error creating order: ' + error.message);
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Order';
+            submitBtn.textContent = 'Order Confirm';
         }
     }
 </script>

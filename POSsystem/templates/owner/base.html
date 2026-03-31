@@ -404,7 +404,7 @@
                         <span class="text-sm font-medium">{% trans "Reports" %}</span>
                     </a>
 
-                    <!-- CASHIER SIDEBAR (clothing cashier role) -->
+                <!-- CASHIER SIDEBAR (clothing cashier role) -->
                 {% elif request.user.role == "CASHIER" %}
 
                     <a href="{% url 'cashier_dashboard' %}"
@@ -558,62 +558,72 @@
 
                     <div class="flex items-center gap-3">
                         {% if not hide_extra_menu %}
-                        <!-- Notification Bell -->
-                        <div class="relative">
-                            <button type="button" onclick="toggleNotificationMenu()"
-                                    class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full dark:text-gray-300 dark:hover:bg-gray-700">
+                        <div class="relative mr-2">
+                            <button type="button" onclick="toggleNotifications()"
+                                    class="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
                                 {% if unread_notifications_count > 0 %}
-                                <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                                    {{ unread_notifications_count }}
-                                </span>
+                                    <span id="notificationBadge" class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
+                                        {{ unread_notifications_count|nepali_number }}
+                                    </span>
                                 {% endif %}
                             </button>
 
-                            <div id="notificationMenu"
-                                 class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 z-50">
-                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                                        {% if unread_notifications_count > 0 %}
-                                        <a href="{% url 'mark_all_notifications_read' %}" class="text-xs text-blue-600 hover:text-blue-700">Mark all as read</a>
-                                        {% endif %}
-                                    </div>
+                            <div id="notificationDropdown"
+                                 class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-[60] overflow-hidden transform origin-top-right transition-all">
+                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white">{% trans "Notifications" %}</h3>
+                                    {% if unread_notifications_count > 0 %}
+                                        <button onclick="markAllAsRead()" class="text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                                            {% trans "Mark all as read" %}
+                                        </button>
+                                    {% endif %}
                                 </div>
-                                <div class="max-h-96 overflow-y-auto">
+
+                                <div class="max-h-[400px] overflow-y-auto" id="notificationList">
                                     {% if recent_notifications %}
-                                        {% for notification in recent_notifications %}
-                                        <a href="{% url 'mark_notification_read' notification.id %}" 
-                                           class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 {% if not notification.is_read %}bg-blue-50 dark:bg-blue-900/20{% endif %}">
-                                            <div class="flex items-start gap-3">
-                                                <div class="flex-shrink-0 mt-1">
-                                                    {% if notification.notification_type == 'OFFER_CREATED' %}
-                                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'OFFER_EXPIRING' %}
-                                                        <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'OFFER_EXPIRED' %}
-                                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                    {% elif notification.notification_type == 'LOW_STOCK' %}
-                                                        <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                    {% else %}
-                                                        <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ notification.title }}</p>
-                                                    <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">{{ notification.message|truncatewords:15 }}</p>
-                                                    <p class="text-xs text-gray-400 mt-1">{{ notification.created_at|timesince }} ago</p>
+                                        {% for noti in recent_notifications %}
+                                            <div id="noti-{{ noti.id }}"
+                                                 onclick="markAsRead(this.dataset.id)"
+                                                 data-id="{{ noti.id }}"
+                                                 class="px-4 py-3.5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors {% if not noti.is_read %}bg-blue-50/30 dark:bg-blue-900/10{% endif %}">
+                                                <div class="flex gap-3">
+                                                    <div class="mt-1 flex-shrink-0">
+                                                        <div class="w-2 h-2 rounded-full {% if not noti.is_read %}bg-blue-500 animate-pulse{% else %}bg-gray-300{% endif %}"></div>
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <p class="text-sm {% if not noti.is_read %}text-gray-900 dark:text-white font-semibold{% else %}text-gray-600 dark:text-gray-400{% endif %} leading-snug">
+                                                            {{ noti.message }}
+                                                        </p>
+                                                        <p class="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            {{ noti.created_at|timesince }} {% trans "ago" %}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </a>
                                         {% endfor %}
                                     {% else %}
-                                        <div class="p-8 text-center text-gray-500 text-sm">
-                                            No notifications
+                                        <div class="py-12 px-6 text-center">
+                                            <div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                </svg>
+                                            </div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No notifications yet" %}</p>
                                         </div>
                                     {% endif %}
+                                </div>
+
+                                <div class="p-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+                                    <a href="#" class="block text-center text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-gray-900 transition-colors">
+                                        {% trans "View Activity Log" %}
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -703,44 +713,137 @@
 
         function toggleProfileMenu() {
             const menu = document.getElementById("profileMenu");
+            const notiMenu = document.getElementById("notificationDropdown");
             if (menu) {
                 menu.classList.toggle("hidden");
+                if (notiMenu) notiMenu.classList.add("hidden");
             }
         }
 
-        function toggleNotificationMenu() {
-            const menu = document.getElementById("notificationMenu");
+        function toggleNotifications() {
+            const menu = document.getElementById("notificationDropdown");
+            const profileMenu = document.getElementById("profileMenu");
             if (menu) {
                 menu.classList.toggle("hidden");
+                if (profileMenu) profileMenu.classList.add("hidden");
             }
         }
 
-        // Auto-hide notification badge after 5 seconds
-        window.addEventListener('DOMContentLoaded', function() {
-            const badge = document.querySelector('.bg-red-600.rounded-full');
-            if (badge) {
-                setTimeout(function() {
-                    badge.style.transition = 'opacity 0.5s ease-out';
-                    badge.style.opacity = '0';
-                    setTimeout(function() {
-                        badge.style.display = 'none';
-                    }, 500);
-                }, 5000); // 5 seconds
-            }
-        });
+        function markAsRead(id) {
+            fetch(`/restaurant/owner/notifications/${id}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    const item = document.getElementById(`noti-${id}`);
+                    if (!item) return;
+
+                    const dot = item.querySelector('.bg-blue-500');
+                    const text = item.querySelector('p.text-gray-900');
+                    if (dot) dot.className = 'w-2 h-2 rounded-full bg-gray-300';
+                    if (text) text.className = 'text-sm text-gray-600 dark:text-gray-400 leading-snug';
+                    item.classList.remove('bg-blue-50/30', 'dark:bg-blue-900/10');
+
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) {
+                        let count = parseInt(badge.textContent.trim()) || 0;
+                        if (count > 1) {
+                            badge.textContent = count - 1;
+                        } else {
+                            badge.remove();
+                        }
+                    }
+                }
+            });
+        }
+
+        function markAllAsRead() {
+            fetch(`/restaurant/owner/notifications/read-all/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        }
+
+        function updateNotificationsUI() {
+            fetch("/restaurant/owner/notifications/fetch/")
+                .then(response => response.json())
+                .then(data => {
+                    let badge = document.getElementById('notificationBadge');
+                    if (data.unread_count > 0) {
+                        if (!badge) {
+                            const btn = document.querySelector("button[onclick='toggleNotifications()']");
+                            if (btn) {
+                                btn.insertAdjacentHTML(
+                                    "beforeend",
+                                    `<span id="notificationBadge" class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900">${data.unread_count}</span>`
+                                );
+                            }
+                        } else {
+                            badge.textContent = data.unread_count;
+                        }
+                    } else if (badge) {
+                        badge.remove();
+                    }
+
+                    const listContainer = document.getElementById('notificationList');
+                    if (data.notifications && data.notifications.length > 0 && listContainer) {
+                        let html = "";
+                        data.notifications.forEach(noti => {
+                            const isReadClass = noti.is_read ? 'bg-gray-300' : 'bg-blue-500 animate-pulse';
+                            const isReadTextClass = noti.is_read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white font-semibold';
+                            const bgClass = noti.is_read ? '' : 'bg-blue-50/30 dark:bg-blue-900/10';
+
+                            html += `
+                                <div id="noti-${noti.id}" onclick="markAsRead(this.dataset.id)" data-id="${noti.id}" class="px-4 py-3.5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors ${bgClass}">
+                                    <div class="flex gap-3">
+                                        <div class="mt-1 flex-shrink-0">
+                                            <div class="w-2 h-2 rounded-full ${isReadClass}"></div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm ${isReadTextClass} leading-snug">
+                                                ${noti.message}
+                                            </p>
+                                            <p class="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                ${noti.time_ago}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        listContainer.innerHTML = html;
+                    }
+                })
+                .catch(err => console.error("Notification poll error:", err));
+        }
+
+        setInterval(updateNotificationsUI, 15000);
 
         window.addEventListener("click", function(e) {
             const profileButton = e.target.closest("button[onclick='toggleProfileMenu()']");
             const profileMenu = document.getElementById("profileMenu");
-            const notificationButton = e.target.closest("button[onclick='toggleNotificationMenu()']");
-            const notificationMenu = document.getElementById("notificationMenu");
+            const notiButton = e.target.closest("button[onclick='toggleNotifications()']");
+            const notiMenu = document.getElementById("notificationDropdown");
 
             if (!profileButton && profileMenu && !profileMenu.contains(e.target)) {
                 profileMenu.classList.add("hidden");
             }
-            
-            if (!notificationButton && notificationMenu && !notificationMenu.contains(e.target)) {
-                notificationMenu.classList.add("hidden");
+
+            if (!notiButton && notiMenu && !notiMenu.contains(e.target)) {
+                notiMenu.classList.add("hidden");
             }
         });
     </script>

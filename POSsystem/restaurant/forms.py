@@ -103,4 +103,14 @@ class DiningTableForm(forms.ModelForm):
                     f"Table '{generated_name}' already exists."
                 )
 
-        return cleaned_data
+
+from .models import RestaurantNotification
+
+# RestaurantNotificationForm
+class RestaurantNotificationForm(forms.ModelForm):
+    class Meta:
+        model = RestaurantNotification
+        fields = ["message"]
+        widgets = {
+            "message": forms.Textarea(attrs={"rows": 3, "class": "form-control", "placeholder": "Enter notification message..."}),
+        }

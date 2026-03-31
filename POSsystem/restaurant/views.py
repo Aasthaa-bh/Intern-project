@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 import json
@@ -32,7 +33,9 @@ from .models import (
     ReceptionInvoice,
     ReceptionPayment,
     ReceptionLoyaltyTransaction,
+    RestaurantNotification,
 )
+from .forms import RestaurantNotificationForm
 from . import payment_service
 from .esewa_utils import (
     prepare_esewa_form_data,
@@ -127,6 +130,13 @@ def _award_loyalty_points(invoice, created_by=None):
 def _mark_invoice_paid(invoice):
     invoice.status = "PAID"
     invoice.save(update_fields=["status"])
+
+    # Automated Notification for payment success
+    from .models import RestaurantNotification
+    RestaurantNotification.objects.create(
+        business=invoice.business,
+        message=f"Payment success for invoice {invoice.invoice_number} (Table {invoice.table.name if invoice.table else 'Takeaway'})"
+    )
 
     if invoice.table:
         invoice.table.status = "AVAILABLE"
@@ -555,6 +565,12 @@ def kitchen_order_status_update(request, order_id):
             kitchen_order.ready_at = timezone.now()
             if not kitchen_order.sent_at:
                 kitchen_order.sent_at = timezone.now()
+            
+            # Automated Notification for kitchen order ready
+            RestaurantNotification.objects.create(
+                business=business,
+                message=f"Order is READY in kitchen for Table {order.table.name if order.table else 'Takeaway'}"
+            )
         elif kitchen_status == "COOKING":
             if not kitchen_order.sent_at:
                 kitchen_order.sent_at = timezone.now()
@@ -603,6 +619,12 @@ def create_order(request, table_number):
         table.status = "occupied"
         table.save()
 
+        # Automated Notification for waiter order taken
+        RestaurantNotification.objects.create(
+            business=table.business,
+            message=f"Waiter order taken for Table {table.name}"
+        )
+
         return JsonResponse(
             {
                 "message": "Order created successfully.",
@@ -635,6 +657,21 @@ def reception_dashboard(request):
         }
         return render(request, "restaurant/reception_dashboard.html", context)
 
+    # Cleanup old notifications (older than 3 days) - 
+    three_days_ago = timezone.now() - timedelta(days=3)
+    RestaurantNotification.objects.filter(business=business, created_at__lt=three_days_ago).delete()
+
+    # Handle notification form
+    noti_form = RestaurantNotificationForm()
+    if request.method == "POST" and "add_notification" in request.POST:
+        noti_form = RestaurantNotificationForm(request.POST)
+        if noti_form.is_valid():
+            noti = noti_form.save(commit=False)
+            noti.business = business
+            noti.save()
+            messages.success(request, "Notification added successfully!")
+            return redirect("reception_dashboard")
+
     total_tables = DiningTable.objects.filter(business=business).count()
     occupied_tables = DiningTable.objects.filter(business=business, status="OCCUPIED").count()
     available_tables = DiningTable.objects.filter(business=business, status="AVAILABLE").count()
@@ -665,7 +702,7 @@ def reception_dashboard(request):
         business=business,
         payment_status='COMPLETED'
     ).select_related('invoice').order_by('-processed_at')[:5]
-    
+
     # Get takeaway orders ready for billing
     takeaway_orders = Order.objects.filter(
         business=business,
@@ -673,7 +710,7 @@ def reception_dashboard(request):
         status='OPEN',
         kitchen_order__status='SENT_TO_CASHIER'
     ).select_related('kitchen_order').prefetch_related('items')[:10]
-    
+
     # Calculate takeaway orders totals
     takeaway_with_totals = []
     for order in takeaway_orders:
@@ -682,7 +719,7 @@ def reception_dashboard(request):
             'order': order,
             'subtotal': subtotal,
         })
-    
+
     # Get eSewa payment summary (today)
     esewa_today = ReceptionPayment.objects.filter(
         business=business,
@@ -698,6 +735,8 @@ def reception_dashboard(request):
         created_at__date=today
     ).aggregate(total=Sum("amount"), count=Count("id"))
 
+    notifications = RestaurantNotification.objects.filter(business=business)[:10]
+
     context = {
         "total_tables": total_tables,
         "occupied_tables": occupied_tables,
@@ -711,6 +750,8 @@ def reception_dashboard(request):
         "esewa_today_count": esewa_today["count"] or 0,
         "cash_today_amount": cash_today["total"] or 0,
         "cash_today_count": cash_today["count"] or 0,
+        "noti_form": noti_form,
+        "notifications": notifications,
     }
     return render(request, "restaurant/reception_dashboard.html", context)
 
@@ -1677,3 +1718,45 @@ def process_payment(request, invoice_id):
 
     context = {"invoice": invoice}
     return render(request, "restaurant/process_payment.html", context)
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    if request.method == "POST":
+        business = _get_request_business(request)
+        notification = get_object_or_404(RestaurantNotification, id=notification_id, business=business)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+@login_required
+def mark_all_notifications_as_read(request):
+    if request.method == "POST":
+        business = _get_request_business(request)
+        RestaurantNotification.objects.filter(business=business, is_read=False).update(is_read=True)
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+@login_required
+def fetch_notifications(request):
+    business = _get_request_business(request)
+    if not business:
+        return JsonResponse({"unread_count": 0, "notifications": []})
+        
+    unread_count = RestaurantNotification.objects.filter(business=business, is_read=False).count()
+    recent = RestaurantNotification.objects.filter(business=business).order_by('-created_at')[:10]
+    
+    from django.utils.timesince import timesince
+    notifications = []
+    for n in recent:
+        notifications.append({
+            "id": n.id,
+            "message": n.message,
+            "is_read": n.is_read,
+            "time_ago": f"{timesince(n.created_at)} ago"
+        })
+        
+    return JsonResponse({
+        "unread_count": unread_count,
+        "notifications": notifications
+    })

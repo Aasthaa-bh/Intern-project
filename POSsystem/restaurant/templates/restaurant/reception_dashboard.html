@@ -158,4 +158,43 @@
         </a>
     </div>
 </div>
+
+<!-- Notifications Section
+<div class="card">
+    <div class="card-header"> Restaurant Notifications</div>
+    <div style="padding: 20px;">
+        <!-- Notification Form -->
+        <form method="post" style="margin-bottom: 30px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+            {% csrf_token %}
+            <h4 style="margin-bottom: 10px; color: #333;">Add New Notification</h4>
+            <div style="margin-bottom: 10px;">
+                {{ noti_form.message }}
+            </div>
+            <button type="submit" name="add_notification" class="btn btn-primary" style="padding: 8px 20px;">
+                Add Notification
+            </button>
+        </form>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+        <!-- Notifications List -->
+        <h4 style="margin-bottom: 15px; color: #333;">Recent Notifications (Last 3 Working Days)</h4>
+        {% if notifications %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for noti in notifications %}
+                <div style="background: white; border-left: 4px solid #007bff; padding: 12px 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="font-size: 14px; color: #333; margin-bottom: 5px;">{{ noti.message }}</div>
+                    <div style="font-size: 11px; color: #777;">
+                        {{ noti.created_at|date:"M d, Y h:i A" }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; color: #777; padding: 20px;">
+                No active notifications found.
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
