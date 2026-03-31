@@ -56,9 +56,24 @@ def app_context(request):
 
         elif business_type == "restaurant":
             from restaurant.models import RestaurantNotification
+            from django.db.models import Q
+
+            user_role = getattr(request.user, "role", "ALL").upper()
+            
+            # Filter logic for Restaurant
+            if user_role in ["OWNER", "SUPERADMIN"]:
+                # Owners/Admins see everything
+                noti_filter = Q(target_role__in=["ALL", "WAITER", "KITCHEN", "CASHIER", "OWNER"])
+            elif user_role in ["WAITER", "KITCHEN", "CASHIER"]:
+                # Staff see global notifications + their specific role
+                noti_filter = Q(target_role="ALL") | Q(target_role=user_role)
+            else:
+                # Default fallback
+                noti_filter = Q(target_role="ALL") | Q(target_role=user_role)
 
             all_recent = RestaurantNotification.objects.filter(
-                business=business
+                Q(business=business),
+                noti_filter
             ).order_by("-created_at")
 
             unread_notifications_count = all_recent.filter(is_read=False).count()

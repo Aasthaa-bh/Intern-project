@@ -403,7 +403,17 @@ def restaurant_owner_dashboard(request):
             messages.success(request, "Notification added successfully!")
             return redirect("restaurant_owner_dashboard")
 
-    notifications = RestaurantNotification.objects.filter(business=business).order_by('-created_at')[:10]
+    # Fetch notifications based on role
+    user_role = getattr(request.user, "role", "OWNER")
+    if user_role in ["WAITER", "KITCHEN", "CASHIER"]:
+        noti_filter = Q(target_role=user_role)
+    else:
+        noti_filter = Q(target_role="ALL") | Q(target_role=user_role)
+
+    notifications = RestaurantNotification.objects.filter(
+        Q(business=business),
+        noti_filter
+    ).order_by("-created_at")[:10]
 
     context = {
         "total_staff": total_staff,

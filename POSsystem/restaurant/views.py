@@ -135,7 +135,8 @@ def _mark_invoice_paid(invoice):
     from .models import RestaurantNotification
     RestaurantNotification.objects.create(
         business=invoice.business,
-        message=f"Payment success for invoice {invoice.invoice_number} (Table {invoice.table.name if invoice.table else 'Takeaway'})"
+        message=f"Payment success for invoice {invoice.invoice_number} (Table {invoice.table.name if invoice.table else 'Takeaway'})",
+        target_role="CASHIER"
     )
 
     if invoice.table:
@@ -172,10 +173,22 @@ def kitchen_dashboard(request):
     if stage_filter not in valid_stage_filters:
         stage_filter = "ALL"
 
-    kitchen_status_map = _get_kitchen_status_map(request)
+    # Fetch kitchen order statuses from models
+    kitchen_orders = KitchenOrder.objects.filter(order_id__in=open_order_ids).values("order_id", "status")
+    db_status_map = {str(ko["order_id"]): ko["status"] for ko in kitchen_orders}
+
     all_orders = list(open_orders.order_by("opened_at"))
     for order in all_orders:
-        order.kitchen_status = kitchen_status_map.get(str(order.id), "PENDING")
+        # Map DB status to UI stage
+        db_status = db_status_map.get(str(order.id), "PENDING")
+        ui_status_map = {
+            "PENDING": "PENDING",
+            "SENT_TO_KITCHEN": "PENDING",
+            "PREPARING": "COOKING",
+            "READY": "READY",
+            "SENT_TO_CASHIER": "READY",
+        }
+        order.kitchen_status = ui_status_map.get(db_status, "PENDING")
         order.kitchen_note = (order.notes or "").strip()
         order.kitchen_items = [
             f"{order_item.item_name_snapshot} x{order_item.quantity}"
@@ -569,7 +582,8 @@ def kitchen_order_status_update(request, order_id):
             # Automated Notification for kitchen order ready
             RestaurantNotification.objects.create(
                 business=business,
-                message=f"Order is READY in kitchen for Table {order.table.name if order.table else 'Takeaway'}"
+                message=f"Order #{order.order_no} is READY for Table {order.table.name if order.table else 'Takeaway'}",
+                target_role="WAITER"
             )
         elif kitchen_status == "COOKING":
             if not kitchen_order.sent_at:
@@ -622,7 +636,8 @@ def create_order(request, table_number):
         # Automated Notification for waiter order taken
         RestaurantNotification.objects.create(
             business=table.business,
-            message=f"Waiter order taken for Table {table.name}"
+            message=f"Waiter order taken for Table {table.name}",
+            target_role="KITCHEN"
         )
 
         return JsonResponse(
@@ -735,7 +750,17 @@ def reception_dashboard(request):
         created_at__date=today
     ).aggregate(total=Sum("amount"), count=Count("id"))
 
-    notifications = RestaurantNotification.objects.filter(business=business)[:10]
+    # Fetch notifications based on role
+    user_role = getattr(request.user, "role", "CASHIER")
+    if user_role == "CASHIER":
+        noti_filter = Q(target_role="CASHIER")
+    else:
+        noti_filter = Q(target_role="ALL") | Q(target_role=user_role)
+
+    notifications = RestaurantNotification.objects.filter(
+        Q(business=business),
+        noti_filter
+    ).order_by("-created_at")[:10]
 
     context = {
         "total_tables": total_tables,

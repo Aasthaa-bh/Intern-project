@@ -315,6 +315,55 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* Notifications */
+        .noti-dropdown-global {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            width: 320px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 1100;
+            overflow: hidden;
+        }
+        .noti-dropdown-global h3 {
+            padding: 12px 15px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            margin: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .noti-item-global {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: flex-start;
+        }
+        .noti-item-global:hover { background: #fcfcfc; }
+        .noti-item-global.unread { background: #f0f7ff; }
+        .noti-indicator-global {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .noti-indicator-global.unread { background: #007bff; }
+        .noti-indicator-global.read { background: #ccc; }
+        .noti-content-global { flex: 1; }
+        .noti-message-global { font-size: 13px; margin-bottom: 3px; }
+        .noti-time-global { font-size: 11px; color: #888; }
+        .noti-unread-text { font-weight: 600; color: #111; }
+        .noti-read-text { color: #666; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -389,8 +438,49 @@
     <div class="main-content">
         <!-- Header -->
         <div class="header">
-            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+            <h1 style="flex: 1;">{% block page_title %}Dashboard{% endblock %}</h1>
             <div class="header-actions">
+                <!-- Notification Bell -->
+                <div style="position: relative; align-self: center;">
+                    <button id="notiBtnGlobal" onclick="toggleGlobalNoti()" style="background: none; border: none; font-size: 20px; cursor: pointer; position: relative; padding: 5px;">
+                        🔔
+                        {% if unread_notifications_count > 0 %}
+                            <span id="notiBadgeGlobal" style="position: absolute; top: 0; right: 0; background: #ff4d4d; color: white; border-radius: 50%; font-size: 10px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">
+                                {{ unread_notifications_count }}
+                            </span>
+                        {% endif %}
+                    </button>
+                    <div id="notiDropdownGlobal" class="noti-dropdown-global">
+                        <h3>
+                            <span>Notifications</span>
+                            {% if unread_notifications_count > 0 %}
+                                <button onclick="markAllReadG()" style="border:none;background:none;color:#007bff;font-size:11px;cursor:pointer;font-weight:600;">Mark all as read</button>
+                            {% endif %}
+                        </h3>
+                        <div style="max-height: 350px; overflow-y: auto;">
+                            {% if recent_notifications %}
+                                {% for n in recent_notifications %}
+                                    {% with n_role=n.target_role|upper u_role=request.user.role|upper %}
+                                    {# Filter by role: Staff see their role, Owners see everything but on base we filter for clarity #}
+                                    {% if n_role == 'ALL' or n_role == u_role or request.user.role == 'OWNER' or request.user.role == 'SUPERADMIN' %}
+                                    <div class="noti-item-global {% if not n.is_read %}unread{% endif %}" onclick="markReadG('{{ n.id }}')">
+                                        <div class="noti-indicator-global {% if not n.is_read %}unread{% else %}read{% endif %}"></div>
+                                        <div class="noti-content-global">
+                                            <div class="noti-message-global {% if not n.is_read %}noti-unread-text{% else %}noti-read-text{% endif %}">
+                                                {{ n.message }}
+                                            </div>
+                                            <div class="noti-time-global">{{ n.created_at|timesince }} ago</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            {% else %}
+                                <div style="padding: 20px; text-align: center; color: #999; font-size: 13px;">No notifications</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
                 {% block header_actions %}{% endblock %}
             </div>
         </div>
@@ -414,6 +504,41 @@
         </div>
     </div>
 
+    <script>
+        function toggleGlobalNoti() {
+            var box = document.getElementById('notiDropdownGlobal');
+            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function markReadG(id) {
+            fetch('/restaurant/owner/notifications/' + id + '/read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(r => { if(r.ok) location.reload(); });
+        }
+
+        function markAllReadG() {
+            fetch('/restaurant/owner/notifications/read-all/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(r => { if(r.ok) location.reload(); });
+        }
+
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            var box = document.getElementById('notiDropdownGlobal');
+            var btn = document.getElementById('notiBtnGlobal');
+            if (box && btn && !box.contains(e.target) && !btn.contains(e.target)) {
+                box.style.display = 'none';
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

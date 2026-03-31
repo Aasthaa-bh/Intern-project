@@ -215,8 +215,15 @@ class ReceptionLoyaltyTransaction(models.Model):
 
 # RestaurantNotification model
 class RestaurantNotification(models.Model):
+    ROLE_CHOICES = (
+        ("ALL", "All"),
+        ("WAITER", "Waiter"),
+        ("KITCHEN", "Kitchen"),
+        ("CASHIER", "Cashier"),
+    )
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
     message = models.TextField()
+    target_role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="ALL")
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -224,4 +231,4 @@ class RestaurantNotification(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.business.business_name} - {self.message[:50]}"
+        return f"{self.business.business_name} ({self.target_role}) - {self.message[:50]}"

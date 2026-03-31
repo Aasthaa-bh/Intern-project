@@ -185,6 +185,29 @@
         border-color: #667eea;
         background: #f7fafc;
     }
+
+    .category-filter {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 6px 12px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -255,7 +278,7 @@
                     <td><strong>Rs{{ item.line_total }}</strong></td>
                     {% if not is_locked %}
                     <td>
-                        <button onclick="deleteItem({{ item.id }})" 
+                        <button onclick="deleteItem('{{ item.id }}')" 
                                 style="background: #e53e3e; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer;">
                             🗑️ Delete
                         </button>
@@ -270,11 +293,36 @@
         <div class="add-items-section">
             <h4 style="color: #2d3748; margin-bottom: 15px;">Add More Items</h4>
             
+            <div class="category-filter">
+                <button class="filter-btn active" onclick="filterCategory('all', event)">All</button>
+                {% regroup menu_items by category as categories %}
+                {% for category in categories %}
+                    <button class="filter-btn" onclick="filterCategory('{{ category.grouper.id }}', event)">
+                        {{ category.grouper.name }}
+                    </button>
+                {% endfor %}
+            </div>
+
             <div class="menu-grid" id="menuGrid">
                 {% for item in menu_items %}
-                <div class="menu-item-small" 
-                     onclick="toggleItem({{ item.id }}, '{{ item.name }}', {{ item.price }})">
-                    <div style="font-weight: bold; margin-bottom: 5px;">{{ item.name }}</div>
+                <div class="menu-item-small menu-item-to-filter" 
+                     data-category="{{ item.category.id }}"
+                     data-item-id="{{ item.id }}"
+                     data-item-name="{{ item.name }}"
+                     data-item-price="{{ item.price }}"
+                     onclick="handleItemClick(this)">
+                    
+                    <div style="width: 100%; height: 80px; border-radius: 8px; margin-bottom: 10px; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                        {% if item.thumbnail %}
+                            <img src="{{ item.thumbnail }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% elif item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <span style="color: #718096; font-size: 10px;">No Image</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">{{ item.name }}</div>
                     <div style="color: #48bb78; font-weight: bold;">Rs{{ item.price }}</div>
                 </div>
                 {% endfor %}
@@ -328,8 +376,34 @@
 
 {% block extra_js %}
 <script>
-    const orderId = {{ order.id }};
+    const csrftoken = '{{ csrf_token }}';
+    const orderId = '{{ order.id }}';
     let newItems = {};
+
+    function filterCategory(categoryId, event) {
+        const items = document.querySelectorAll('.menu-item-to-filter');
+        const buttons = document.querySelectorAll('.filter-btn');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        if (event) {
+            event.target.classList.add('active');
+        }
+
+        items.forEach(item => {
+            if (categoryId === 'all' || item.dataset.category === categoryId) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function handleItemClick(element) {
+        const itemId = parseInt(element.dataset.itemId);
+        const itemName = element.dataset.itemName;
+        const itemPrice = parseFloat(element.dataset.itemPrice);
+        toggleItem(itemId, itemName, itemPrice);
+    }
 
     function toggleItem(itemId, itemName, price) {
         if (newItems[itemId]) {
@@ -350,7 +424,7 @@
         
         // Update selected state
         document.querySelectorAll('.menu-item-small').forEach(item => {
-            const itemId = item.getAttribute('onclick').match(/\d+/)[0];
+            const itemId = item.dataset.itemId;
             if (newItems[itemId]) {
                 item.classList.add('selected');
             } else {
@@ -372,9 +446,9 @@
                 <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
                     <span>${item.name}</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button onclick="changeQty(${itemId}, -1)" style="padding: 5px 10px;">−</button>
+                        <button onclick="changeQty('${itemId}', -1)" style="padding: 5px 10px;">−</button>
                         <span>${item.quantity}</span>
-                        <button onclick="changeQty(${itemId}, 1)" style="padding: 5px 10px;">+</button>
+                        <button onclick="changeQty('${itemId}', 1)" style="padding: 5px 10px;">+</button>
                         <span style="font-weight: bold;">Rs${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                 </div>

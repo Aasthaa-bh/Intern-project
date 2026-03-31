@@ -7,7 +7,7 @@ from django.db.models import Sum, F, Count, Q
 from decimal import Decimal
 from .models import Order, OrderItem, Item, Customer
 from .inventory_services import consume_stock_fifo
-from restaurant.models import DiningTable, KitchenOrder
+from restaurant.models import DiningTable, KitchenOrder, RestaurantNotification
 import json
 from django.utils import timezone
 
@@ -263,6 +263,13 @@ def create_order(request, table_id=None):
             sent_at=timezone.now()
         )
         
+        # Notify Kitchen
+        RestaurantNotification.objects.create(
+            business=request.user.business,
+            message=f"New Order {order.order_no} incoming for Table {table.name if table else 'Takeaway'}",
+            target_role="KITCHEN"
+        )
+        
         message = f'Order created successfully'
         if table:
             message += f' - Table {table.name} is now occupied'
@@ -391,9 +398,12 @@ def add_order_items(request, order_id):
         order.save()
         
         # Update sent_at timestamp every time items are added
-        if kitchen_order:
-            kitchen_order.sent_at = timezone.now()
-            kitchen_order.save()
+        # Notify Kitchen of added items
+        RestaurantNotification.objects.create(
+            business=order.business,
+            message=f"Additional items added to Order {order.order_no} (Table {order.table.name if order.table else 'Takeaway'})",
+            target_role="KITCHEN"
+        )
         
         return JsonResponse({
             'success': True,
@@ -490,6 +500,13 @@ def confirm_order(request, order_id):
     kitchen_order.sent_to_cashier_at = timezone.now()
     kitchen_order.save()
     
+    # Notify Kitchen
+    RestaurantNotification.objects.create(
+        business=order.business,
+        message=f"Waiter {request.user.get_full_name() or request.user.username} sent Order #{order.order_no} (Table {order.table.name if order.table else 'Takeaway'})",
+        target_role="KITCHEN"
+    )
+    
     # Prepare order details for message
     order_details = {
         'order_no': order.order_no,
@@ -575,6 +592,12 @@ def update_kitchen_status(request, kitchen_order_id):
     kitchen_order.status = new_status
     if new_status == 'READY':
         kitchen_order.ready_at = timezone.now()
+        # Notify Waiter
+        RestaurantNotification.objects.create(
+            business=request.user.business,
+            message=f"Order {kitchen_order.order.order_no} is READY for Table {kitchen_order.order.table.name if kitchen_order.order.table else 'Takeaway'}",
+            target_role="WAITER"
+        )
     kitchen_order.save()
     
     return JsonResponse({

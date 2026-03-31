@@ -110,7 +110,8 @@ from .models import RestaurantNotification
 class RestaurantNotificationForm(forms.ModelForm):
     class Meta:
         model = RestaurantNotification
-        fields = ["message"]
+        fields = ["message", "target_role"]
         widgets = {
             "message": forms.Textarea(attrs={"rows": 3, "class": "form-control", "placeholder": "Enter notification message..."}),
+            "target_role": forms.Select(attrs={"class": "form-select"}),
         }

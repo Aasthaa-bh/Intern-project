@@ -319,7 +319,19 @@
                     <div class="inventory-shell-subtitle text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Clothing Inventory" %}</div>
                 {% else %}
                     <div class="inventory-shell-title text-xl font-bold">FlexiPOS</div>
-                    <div class="inventory-shell-subtitle text-xs text-gray-400 dark:text-gray-300 mt-1">{% trans "Owner Panel" %}</div>
+                    <div class="inventory-shell-subtitle text-xs text-gray-400 dark:text-gray-300 mt-1">
+                        {% if request.user.role == "OWNER" %}
+                            {% trans "Owner Panel" %}
+                        {% elif request.user.role == "WAITER" %}
+                            {% trans "Waiter Panel" %}
+                        {% elif request.user.role == "KITCHEN" %}
+                            {% trans "Kitchen Panel" %}
+                        {% elif request.user.role == "CASHIER" %}
+                            {% trans "Cashier Panel" %}
+                        {% else %}
+                            {% trans "Staff Panel" %}
+                        {% endif %}
+                    </div>
                 {% endif %}
 
                 {% if current_business %}
@@ -331,8 +343,8 @@
 
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
 
-                <!-- COMMON -->
-                {% if request.user.role != "CASHIER" and current_business_type != "clothing" %}
+                <!-- COMMON OWNER LINKS -->
+                {% if request.user.role == "OWNER" and current_business_type != "clothing" %}
                 <a href="{% url 'owner_dashboard' %}"
                    class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.path == '/owner/dashboard/' %}bg-gray-800{% endif %}">
                     <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
@@ -347,62 +359,102 @@
                 <!-- RESTAURANT SIDEBAR -->
                 {% if current_business_type == "restaurant" %}
 
-                    <a href="{% url 'restaurant_owner_dashboard' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_owner_dashboard' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
-                    </a>
+                    {% if request.user.role == "OWNER" %}
+                        <a href="{% url 'restaurant_owner_dashboard' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_owner_dashboard' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
+                        </a>
 
-                    <div class="mt-2">
-                        <button type="button"
-                                onclick="toggleSection('menuSubmenu', 'menuArrow')"
-                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
-                            <span class="text-sm font-medium">{% trans "Menu" %}</span>
-                            <span id="menuArrow">{% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}▾{% else %}▸{% endif %}</span>
-                        </button>
+                        <div class="mt-2">
+                            <button type="button"
+                                    onclick="toggleSection('menuSubmenu', 'menuArrow')"
+                                    class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+                                <span class="text-sm font-medium">{% trans "Menu" %}</span>
+                                <span id="menuArrow">{% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'item_list' %}▾{% else %}▸{% endif %}</span>
+                            </button>
 
-                        <div id="menuSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'category_list' and request.resolver_match.url_name != 'item_list' %}hidden{% endif %}">
-                            <a href="{% url 'category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'category_list' %}bg-gray-800{% endif %}">
-                                {% trans "Categories" %}
-                            </a>
+                            <div id="menuSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'category_list' and request.resolver_match.url_name != 'item_list' %}hidden{% endif %}">
+                                <a href="{% url 'category_list' %}"
+                                   class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'category_list' %}bg-gray-800{% endif %}">
+                                    {% trans "Categories" %}
+                                </a>
 
-                            <a href="{% url 'item_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'item_list' %}bg-gray-800{% endif %}">
-                                {% trans "Menu Items" %}
-                            </a>
+                                <a href="{% url 'item_list' %}"
+                                   class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'item_list' %}bg-gray-800{% endif %}">
+                                    {% trans "Menu Items" %}
+                                </a>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mt-2">
-                        <button type="button"
-                                onclick="toggleSection('tableSubmenu', 'tableArrow')"
-                                class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+                        <div class="mt-2">
+                            <button type="button"
+                                    onclick="toggleSection('tableSubmenu', 'tableArrow')"
+                                    class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-800">
+                                <span class="text-sm font-medium">{% trans "Tables" %}</span>
+                                <span id="tableArrow">{% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}▾{% else %}▸{% endif %}</span>
+                            </button>
+
+                            <div id="tableSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'table_category_list' and request.resolver_match.url_name != 'table_list' %}hidden{% endif %}">
+                                <a href="{% url 'table_category_list' %}"
+                                   class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_category_list' %}bg-gray-800{% endif %}">
+                                    {% trans "Table Categories" %}
+                                </a>
+
+                                <a href="{% url 'table_list' %}"
+                                   class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_list' %}bg-gray-800{% endif %}">
+                                    {% trans "Dining Tables" %}
+                                </a>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'loyalty_settings' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'loyalty_settings' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Loyalty Settings" %}</span>
+                        </a>
+
+                        <a href="{% url 'restaurant_reports' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_reports' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Reports" %}</span>
+                        </a>
+                    {% elif request.user.role == "WAITER" %}
+                        <a href="{% url 'waiter_dashboard' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'waiter_dashboard' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Dashboard" %}</span>
+                        </a>
+                        <a href="{% url 'waiter_tables' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'waiter_tables' %}bg-gray-800{% endif %}">
                             <span class="text-sm font-medium">{% trans "Tables" %}</span>
-                            <span id="tableArrow">{% if request.resolver_match.url_name == 'table_category_list' or request.resolver_match.url_name == 'table_list' %}▾{% else %}▸{% endif %}</span>
-                        </button>
-
-                        <div id="tableSubmenu" class="ml-4 mt-1 space-y-1 {% if request.resolver_match.url_name != 'table_category_list' and request.resolver_match.url_name != 'table_list' %}hidden{% endif %}">
-                            <a href="{% url 'table_category_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_category_list' %}bg-gray-800{% endif %}">
-                                {% trans "Table Categories" %}
+                        </a>
+                        <a href="{% url 'waiter_done_orders' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'waiter_done_orders' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Done Orders" %}</span>
+                        </a>
+                        
+                        <div class="mt-4 pt-4 border-t border-gray-800">
+                            <div class="px-3 mb-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider">New Order</div>
+                            <a href="{% url 'create_order_by_type' 'DINE_IN' %}"
+                               class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-gray-800 text-sm">
+                                <span>{% trans "Dine In" %}</span>
                             </a>
-
-                            <a href="{% url 'table_list' %}"
-                               class="block px-3 py-2 rounded-md hover:bg-gray-800 text-sm {% if request.resolver_match.url_name == 'table_list' %}bg-gray-800{% endif %}">
-                                {% trans "Dining Tables" %}
+                            <a href="{% url 'create_order_by_type' 'TAKEAWAY' %}"
+                               class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-gray-800 text-sm">
+                                <span>{% trans "Takeaway" %}</span>
+                            </a>
+                            <a href="{% url 'create_order_by_type' 'DELIVERY' %}"
+                               class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-gray-800 text-sm">
+                                <span>{% trans "Delivery" %}</span>
                             </a>
                         </div>
-                    </div>
-
-                    <a href="{% url 'loyalty_settings' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'loyalty_settings' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Loyalty Settings" %}</span>
-                    </a>
-
-                    <a href="{% url 'restaurant_reports' %}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_reports' %}bg-gray-800{% endif %}">
-                        <span class="text-sm font-medium">{% trans "Reports" %}</span>
-                    </a>
+                    {% elif request.user.role == "KITCHEN" %}
+                        <a href="{% url 'restaurant_kitchen_dashboard' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_kitchen_dashboard' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Kitchen Dashboard" %}</span>
+                        </a>
+                        <a href="{% url 'restaurant_kitchen_stock' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 {% if request.resolver_match.url_name == 'restaurant_kitchen_stock' %}bg-gray-800{% endif %}">
+                            <span class="text-sm font-medium">{% trans "Inventory Stock" %}</span>
+                        </a>
+                    {% endif %}
 
                 <!-- CASHIER SIDEBAR (clothing cashier role) -->
                 {% elif request.user.role == "CASHIER" %}
