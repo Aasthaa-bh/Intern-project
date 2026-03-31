@@ -3,9 +3,15 @@
 
 from django.db import models
 
-class TableCategory(models.Model):
-    business = models.ForeignKey("core.Business", on_delete=models.CASCADE, related_name="table_categories")
+from django.db import models
 
+
+class TableCategory(models.Model):
+    business = models.ForeignKey(
+        "core.Business",
+        on_delete=models.CASCADE,
+        related_name="table_categories"
+    )
     name = models.CharField(max_length=50)        # Cabin, Inside, Outside
     code_prefix = models.CharField(max_length=2)  # C, T, O
 
@@ -13,16 +19,26 @@ class TableCategory(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ("business", "code_prefix")
+        unique_together = (
+            ("business", "name"),
+            ("business", "code_prefix"),
+        )
+        ordering = ("name",)
+
+    def save(self, *args, **kwargs):
+        self.name = (self.name or "").strip()
+        self.code_prefix = (self.code_prefix or "").strip().upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.business.business_name} - {self.name}"
-    
+
+
 class DiningTable(models.Model):
     STATUS = (
-        ('AVAILABLE', 'Available'),
-        ('OCCUPIED', 'Occupied'),
-        ('RESERVED', 'Reserved'),
+        ("AVAILABLE", "Available"),
+        ("OCCUPIED", "Occupied"),
+        ("RESERVED", "Reserved"),
     )
 
     business = models.ForeignKey("core.Business", on_delete=models.CASCADE)
@@ -38,17 +54,17 @@ class DiningTable(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ("business", "name")
+        unique_together = (("business", "name"),)
+        ordering = ("name",)
 
     def save(self, *args, **kwargs):
-        if not self.name:
+        if self.category_id and self.number:
             self.name = f"{self.category.code_prefix}{self.number}"
+        self.name = (self.name or "").strip().upper()
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.category.name})"
-    
-
 
 
 class Ingredient(models.Model):

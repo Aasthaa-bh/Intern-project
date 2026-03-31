@@ -18,11 +18,18 @@
 {% block content %}
 
 <div class="max-w-2xl mx-auto mt-6">
-
   <div class="card p-6">
 
     <form method="POST" class="space-y-6">
       {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700 text-sm">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -52,18 +59,7 @@
         {% endif %}
       </div>
 
-      <div class="flex items-center gap-2 mt-2">
-
-        {{ form.is_active|add_class:"h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500" }}
-
-        <label class="text-sm text-gray-700 dark:text-gray-300">
-          {% trans "Active" %}
-        </label>
-
-      </div>
-
       <div class="flex items-center gap-4 pt-4">
-
         <button type="submit"
         class="px-6 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
           {% trans "Save" %}
@@ -73,13 +69,10 @@
         class="px-6 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
           {% trans "Back" %}
         </a>
-
       </div>
-
     </form>
 
   </div>
-
 </div>
 
 {% endblock %}

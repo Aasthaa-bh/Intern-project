@@ -21,7 +21,7 @@ def table_category_list(request):
 @owner_required
 def table_category_create(request):
     if request.method == "POST":
-        form = TableCategoryForm(request.POST)
+        form = TableCategoryForm(request.POST, business=request.user.business)
         if form.is_valid():
             category = form.save(commit=False)
             category.business = request.user.business
@@ -29,13 +29,42 @@ def table_category_create(request):
             messages.success(request, "Table category created.")
             return redirect("table_category_list")
     else:
-        form = TableCategoryForm()
+        form = TableCategoryForm(business=request.user.business)
 
     return render(request, "owner/tables/category_form.html", {
         "form": form,
         "mode": "create"
     })
 
+
+@owner_required
+def table_category_edit(request, category_id):
+    category = get_object_or_404(
+        TableCategory,
+        id=category_id,
+        business=request.user.business
+    )
+
+    if request.method == "POST":
+        form = TableCategoryForm(
+            request.POST,
+            instance=category,
+            business=request.user.business
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Table category updated.")
+            return redirect("table_category_list")
+    else:
+        form = TableCategoryForm(
+            instance=category,
+            business=request.user.business
+        )
+
+    return render(request, "owner/tables/category_form.html", {
+        "form": form,
+        "mode": "edit"
+    })
 
 @owner_required
 def table_category_edit(request, category_id):

@@ -16,11 +16,10 @@ def category_list(request):
     })
 
 
-
 @owner_required
 def category_create(request):
     if request.method == "POST":
-        form = CategoryForm(request.POST)
+        form = CategoryForm(request.POST, business=request.user.business)
         if form.is_valid():
             category = form.save(commit=False)
             category.business = request.user.business
@@ -28,7 +27,7 @@ def category_create(request):
             messages.success(request, "Category created successfully.")
             return redirect("category_list")
     else:
-        form = CategoryForm()
+        form = CategoryForm(business=request.user.business)
 
     return render(request, "owner/categories/category_form.html", {
         "form": form,
@@ -45,20 +44,27 @@ def category_edit(request, category_id):
     )
 
     if request.method == "POST":
-        form = CategoryForm(request.POST, instance=category)
+        form = CategoryForm(
+            request.POST,
+            instance=category,
+            business=request.user.business
+        )
         if form.is_valid():
             form.save()
             messages.success(request, "Category updated successfully.")
             return redirect("category_list")
     else:
-        form = CategoryForm(instance=category)
+        form = CategoryForm(
+            instance=category,
+            business=request.user.business
+        )
 
     return render(request, "owner/categories/category_form.html", {
         "form": form,
         "mode": "edit",
-        
     })
-    
+
+
 @owner_required
 def category_delete(request, category_id):
     category = get_object_or_404(
@@ -71,7 +77,7 @@ def category_delete(request, category_id):
         category.delete()
         messages.success(request, "Category deleted successfully.")
         return redirect("category_list")
-    
+
     return render(request, "owner/categories/category_delete.html", {
         "category": category
     })

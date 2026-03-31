@@ -8,6 +8,54 @@ class TableCategoryForm(forms.ModelForm):
         model = TableCategory
         fields = ["name", "code_prefix"]
 
+    def __init__(self, *args, **kwargs):
+        self.business = kwargs.pop("business", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            raise forms.ValidationError("Table category name is required.")
+
+        if self.business:
+            qs = TableCategory.objects.filter(
+                business=self.business,
+                name__iexact=name
+            )
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(
+                    "A table category with this name already exists."
+                )
+
+        return name
+
+    def clean_code_prefix(self):
+        code_prefix = (self.cleaned_data.get("code_prefix") or "").strip().upper()
+
+        if not code_prefix:
+            raise forms.ValidationError("Code prefix is required.")
+
+        if len(code_prefix) > 2:
+            raise forms.ValidationError("Code prefix cannot be more than 2 characters.")
+
+        if self.business:
+            qs = TableCategory.objects.filter(
+                business=self.business,
+                code_prefix__iexact=code_prefix
+            )
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(
+                    "This code prefix is already used by another table category."
+                )
+
+        return code_prefix
+
 
 class DiningTableForm(forms.ModelForm):
     class Meta:
@@ -40,11 +88,11 @@ class DiningTableForm(forms.ModelForm):
                 )
 
         if category and number and self.business:
-            generated_name = f"{category.code_prefix}{number}"
+            generated_name = f"{category.code_prefix}{number}".strip().upper()
 
             qs = DiningTable.objects.filter(
                 business=self.business,
-                name=generated_name
+                name__iexact=generated_name
             )
 
             if self.instance.pk:
