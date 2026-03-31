@@ -169,19 +169,17 @@ def offer_create(request):
             # Save many-to-many relationships
             form.save_m2m()
             
-            # Create notification for offer creation to all clothing businesses
+            # Create notification for offer creation
             from clothing.models import Notification
-            from core.models import Business
-            clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
-            for cb in clothing_businesses:
-                Notification.objects.create(
-                    business=cb,
-                    notification_type='OFFER_CREATED',
-                    title=f'New Offer Created: {offer.offer_name}',
-                    message=f'{offer.get_offer_type_display()} - {offer.get_discount_display()} discount. Valid from {offer.start_date} to {offer.end_date}.',
-                    link=f'/clothing/offers/{offer.id}/',
-                    is_read=False
-                )
+            Notification.objects.create(
+                business=business,
+                notification_type='OFFER_CREATED',
+                target_role='ADMIN',
+                title=f'New Offer Created: {offer.offer_name}',
+                message=f'{offer.get_offer_type_display()} - {offer.get_discount_display()} discount. Valid from {offer.start_date} to {offer.end_date}.',
+                link=f'/clothing/offers/{offer.id}/',
+                is_read=False
+            )
             
             messages.success(request, f'Offer "{offer.offer_name}" created successfully!')
             return redirect('clothing_offer_list')
@@ -212,19 +210,17 @@ def offer_edit(request, offer_id):
         if form.is_valid():
             form.save()
             
-            # Create notification for offer update to all clothing businesses
+            # Create notification for offer update
             from clothing.models import Notification
-            from core.models import Business
-            clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
-            for cb in clothing_businesses:
-                Notification.objects.create(
-                    business=cb,
-                    notification_type='GENERAL',
-                    title=f'Offer Updated: {offer.offer_name}',
-                    message=f'Offer details have been updated. {offer.get_discount_display()} discount.',
-                    link=f'/clothing/offers/{offer.id}/',
-                    is_read=False
-                )
+            Notification.objects.create(
+                business=business,
+                notification_type='GENERAL',
+                target_role='ADMIN',
+                title=f'Offer Updated: {offer.offer_name}',
+                message=f'Offer details have been updated. {offer.get_discount_display()} discount.',
+                link=f'/clothing/offers/{offer.id}/',
+                is_read=False
+            )
             
             messages.success(request, f'Offer "{offer.offer_name}" updated successfully!')
             return redirect('clothing_offer_list')
@@ -251,19 +247,17 @@ def offer_delete(request, offer_id):
         offer_name = offer.offer_name
         offer.delete()
         
-        # Create notification for offer deletion to all clothing businesses
+        # Create notification for offer deletion
         from clothing.models import Notification
-        from core.models import Business
-        clothing_businesses = [b for b in Business.objects.all() if b.is_clothing_business]
-        for cb in clothing_businesses:
-            Notification.objects.create(
-                business=cb,
-                notification_type='GENERAL',
-                title=f'Offer Deleted: {offer_name}',
-                message=f'The offer "{offer_name}" has been permanently deleted.',
-                link='',
-                is_read=False
-            )
+        Notification.objects.create(
+            business=business,
+            notification_type='GENERAL',
+            target_role='ADMIN',
+            title=f'Offer Deleted: {offer_name}',
+            message=f'The offer "{offer_name}" has been permanently deleted.',
+            link='',
+            is_read=False
+        )
         
         messages.success(request, f'Offer "{offer_name}" deleted successfully!')
         return redirect('clothing_offer_list')
@@ -321,6 +315,7 @@ def offer_toggle_status(request, offer_id):
             Notification.objects.create(
                 business=cb,
                 notification_type='GENERAL',
+                target_role='ADMIN',
                 title=f'Offer {status_text.title()}: {offer.offer_name}',
                 message=f'The offer "{offer.offer_name}" has been {status_text}.',
                 link=f'/clothing/offers/{offer.id}/',

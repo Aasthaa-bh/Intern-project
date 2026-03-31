@@ -289,6 +289,33 @@ def esewa_success(request):
 
         # loyalty points
         _handle_loyalty(ep)
+        
+        # Create notifications for successful payment
+        from clothing.models import Notification
+        business = ep.business
+        
+        if business:
+            # Notification for Admin
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_COMPLETED',
+                target_role='ADMIN',
+                title='Payment Completed',
+                message=f'eSewa payment successful. Amount: Rs {ep.amount}. Order: {order.order_no}',
+                link='',
+                is_read=False
+            )
+            
+            # Notification for Cashier
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_COMPLETED',
+                target_role='CASHIER',
+                title='Payment Successful',
+                message=f'Customer payment completed via eSewa. Amount: Rs {ep.amount}. Order: {order.order_no}',
+                link='',
+                is_read=False
+            )
 
     receipt_url = (
         reverse("cashier_receipt", args=[order.id])
@@ -316,6 +343,8 @@ def esewa_failure(request):
 
     EsewaPayment = _esewa_model()
     ep = None
+    business = request.user.business if request.user.is_authenticated and hasattr(request.user, 'business') else None
+    
     if txn_uuid:
         ep = EsewaPayment.objects.filter(transaction_uuid=txn_uuid).first()
         if ep and ep.status == "PENDING":
@@ -327,6 +356,76 @@ def esewa_failure(request):
             if ep.order and ep.order.status == "OPEN":
                 ep.order.status = "CANCELLED"
                 ep.order.save(update_fields=["status"])
+            
+            # Create notifications for payment failure
+            from clothing.models import Notification
+            
+            if business:
+                # Notification for Admin
+                Notification.objects.create(
+                    business=business,
+                    notification_type='PAYMENT_FAILED',
+                    target_role='ADMIN',
+                    title='Payment Failed',
+                    message=f'Payment cancelled or failed. Amount: Rs {ep.amount}. Transaction: {txn_uuid}',
+                    link='',
+                    is_read=False
+                )
+                
+                # Notification for Cashier
+                Notification.objects.create(
+                    business=business,
+                    notification_type='PAYMENT_FAILED',
+                    target_role='CASHIER',
+                    title='Payment Cancelled',
+                    message=f'Customer payment was cancelled or failed. Amount: Rs {ep.amount}. Transaction: {txn_uuid}',
+                    link='',
+                    is_read=False
+                )
+    else:
+        # No transaction UUID - user may have cancelled before eSewa redirect
+        # Try to find the most recent pending payment for this user
+        if business:
+            from clothing.models import Notification
+            
+            # Find most recent pending payment
+            recent_pending = EsewaPayment.objects.filter(
+                business=business,
+                status="PENDING",
+                created_by=request.user
+            ).order_by('-created_at').first()
+            
+            if recent_pending:
+                ep = recent_pending
+                ep.status = "FAILED"
+                ep.failure_reason = "Cancelled by user (no transaction data)"
+                ep.save(update_fields=["status", "failure_reason"])
+                
+                # cancel the order too
+                if ep.order and ep.order.status == "OPEN":
+                    ep.order.status = "CANCELLED"
+                    ep.order.save(update_fields=["status"])
+            
+            # Create notifications even without specific transaction
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='ADMIN',
+                title='Payment Cancelled',
+                message=f'A payment was cancelled by cashier {request.user.username}.',
+                link='',
+                is_read=False
+            )
+            
+            Notification.objects.create(
+                business=business,
+                notification_type='PAYMENT_FAILED',
+                target_role='CASHIER',
+                title='Payment Cancelled',
+                message='Payment was cancelled before completion.',
+                link='',
+                is_read=False
+            )
 
     return render(request, "cashier/esewa_failed.html", {
         "reason": "Payment was cancelled or failed.",

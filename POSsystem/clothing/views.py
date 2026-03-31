@@ -705,6 +705,31 @@ def product_create(request):
             clothing_item.care_note = form.cleaned_data.get("care_note", "")
             clothing_item.save()
 
+            # Create notifications for product creation
+            from .models import Notification
+            
+            # Notification for Admin
+            Notification.objects.create(
+                business=business,
+                notification_type='GENERAL',
+                target_role='ADMIN',
+                title='New Product Added',
+                message=f'Product "{product.name}" has been added to inventory.',
+                link=f'/clothing/products/{product.id}/',
+                is_read=False
+            )
+            
+            # Notification for Cashier (so they know new product is available)
+            Notification.objects.create(
+                business=business,
+                notification_type='GENERAL',
+                target_role='CASHIER',
+                title='New Product Available',
+                message=f'New product "{product.name}" is now available for sale.',
+                link='',
+                is_read=False
+            )
+
             messages.success(request, "Product created successfully.")
             return redirect("clothing_product_detail", product_id=product.id)
     else:
@@ -1614,8 +1639,30 @@ def purchase_receive(request, purchase_id):
 
         if any_received and all_received:
             messages.success(request, "Purchase fully received and stock updated.")
+            # Create notification for purchase received
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='PURCHASE_RECEIVED',
+                target_role='ADMIN',
+                title=f'Purchase Received: {purchase.supplier.name if purchase.supplier else "N/A"}',
+                message=f'Purchase order #{purchase.id} has been fully received. Total: Rs. {purchase.total_amount}',
+                link=f'/clothing/purchases/{purchase.id}/',
+                is_read=False
+            )
         elif any_received:
             messages.success(request, "Partial receive completed and stock updated.")
+            # Create notification for partial receive
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='PURCHASE_RECEIVED',
+                target_role='ADMIN',
+                title=f'Partial Purchase Received: {purchase.supplier.name if purchase.supplier else "N/A"}',
+                message=f'Purchase order #{purchase.id} has been partially received.',
+                link=f'/clothing/purchases/{purchase.id}/',
+                is_read=False
+            )
         else:
             messages.error(request, "No items were received.")
 
@@ -1686,6 +1733,19 @@ def supplier_create(request):
             supplier.business = business
             supplier.save()
             messages.success(request, "Supplier created successfully.")
+            
+            # Create notification for supplier creation
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='GENERAL',
+                target_role='ADMIN',
+                title='New Supplier Added',
+                message=f'Supplier "{supplier.name}" has been added to the system.',
+                link='/clothing/suppliers/',
+                is_read=False
+            )
+            
             return redirect("clothing_supplier_list")
     else:
         form = ClothingSupplierForm()
@@ -1712,6 +1772,19 @@ def supplier_edit(request, supplier_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Supplier updated successfully.")
+            
+            # Create notification for supplier update
+            from clothing.models import Notification
+            Notification.objects.create(
+                business=business,
+                notification_type='GENERAL',
+                target_role='ADMIN',
+                title='Supplier Updated',
+                message=f'Supplier "{supplier.name}" information has been updated.',
+                link='/clothing/suppliers/',
+                is_read=False
+            )
+            
             return redirect("clothing_supplier_list")
     else:
         form = ClothingSupplierForm(instance=supplier)
@@ -1735,17 +1808,43 @@ def supplier_delete(request, supplier_id):
     purchase_count = Purchase.objects.filter(supplier=supplier).count()
 
     if request.method == "POST":
+        supplier_name = supplier.name  # Store name before deletion
+        
         if purchase_count:
             if supplier.is_active:
                 supplier.is_active = False
                 supplier.save(update_fields=["is_active", "updated_at"])
                 messages.success(request, "Supplier is used in purchases, so it was archived instead of deleted.")
+                
+                # Create notification for supplier archive
+                from clothing.models import Notification
+                Notification.objects.create(
+                    business=business,
+                    notification_type='GENERAL',
+                    target_role='ADMIN',
+                    title='Supplier Archived',
+                    message=f'Supplier "{supplier_name}" has been archived (used in purchases).',
+                    link='/clothing/suppliers/',
+                    is_read=False
+                )
             else:
                 messages.info(request, "Supplier is already inactive and kept for purchase history.")
         else:
             try:
                 supplier.delete()
                 messages.success(request, "Supplier deleted successfully.")
+                
+                # Create notification for supplier deletion
+                from clothing.models import Notification
+                Notification.objects.create(
+                    business=business,
+                    notification_type='GENERAL',
+                    target_role='ADMIN',
+                    title='Supplier Deleted',
+                    message=f'Supplier "{supplier_name}" has been permanently deleted.',
+                    link='/clothing/suppliers/',
+                    is_read=False
+                )
             except ProtectedError:
                 messages.error(request, "Supplier cannot be deleted because it is used in purchases.")
         return redirect("clothing_supplier_list")

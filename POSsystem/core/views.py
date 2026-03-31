@@ -485,8 +485,8 @@ def clothing_owner_dashboard(request):
         "max_products": max_products,
         "remaining_users": remaining_users,
         "remaining_products": remaining_products,
-        "current_business": business,
-        "current_business_type": "clothing",
+        # Don't set current_business and current_business_type here
+        # They are provided by the notifications context processor
     }
     return render(request, "owner/dashboard_clothing.html", context)
 
