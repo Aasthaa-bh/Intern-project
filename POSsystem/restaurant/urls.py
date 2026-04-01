@@ -37,6 +37,7 @@ urlpatterns = [
     path("owner/table-categories/<int:category_id>/edit/", views_table.table_category_edit, name="table_category_edit"),
     path("owner/table-categories/<int:category_id>/delete/", views_table.table_category_delete, name="table_category_delete"),
     path("owner/reports/", views_reports.restaurant_reports, name="restaurant_reports"),
+    path("owner/reports/export/csv/", views_reports.export_restaurant_report_csv, name="export_restaurant_report_csv"),
     # Reception Dashboard
     path('reception/', views.reception_dashboard, name='reception_dashboard'),
     
@@ -90,4 +91,4 @@ urlpatterns = [
     path('owner/notifications/<int:notification_id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
     path('owner/notifications/read-all/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
     path('owner/notifications/fetch/', views.fetch_notifications, name='fetch_notifications'),
-]
+]

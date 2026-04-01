@@ -42,6 +42,9 @@
             --radius-sm: 10px;
         }
 
+        .hidden {
+            display: none;
+        }
         * { box-sizing: border-box; }
 
         body {
@@ -190,6 +193,9 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            flex: 1;
+            width: calc(100% - 272px);
+            min-width: 0;
         }
 
         .fp-topbar {
@@ -223,8 +229,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
+            flex-shrink: 0;
         }
-
         .fp-icon-btn {
             width: 42px;
             height: 42px;
@@ -265,6 +272,8 @@
             font-size: 14px;
             font-weight: 700;
             color: var(--text);
+            cursor: pointer;
+            white-space: nowrap;
         }
 
         .fp-avatar {
@@ -465,6 +474,53 @@
         .fp-alert.warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
         .fp-alert.info { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 
+
+            .hidden {
+                display: none !important;
+            }
+
+            .fp-user-wrap {
+                position: relative;
+                display: inline-block;
+            }
+
+            .fp-user-dropdown {
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                background: #fff;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                box-shadow: 0 10px 28px rgba(15,23,42,0.12);
+                z-index: 300;
+                min-width: 200px;
+                max-width: 240px;
+                overflow: hidden;
+            }
+
+            .fp-user-dropdown-header {
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border);
+                background: #f8faff;
+            }
+
+            .fp-user-name {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text);
+                line-height: 1.3;
+                word-break: break-word;
+            }
+
+            .fp-user-role {
+                font-size: 11px;
+                color: var(--text-muted);
+                margin-top: 3px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                line-height: 1.3;
+            }
+
         @media (max-width: 991px) {
             .fp-sidebar {
                 position: relative;
@@ -474,6 +530,25 @@
 
             .fp-main {
                 margin-left: 0;
+            }
+
+
+            .fp-avatar-btn {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 6px 14px 6px 6px;
+                border-radius: 999px;
+                border: 1px solid var(--border);
+                background: #fff;
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--text);
+                cursor: pointer;
+            }
+
+            .fp-avatar-btn:hover {
+                background: var(--surface-raised);
             }
         }
     </style>
@@ -503,59 +578,46 @@
         <nav class="fp-nav">
 
             {% if user.role == "KITCHEN" %}
-            {# Kitchen staff: only kitchen-related links #}
-            <div class="fp-nav-section-label">Kitchen</div>
+                <div class="fp-nav-section-label">Kitchen</div>
 
-            <a href="{% url 'restaurant_kitchen_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_dashboard' %}active{% endif %}">
-                <span>👨‍🍳</span><span>Kitchen Dashboard</span>
-            </a>
+                <a href="{% url 'restaurant_kitchen_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_dashboard' %}active{% endif %}">
+                    <span>👨‍🍳</span><span>Kitchen Dashboard</span>
+                </a>
 
-            <a href="{% url 'restaurant_kitchen_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_stock' or request.resolver_match.url_name == 'restaurant_kitchen_stock_change_edit' %}active{% endif %}">
-                <span>🥬</span><span>Kitchen Stock</span>
-            </a>
+                <a href="{% url 'restaurant_kitchen_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_stock' or request.resolver_match.url_name == 'restaurant_kitchen_stock_change_edit' %}active{% endif %}">
+                    <span>🥬</span><span>Kitchen Stock</span>
+                </a>
 
             {% else %}
-            {# Reception / Owner staff: full operations sidebar #}
-            <div class="fp-nav-section-label">Operations</div>
+                <div class="fp-nav-section-label">Operations</div>
 
-            <a href="{% url 'reception_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'reception_dashboard' %}active{% endif %}">
-                <span>📊</span><span>Reception Dashboard</span>
-            </a>
+                <a href="{% url 'reception_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'reception_dashboard' %}active{% endif %}">
+                    <span>📊</span><span>Reception Dashboard</span>
+                </a>
 
-            <a href="{% url 'table_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'table_check' %}active{% endif %}">
-                <span>🪑</span><span>Tables</span>
-            </a>
+                <a href="{% url 'table_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'table_check' %}active{% endif %}">
+                    <span>🪑</span><span>Tables</span>
+                </a>
 
-            <a href="{% url 'pending_invoices' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_invoices' %}active{% endif %}">
-                <span>📄</span><span>Pending Invoices</span>
-            </a>
+                <a href="{% url 'pending_invoices' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_invoices' %}active{% endif %}">
+                    <span>📄</span><span>Pending Invoices</span>
+                </a>
 
-            <a href="{% url 'payment_history' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}">
-                <span>💳</span><span>Payment History</span>
-            </a>
+                <a href="{% url 'payment_history' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}">
+                    <span>💳</span><span>Payment History</span>
+                </a>
 
-            <a href="{% url 'pending_payments_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_payments_list' %}active{% endif %}">
-                <span>⏳</span><span>Pending Payments</span>
-            </a>
+                <a href="{% url 'pending_payments_list' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'pending_payments_list' %}active{% endif %}">
+                    <span>⏳</span><span>Pending Payments</span>
+                </a>
 
-            <a href="{% url 'loyalty_points_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'loyalty_points_check' %}active{% endif %}">
-                <span>⭐</span><span>Loyalty Points</span>
-            </a>
+                <a href="{% url 'loyalty_points_check' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'loyalty_points_check' %}active{% endif %}">
+                    <span>⭐</span><span>Loyalty Points</span>
+                </a>
 
-            <a href="{% url 'daily_payment_report' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'daily_payment_report' %}active{% endif %}">
-                <span>📈</span><span>Daily Report</span>
-            </a>
-
-            <div class="fp-nav-section-label">Kitchen</div>
-
-            <a href="{% url 'restaurant_kitchen_dashboard' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_dashboard' %}active{% endif %}">
-                <span>👨‍🍳</span><span>Kitchen Dashboard</span>
-            </a>
-
-            <a href="{% url 'restaurant_kitchen_stock' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'restaurant_kitchen_stock' or request.resolver_match.url_name == 'restaurant_kitchen_stock_change_edit' %}active{% endif %}">
-                <span>🥬</span><span>Kitchen Stock</span>
-            </a>
-
+                <a href="{% url 'daily_payment_report' %}" class="fp-nav-item {% if request.resolver_match.url_name == 'daily_payment_report' %}active{% endif %}">
+                    <span>📈</span><span>Daily Report</span>
+                </a>
             {% endif %}
 
 
@@ -573,30 +635,40 @@
             </div>
 
             <div class="fp-topbar-right">
-                <div class="fp-icon-btn" title="Notifications">
-                    🔔
-                </div>
-
-                {% if user.is_authenticated %}
-                <div style="position:relative;">
-                    <button type="button" class="fp-avatar-btn" onclick="this.nextElementSibling.classList.toggle('hidden')" style="cursor:pointer; border:none;">
-                        <div class="fp-avatar">{{ user.username|slice:":1"|upper }}</div>
-                        <span>{{ user.get_full_name|default:user.username }}</span>
-                        <svg style="width:12px;height:12px;opacity:0.5;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div class="hidden" style="position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 28px rgba(15,23,42,0.12);z-index:200;min-width:180px;overflow:hidden;">
-                        <div style="padding:12px 16px;border-bottom:1px solid var(--border);background:#f8faff;">
-                            <div style="font-size:13px;font-weight:700;color:var(--text);">{{ user.get_full_name|default:user.username }}</div>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;">{{ user.get_role_display|default:user.role }}</div>
-                        </div>
-                        <a href="{% url 'logout' %}" style="display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;color:#ef4444;text-decoration:none;font-weight:600;transition:background 0.1s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
-                            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            Logout
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
+            <div class="fp-icon-btn" title="Notifications">
+                🔔
             </div>
+
+            {% if user.is_authenticated %}
+            <div class="fp-user-wrap">
+                <button type="button" class="fp-avatar-btn" id="fpUserToggle">
+                    <div class="fp-avatar">{{ user.username|slice:":1"|upper }}</div>
+                    <span>{{ user.username }}</span>
+                    <svg style="width:12px;height:12px;opacity:0.5;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div class="fp-user-dropdown hidden" id="fpUserDropdown">
+                    <div class="fp-user-dropdown-header">
+                        <div class="fp-user-name">{{ user.username }}</div>
+                        <div class="fp-user-role">{{ user.get_role_display|default:user.role }}</div>
+                    </div>
+
+                    <a href="{% url 'logout' %}"
+                    style="display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;color:#ef4444;text-decoration:none;font-weight:600;transition:background 0.1s;"
+                    onmouseover="this.style.background='#fef2f2'"
+                    onmouseout="this.style.background='transparent'">
+                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Logout
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
         </header>
 
         <main class="fp-content">
@@ -616,13 +688,31 @@
 
 {% block extra_js %}{% endblock %}
 <script>
-    document.addEventListener('click', function(e) {
-        document.querySelectorAll('.fp-topbar-right > div > div:not(.hidden)').forEach(function(drop) {
-            if (!drop.parentElement.contains(e.target)) {
-                drop.classList.add('hidden');
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.getElementById('fpUserToggle');
+    const dropdown = document.getElementById('fpUserDropdown');
+
+    if (toggle && dropdown) {
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        dropdown.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', function () {
+            dropdown.classList.add('hidden');
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                dropdown.classList.add('hidden');
             }
         });
-    });
+    }
+});
 </script>
 </body>
 </html>
