@@ -112,26 +112,27 @@ WSGI_APPLICATION = "POSsystem.wsgi.application"
 #     }
 # }
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 import pymysql
 pymysql.install_as_MySQLdb()
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("MYSQLDATABASE", "railway"),
-        "USER": os.getenv("MYSQLUSER", "root"),
-        "PASSWORD": os.getenv("MYSQLPASSWORD", "OKONuNPvkZshFqeHzNcidiZBLgbvXxyE"),
-        "HOST": os.getenv("MYSQLHOST", "crossover.proxy.rlwy.net"),
-        "PORT": os.getenv("MYSQLPORT", "38652"),
+        "NAME": "flexiipos_db",
+        "USER": "root",
+        "PASSWORD": "aastha",
+        "HOST": "localhost",
+        "PORT": "3306",
         "OPTIONS": {
             "charset": "utf8mb4",
         },
     }
 }
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
